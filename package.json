@@ -4,6 +4,7 @@
   "description": "Javascript Client for Test Track",
   "main": "dist/testTrack.js",
   "scripts": {
+    "preinstall": "bower install",
     "test": "grunt test"
   },
   "contributors": [

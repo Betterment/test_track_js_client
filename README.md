@@ -1,4 +1,4 @@
-# Test Track JS Client
+# TestTrack JS Client
 
 This is the JavaScript client library for the [TestTrack](https://github.com/Betterment/test_track) system.
 
@@ -22,55 +22,9 @@ npm install test_track_js_client --save
 
 You can find the latest version of the test track JS client [here](https://github.com/Betterment/test_track_js_client/releases).
 
-The test track JS client has the following dependencies: `blueimp-md5`, `node-uuid`, `jquery` and `jquery.cookie`.
+The test track JS client currently has the following dependencies: `blueimp-md5`, `node-uuid`, `jquery` and `jquery.cookie`.
 
-### Basic setup
-
-If you're not using a fancy build pipeline ([grunt](http://gruntjs.com/), [gulp](http://gulpjs.com/), [broccoli](http://broccolijs.com/), [webpack](https://webpack.github.io/)), then you have a few other options for loading the client into your page.
-
-You can load the dependencies and the library via `script` tags, like this:
-```html
-<script type="text/javascript" src="path/to/deps/jquery/dist/jquery.js"></script>
-<script type="text/javascript" src="path/to/deps/jquery.cookie/jquery.cookie.js"></script>
-<script type="text/javascript" src="path/to/deps/blueimp-md5/js/md5.js"></script>
-<script type="text/javascript" src="path/to/deps/node-uuid/uuid.js"></script>
-<script type="text/javascript" src="path/to/deps/test_track_js_client/dist/testTrack.min.js"></script>
-```
-
-Or, you can load the bundled and minified version of the client that includes all of the dependencies for you (except jQuery), like this:
-```html
-<script type="text/javascript" src="path/to/deps/jquery/dist/jquery.js"></script>
-<script type="text/javascript" src="path/to/deps/test_track_js_client/dist/testTrack.bundled.min.js"></script>
-```
-
-Or, you can just use a fancy build pipeline.
-
-### RequireJS setup
-
-You must provide aliases for the test track JS client's dependencies in your RequireJS config like so:
-
-```js
-require.config({
-    paths: {
-        'jquery': 'path/to/deps/jquery/dist/jquery.js',
-        'jquery.cookie': 'path/to/deps/jquery.cookie/jquery.cookie.js',
-        'node-uuid': 'path/to/deps/node-uuid/uuid',
-        'blueimp-md5': 'path/to/deps/blueimp-md5/js/md5'
-    }
-});
-```
-Then you can require the test track client anywhere you need it in classic requirejs style:
-```js
-var TestTrack = require('path/to/deps/test_track_js_client/dist/testTrack');
-```
-OR
-```js
-define([
-'path/to/deps/test_track_js_client/dist/testTrack'
-], function(TestTrack) {
-
-});
-```
+If you're using a fancy build pipeline ([grunt](http://gruntjs.com/), [gulp](http://gulpjs.com/), [broccoli](http://broccolijs.com/), [webpack](https://webpack.github.io/)), then you are all set. If not, you have a few other [options](#alternative-setup) for loading the client into your page.
 
 ## Configuration
 
@@ -121,7 +75,7 @@ The `ab` method is used exclusively for two-way splits and feature toggles. It t
 * `options` -- The second argument is an object that contains the `context`, an optional `trueVariant`, and a `callback` function.
   * `context` -- is a string that the developer provides so that the test track server can record where an assignment was first created. If a call to `vary` is made in more than one place for a given split, you'll be able to see which codepath was hit first.
   * `trueVariant` -- an optional parameter that specifies which variant is the "true" variant and the other variant will be used as the default. Without the true variant, `ab` will assume that the variants for the split are named `'true'` and `'false'`.
-  * `callback` -- a single function that will be called for all variants. If the `trueVariant` is assigned to the visitor then `true` will be passed to the `callback`. 
+  * `callback` -- a single function that will be called for all variants. If the `trueVariant` is assigned to the visitor then `true` will be passed to the `callback`.
 
   ```js
   TestTrack.ab('name_of_split', {
@@ -190,6 +144,54 @@ TestTrack.initialize({
     onVisitorLoaded: function(visitor) {
         // callback that will run after the test track visitor has loaded, but before any analytics events have fired
     }
+});
+```
+
+## Alternative Setup
+
+**This is only if you're not using a build pipeline**
+
+### Simple HTML setup
+
+You can load the dependencies and the library via `script` tags, like this:
+```html
+<script type="text/javascript" src="path/to/deps/jquery/dist/jquery.js"></script>
+<script type="text/javascript" src="path/to/deps/jquery.cookie/jquery.cookie.js"></script>
+<script type="text/javascript" src="path/to/deps/blueimp-md5/js/md5.js"></script>
+<script type="text/javascript" src="path/to/deps/node-uuid/uuid.js"></script>
+<script type="text/javascript" src="path/to/deps/test_track_js_client/dist/testTrack.min.js"></script>
+```
+
+Or, you can load the bundled and minified version of the client that includes all of the dependencies for you (except jQuery), like this:
+```html
+<script type="text/javascript" src="path/to/deps/jquery/dist/jquery.js"></script>
+<script type="text/javascript" src="path/to/deps/test_track_js_client/dist/testTrack.bundled.min.js"></script>
+```
+
+### RequireJS setup
+
+You must provide aliases for the test track JS client's dependencies in your RequireJS config like so:
+
+```js
+require.config({
+    paths: {
+        'jquery': 'path/to/deps/jquery/dist/jquery.js',
+        'jquery.cookie': 'path/to/deps/jquery.cookie/jquery.cookie.js',
+        'node-uuid': 'path/to/deps/node-uuid/uuid',
+        'blueimp-md5': 'path/to/deps/blueimp-md5/js/md5'
+    }
+});
+```
+Then you can require the test track client anywhere you need it in classic requirejs style:
+```js
+var TestTrack = require('path/to/deps/test_track_js_client/dist/testTrack');
+```
+OR
+```js
+define([
+'path/to/deps/test_track_js_client/dist/testTrack'
+], function(TestTrack) {
+
 });
 ```
 

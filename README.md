@@ -197,10 +197,21 @@ define([
 });
 ```
 
-## Development
+## How to Contribute
+
+We would love for you to contribute! Anything that benefits the majority of `test_track` users—from a documentation fix to an entirely new feature—is encouraged.
+
+Before diving in, [check our issue tracker](//github.com/Betterment/test_track_js_client/issues) and consider creating a new issue to get early feedback on your proposed change.
+
+### Suggested Workflow
+
+1. Fork the project and create a new branch for your contribution.
+1. Write your contribution (and any applicable test coverage).
+1. Make sure all tests pass.
+1. Submit a pull request.
 
 ### Running tests
-1. Clone this repo
+
 1. run `npm install` to download npm dependencies
 1. run `bower install` to download bower dependencies
 1. run `grunt` to run the tests and build the distributables

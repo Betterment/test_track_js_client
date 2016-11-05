@@ -1,16 +1,16 @@
 describe('Session', function() {
     beforeEach(function() {
         sandbox.stub(TestTrackConfig, 'getCookieDomain').returns('.example.com');
+        sandbox.stub(TestTrackConfig, 'getCookieName').returns('custom_cookie_name');
     });
 
     describe('Cookie behavior', function() {
-
         it('reads the visitor id from a cookie and sets it back in the cookie', function() {
             var visitor = new Visitor({
                     id: 'existing_visitor_id',
                     assignments: []
                 }),
-                cookieStub = sandbox.stub($, 'cookie').withArgs('tt_visitor_id').returns('existing_visitor_id'),
+                cookieStub = sandbox.stub($, 'cookie').withArgs('custom_cookie_name').returns('existing_visitor_id'),
                 loadVisitorStub = sandbox.stub(Visitor, 'loadVisitor').returns($.Deferred().resolve(visitor).promise());
 
             new Session().getPublicAPI().initialize();
@@ -19,8 +19,8 @@ describe('Session', function() {
             expect(loadVisitorStub).to.be.calledWithExactly('existing_visitor_id');
 
             expect(cookieStub).to.be.calledTwice;
-            expect(cookieStub.firstCall).to.be.calledWithExactly('tt_visitor_id');
-            expect(cookieStub.secondCall).to.be.calledWithExactly('tt_visitor_id', 'existing_visitor_id', {
+            expect(cookieStub.firstCall).to.be.calledWithExactly('custom_cookie_name');
+            expect(cookieStub.secondCall).to.be.calledWithExactly('custom_cookie_name', 'existing_visitor_id', {
                 expires: 365,
                 path: '/',
                 domain: '.example.com'
@@ -28,13 +28,13 @@ describe('Session', function() {
         });
 
         it('saves the visitor id in a cookie', function() {
-            var cookieStub = sandbox.stub($, 'cookie').withArgs('tt_visitor_id').returns(null);
+            var cookieStub = sandbox.stub($, 'cookie').withArgs('custom_cookie_name').returns(null);
 
             new Session().getPublicAPI().initialize();
 
             expect(cookieStub).to.be.calledTwice;
-            expect(cookieStub.firstCall).to.be.calledWithExactly('tt_visitor_id');
-            expect(cookieStub.secondCall).to.be.calledWithExactly('tt_visitor_id', sandbox.match(/^[a-zA-Z0-9\-]{36}$/), {
+            expect(cookieStub.firstCall).to.be.calledWithExactly('custom_cookie_name');
+            expect(cookieStub.secondCall).to.be.calledWithExactly('custom_cookie_name', sandbox.match(/^[a-zA-Z0-9\-]{36}$/), {
                 expires: 365,
                 path: '/',
                 domain: '.example.com'
@@ -106,15 +106,14 @@ describe('Session', function() {
         });
 
         describe('#logIn()', function() {
-            it('updates the tt_visitor_id in the cookie', function(done) {
+            it('updates the visitor id in the cookie', function(done) {
                 var cookieStub = sandbox.stub($, 'cookie');
-
 
                 this.session.logIn('myappdb_user_id', 444).then(function() {
                     expect(this.visitor.linkIdentifier).to.be.calledOnce;
                     expect(this.visitor.linkIdentifier).to.be.calledWithExactly('myappdb_user_id', 444);
                     expect(cookieStub).to.be.calledOnce;
-                    expect(cookieStub).to.be.calledWithExactly('tt_visitor_id', 'other_visitor_id', {
+                    expect(cookieStub).to.be.calledWithExactly('custom_cookie_name', 'other_visitor_id', {
                         expires: 365,
                         path: '/',
                         domain: '.example.com'
@@ -134,14 +133,14 @@ describe('Session', function() {
         });
 
         describe('#signUp()', function() {
-            it('updates the tt_visitor_id in the cookie', function(done) {
+            it('updates the visitor id in the cookie', function(done) {
                 var cookieStub = sandbox.stub($, 'cookie');
 
                 this.session.signUp('myappdb_user_id', 444).then(function() {
                     expect(this.visitor.linkIdentifier).to.be.calledOnce;
                     expect(this.visitor.linkIdentifier).to.be.calledWithExactly('myappdb_user_id', 444);
                     expect(cookieStub).to.be.calledOnce;
-                    expect(cookieStub).to.be.calledWithExactly('tt_visitor_id', 'other_visitor_id', {
+                    expect(cookieStub).to.be.calledWithExactly('custom_cookie_name', 'other_visitor_id', {
                         expires: 365,
                         path: '/',
                         domain: '.example.com'

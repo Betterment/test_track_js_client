@@ -161,7 +161,8 @@
     })();
     
     var TestTrackConfig = (function() { // jshint ignore:line
-        var config,
+        var DEFAULT_TT_VISITOR_ID_COOKIE_NAME = 'tt_visitor_id',
+            config,
             assignments,
             getConfig = function() {
                 if (!config) {
@@ -172,12 +173,20 @@
             };
     
         return {
+            _clear: function() {
+                config = null;
+            },
+    
             getUrl: function() {
                 return getConfig().url;
             },
     
             getCookieDomain: function() {
                 return getConfig().cookieDomain;
+            },
+    
+            getCookieName: function() {
+                return getConfig().cookieName || DEFAULT_TT_VISITOR_ID_COOKIE_NAME;
             },
     
             getSplitRegistry: function() {
@@ -658,13 +667,12 @@
     })();
     
     var Session = (function() { // jshint ignore:line
-        var VISITOR_COOKIE_NAME = 'tt_visitor_id',
-            _Session = function() {
+        var _Session = function() {
                 this._visitorDeferred = $.Deferred();
             };
     
         _Session.prototype.initialize = function(options) {
-            var visitorId = $.cookie(VISITOR_COOKIE_NAME);
+            var visitorId = $.cookie(TestTrackConfig.getCookieName());
     
             this._visitorDeferred.then(function(visitor) {
                 visitor.notifyUnsyncedAssignments();
@@ -731,7 +739,7 @@
     
         _Session.prototype._setCookie = function() {
             this._visitorDeferred.then(function(visitor) {
-                $.cookie(VISITOR_COOKIE_NAME, visitor.getId(), {
+                $.cookie(TestTrackConfig.getCookieName(), visitor.getId(), {
                     expires: 365,
                     path: '/',
                     domain: TestTrackConfig.getCookieDomain()

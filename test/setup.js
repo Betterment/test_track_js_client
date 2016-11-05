@@ -6,4 +6,5 @@ beforeEach(function() {
 
 afterEach(function() {
     sandbox.restore();
+    TestTrackConfig._clear();
 });

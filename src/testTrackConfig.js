@@ -1,5 +1,6 @@
 var TestTrackConfig = (function() { // jshint ignore:line
-    var config,
+    var DEFAULT_VISITOR_COOKIE_NAME = 'tt_visitor_id',
+        config,
         assignments,
         getConfig = function() {
             if (!config) {
@@ -10,12 +11,20 @@ var TestTrackConfig = (function() { // jshint ignore:line
         };
 
     return {
+        _clear: function() {
+            config = null;
+        },
+
         getUrl: function() {
             return getConfig().url;
         },
 
         getCookieDomain: function() {
             return getConfig().cookieDomain;
+        },
+
+        getCookieName: function() {
+            return getConfig().cookieName || DEFAULT_VISITOR_COOKIE_NAME;
         },
 
         getSplitRegistry: function() {

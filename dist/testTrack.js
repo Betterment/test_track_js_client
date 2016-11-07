@@ -161,7 +161,7 @@
     })();
     
     var TestTrackConfig = (function() { // jshint ignore:line
-        var DEFAULT_TT_VISITOR_ID_COOKIE_NAME = 'tt_visitor_id',
+        var DEFAULT_VISITOR_COOKIE_NAME = 'tt_visitor_id',
             config,
             assignments,
             getConfig = function() {
@@ -186,7 +186,7 @@
             },
     
             getCookieName: function() {
-                return getConfig().cookieName || DEFAULT_TT_VISITOR_ID_COOKIE_NAME;
+                return getConfig().cookieName || DEFAULT_VISITOR_COOKIE_NAME;
             },
     
             getSplitRegistry: function() {

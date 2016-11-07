@@ -1,11 +1,10 @@
 var Session = (function() { // jshint ignore:line
-    var VISITOR_COOKIE_NAME = 'tt_visitor_id',
-        _Session = function() {
+    var _Session = function() {
             this._visitorDeferred = $.Deferred();
         };
 
     _Session.prototype.initialize = function(options) {
-        var visitorId = $.cookie(VISITOR_COOKIE_NAME);
+        var visitorId = $.cookie(TestTrackConfig.getCookieName());
 
         this._visitorDeferred.then(function(visitor) {
             visitor.notifyUnsyncedAssignments();
@@ -72,7 +71,7 @@ var Session = (function() { // jshint ignore:line
 
     _Session.prototype._setCookie = function() {
         this._visitorDeferred.then(function(visitor) {
-            $.cookie(VISITOR_COOKIE_NAME, visitor.getId(), {
+            $.cookie(TestTrackConfig.getCookieName(), visitor.getId(), {
                 expires: 365,
                 path: '/',
                 domain: TestTrackConfig.getCookieDomain()

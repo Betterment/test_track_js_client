@@ -1,20 +1,24 @@
 describe('TestTrackConfig', function() {
+    var cookieName;
+
     beforeEach(function() {
-        var configParser = new ConfigParser();
-        sandbox.stub(configParser, 'getConfig').returns({
-            url: "http://testtrack.dev",
-            cookieDomain: ".example.com",
-            registry: {
-                jabba: { cgi: 50, puppet: 50 },
-                wine: { red: 50, white: 25, rose: 25 }
-            },
-            assignments: {
-                jabba: 'puppet',
-                wine: 'rose'
+        sandbox.stub(window, 'ConfigParser').returns({
+            getConfig: function() {
+                return {
+                    url: "http://testtrack.dev",
+                    cookieDomain: ".example.com",
+                    cookieName: cookieName,
+                    registry: {
+                        jabba: { cgi: 50, puppet: 50 },
+                        wine: { red: 50, white: 25, rose: 25 }
+                    },
+                    assignments: {
+                        jabba: 'puppet',
+                        wine: 'rose'
+                    }
+                };
             }
         });
-
-        sandbox.stub(window, 'ConfigParser').returns(configParser);
     });
 
     describe('.getUrl()', function() {
@@ -26,6 +30,28 @@ describe('TestTrackConfig', function() {
     describe('.getCookieDomain()', function() {
         it('grabs the correct value from the ConfigParser', function() {
             expect(TestTrackConfig.getCookieDomain()).to.equal('.example.com');
+        });
+    });
+
+    describe('.getCookieName()', function() {
+        describe('when there is a configured cookie name', function() {
+            beforeEach(function() {
+                cookieName = 'custom_cookie_name';
+            });
+
+            it('grabs the correct value from the ConfigParser', function() {
+                expect(TestTrackConfig.getCookieName()).to.equal('custom_cookie_name');
+            });
+        });
+
+        describe('when there is no configured cookie name', function() {
+            beforeEach(function() {
+                cookieName = undefined;
+            });
+
+            it('uses the default cookie name', function() {
+                expect(TestTrackConfig.getCookieName()).to.equal('tt_visitor_id');
+            });
         });
     });
 

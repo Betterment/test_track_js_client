@@ -31,11 +31,11 @@
     "grunt-release-it": "^1.0.0"
   },
   "dependencies": {
+    "base-64": "0.1.0",
     "blueimp-md5": "1.1.1",
-    "node-uuid": "1.4.2",
     "jquery": "~2.1.0",
     "jquery.cookie": "1.4.1",
-    "base-64": "0.1.0"
+    "uuid": "^3.0.0"
   },
   "repository": {
     "type": "git",

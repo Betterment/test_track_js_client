@@ -24,7 +24,7 @@ npm install test_track_js_client --save
 
 You can find the latest version of the test track JS client [here](https://github.com/Betterment/test_track_js_client/releases).
 
-The test track JS client currently has the following dependencies: `blueimp-md5`, `node-uuid`, `jquery` and `jquery.cookie`.
+The test track JS client currently has the following dependencies: `blueimp-md5`, `uuid`, `jquery` and `jquery.cookie`.
 
 If you're using a fancy build pipeline ([grunt](http://gruntjs.com/), [gulp](http://gulpjs.com/), [broccoli](http://broccolijs.com/), [webpack](https://webpack.github.io/)), then you are all set. If not, you have a few other [options](#alternative-setup) for loading the client into your page.
 
@@ -160,7 +160,7 @@ You can load the dependencies and the library via `script` tags, like this:
 <script type="text/javascript" src="path/to/deps/jquery/dist/jquery.js"></script>
 <script type="text/javascript" src="path/to/deps/jquery.cookie/jquery.cookie.js"></script>
 <script type="text/javascript" src="path/to/deps/blueimp-md5/js/md5.js"></script>
-<script type="text/javascript" src="path/to/deps/node-uuid/uuid.js"></script>
+<script type="text/javascript" src="path/to/deps/uuid/uuid.js"></script>
 <script type="text/javascript" src="path/to/deps/test_track_js_client/dist/testTrack.min.js"></script>
 ```
 
@@ -179,7 +179,7 @@ require.config({
     paths: {
         'jquery': 'path/to/deps/jquery/dist/jquery.js',
         'jquery.cookie': 'path/to/deps/jquery.cookie/jquery.cookie.js',
-        'node-uuid': 'path/to/deps/node-uuid/uuid',
+        'uuid': 'path/to/deps/uuid/uuid',
         'blueimp-md5': 'path/to/deps/blueimp-md5/js/md5'
     }
 });

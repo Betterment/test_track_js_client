@@ -10,7 +10,7 @@ module.exports = function(config) {
 
         files: [
             // Dependencies
-            'bower_components/node-uuid/uuid.js',
+            'bower_components/uuid/uuid.js',
             'bower_components/blueimp-md5/js/md5.js',
             'bower_components/jquery/dist/jquery.js',
             'bower_components/jquery.cookie/jquery.cookie.js',

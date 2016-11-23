@@ -4,7 +4,7 @@
         // AMD. Register as an anonymous module.
         define(['node-uuid', 'blueimp-md5', 'jquery', 'base-64', 'jquery.cookie'], factory);
     } else if (typeof exports !== 'undefined') {
-        var uuid = require('node-uuid'),
+        var uuid = require('uuid'),
             md5 = require('blueimp-md5'),
             jquery = require('jquery'),
             base64 = require('base-64'),

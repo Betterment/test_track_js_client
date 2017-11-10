@@ -18,10 +18,10 @@ module.exports = function(grunt) {
                 configFile: 'test/karma.conf.js'
             },
             run: {
-                browsers: ['PhantomJS']
+                browsers: ['ChromeHeadless']
             },
             crossBrowser: {
-                browsers: ['PhantomJS', 'Chrome', 'Firefox']
+                browsers: ['ChromeHeadless', 'Chrome', 'Firefox']
             }
         },
 
@@ -42,10 +42,10 @@ module.exports = function(grunt) {
                 files: {
                     'dist/testTrack.min.js': ['dist/testTrack.js'],
                     'dist/testTrack.bundle.min.js': [
-                        'bower_components/base-64/base64.js',
-                        'bower_components/blueimp-md5/js/md5.js',
-                        'bower_components/node-uuid/uuid.js',
-                        'bower_components/jquery.cookie/jquery.cookie.js',
+                        'node_modules/base-64/base64.js',
+                        'node_modules/blueimp-md5/js/md5.js',
+                        'node_modules/node-uuid/uuid.js',
+                        'node_modules/jquery.cookie/jquery.cookie.js',
                         'dist/testTrack.js'
                     ]
                 }
@@ -54,7 +54,7 @@ module.exports = function(grunt) {
 
         'release-it': {
             options: {
-                pkgFiles: ['package.json', 'bower.json'],
+                pkgFiles: ['package.json'],
                 buildCommand: 'grunt',
                 npm: false
             }

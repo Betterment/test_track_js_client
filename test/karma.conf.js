@@ -10,11 +10,11 @@ module.exports = function(config) {
 
         files: [
             // Dependencies
-            'bower_components/node-uuid/uuid.js',
-            'bower_components/blueimp-md5/js/md5.js',
-            'bower_components/jquery/dist/jquery.js',
-            'bower_components/jquery.cookie/jquery.cookie.js',
-            'bower_components/base-64/base64.js',
+            'node_modules/node-uuid/uuid.js',
+            'node_modules/blueimp-md5/js/md5.js',
+            'node_modules/jquery/dist/jquery.js',
+            'node_modules/jquery.cookie/jquery.cookie.js',
+            'node_modules/base-64/base64.js',
 
             // PhantomJS 1.9.8 doesn't have Function.prototype.bind
             'node_modules/es5-shim/es5-shim.js',
@@ -53,10 +53,10 @@ module.exports = function(config) {
         // - Chrome
         // - ChromeCanary
         // - Firefox
-        // - Opera (has to be installed with `npm install karma-opera-launcher`)
-        // - Safari (only Mac; has to be installed with `npm install karma-safari-launcher`)
+        // - Opera (has to be installed with `yarn add --dev karma-opera-launcher`)
+        // - Safari (only Mac; has to be installed with `yarn add --dev karma-safari-launcher`)
         // - PhantomJS
-        // - IE (only Windows; has to be installed with `npm install karma-ie-launcher`)
+        // - IE (only Windows; has to be installed with `yarn add --dev karma-ie-launcher`)
         browsers: ['PhantomJS', 'Chrome', 'Firefox'],
 
         // If browser does not capture in given timeout [ms], kill it

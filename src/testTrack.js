@@ -19,15 +19,15 @@
     'use strict';
 
     if (typeof uuid === 'undefined') {
-        throw new Error('TestTrack depends on node-uuid. Make sure you are including "bower_components/node-uuid/uuid.js"');
+        throw new Error('TestTrack depends on node-uuid. Make sure you are including "node_modules/node-uuid/uuid.js"');
     } else if (typeof md5 === 'undefined') {
-        throw new Error('TestTrack depends on blueimp-md5. Make sure you are including "bower_components/blueimp-md5/js/md5.js"');
+        throw new Error('TestTrack depends on blueimp-md5. Make sure you are including "node_modules/blueimp-md5/js/md5.js"');
     } else if (typeof $ === 'undefined') {
-        throw new Error('TestTrack depends on jquery. You can use your own copy of jquery or the one in "bower_components/jquery/dist/jquery.js"');
+        throw new Error('TestTrack depends on jquery. You can use your own copy of jquery or the one in "node_modules/jquery/dist/jquery.js"');
     } else  if (typeof $.cookie !== 'function') {
-        throw new Error('TestTrack depends on jquery.cookie. You can user your own copy of jquery.cooke or the one in bower_components/jquery.cookie/jquery.cookie.js');
+        throw new Error('TestTrack depends on jquery.cookie. You can user your own copy of jquery.cooke or the one in node_modules/jquery.cookie/jquery.cookie.js');
     } else if (typeof base64 === 'undefined') {
-        throw new Error('TestTrack depends on base-64. Make sure you are including "bower_components/base-64/base64.js"');
+        throw new Error('TestTrack depends on base-64. Make sure you are including "node_modules/base-64/base64.js"');
     }
 
     // @include ../src/bindPolyfill.js

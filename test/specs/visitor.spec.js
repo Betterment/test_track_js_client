@@ -130,7 +130,7 @@ describe('Visitor', function() {
                     method: 'GET',
                     timeout: 5000
                 });
-                
+
                 var jabbaAssignment = new Assignment({
                     splitName: 'jabba',
                     variant: 'puppet',
@@ -597,7 +597,7 @@ describe('Visitor', function() {
             this.blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: true, isUnsynced: true });
 
             this.identifierStub = sandbox.stub(window, 'Identifier').returns(identifier);
-            this.saveStub = sandbox.stub(identifier, 'save', function() {
+            this.saveStub = sandbox.stub(identifier, 'save').callsFake(function() {
                 this.actualVisitor = new Visitor({
                     id: 'actual_visitor_id',
                     assignments: [this.jabbaCGIAssignment, this.blueButtonAssignment]

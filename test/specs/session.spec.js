@@ -68,7 +68,7 @@ describe('Session', function() {
 
             sandbox.stub(this.visitor, 'setAnalytics');
             sandbox.stub(this.visitor, 'setErrorLogger');
-            sandbox.stub(this.visitor, 'linkIdentifier', function() {
+            sandbox.stub(this.visitor, 'linkIdentifier').callsFake(function() {
                 this.visitor._id = 'other_visitor_id'; // mimic behavior of linkIdentifier that we care about
                 return $.Deferred().resolve().promise();
             }.bind(this));

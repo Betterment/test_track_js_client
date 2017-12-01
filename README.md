@@ -12,14 +12,14 @@ If you're looking to do server-side assignment and you're using Rails, then chec
 
 ## Installation
 
-You can add the test track js client to your application via bower or npm.
-
-```
-bower install test_track_js_client --save
-```
+You can add the test track js client to your application via npm or yarn.
 
 ```
 npm install test_track_js_client --save
+```
+
+```
+yarn add test_track_js_client
 ```
 
 You can find the latest version of the test track JS client [here](https://github.com/Betterment/test_track_js_client/releases).
@@ -212,6 +212,5 @@ Before diving in, [check our issue tracker](//github.com/Betterment/test_track_j
 
 ### Running tests
 
-1. run `npm install` to download npm dependencies
-1. run `bower install` to download bower dependencies
+1. run `yarn install` to download dependencies
 1. run `grunt` to run the tests and build the distributables

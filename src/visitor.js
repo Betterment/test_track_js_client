@@ -152,8 +152,8 @@ var Visitor = (function() { // jshint ignore:line
         this._errorLogger = errorLogger;
     };
 
-    _Visitor.prototype.logError = function(errorMessage) {
-        this._errorLogger.call(null, errorMessage); // call with null context to ensure we don't leak the visitor object to the outside world
+    _Visitor.prototype.logError = function(errorMessage, jqXHR) {
+        this._errorLogger.call(null, errorMessage, jqXHR); // call with null context to ensure we don't leak the visitor object to the outside world
     };
 
     _Visitor.prototype.linkIdentifier = function(identifierType, value) {
@@ -173,12 +173,12 @@ var Visitor = (function() { // jshint ignore:line
         return deferred.promise();
     };
 
-    _Visitor.prototype.setAnalytics = function(analytics) {     
-        if (typeof analytics !== 'object') {      
-            throw new Error('must provide object for setAnalytics');      
-        } else {      
-            this.analytics = analytics;       
-        }     
+    _Visitor.prototype.setAnalytics = function(analytics) {
+        if (typeof analytics !== 'object') {
+            throw new Error('must provide object for setAnalytics');
+        } else {
+            this.analytics = analytics;
+        }
     };
 
     _Visitor.prototype.notifyUnsyncedAssignments = function() {

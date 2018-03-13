@@ -327,8 +327,9 @@
                 }
             }).fail(function(jqXHR, textStatus, errorThrown) {
                 var status = jqXHR && jqXHR.status,
-                    responseText = jqXHR && jqXHR.responseText;
-                this._visitor.logError('test_track persistAssignment error: ' + [jqXHR, status, responseText, textStatus, errorThrown].join(', '));
+                    responseText = jqXHR && jqXHR.responseText,
+                    errorMessage = 'test_track persistAssignment error: ' + [jqXHR, status, responseText, textStatus, errorThrown].join(', ');
+                this._visitor.logError(errorMessage, jqXHR);
             }.bind(this));
         };
     
@@ -550,8 +551,8 @@
             this._errorLogger = errorLogger;
         };
     
-        _Visitor.prototype.logError = function(errorMessage) {
-            this._errorLogger.call(null, errorMessage); // call with null context to ensure we don't leak the visitor object to the outside world
+        _Visitor.prototype.logError = function(errorMessage, jqXHR) {
+            this._errorLogger.call(null, errorMessage, jqXHR); // call with null context to ensure we don't leak the visitor object to the outside world
         };
     
         _Visitor.prototype.linkIdentifier = function(identifierType, value) {
@@ -571,12 +572,12 @@
             return deferred.promise();
         };
     
-        _Visitor.prototype.setAnalytics = function(analytics) {     
-            if (typeof analytics !== 'object') {      
-                throw new Error('must provide object for setAnalytics');      
-            } else {      
-                this.analytics = analytics;       
-            }     
+        _Visitor.prototype.setAnalytics = function(analytics) {
+            if (typeof analytics !== 'object') {
+                throw new Error('must provide object for setAnalytics');
+            } else {
+                this.analytics = analytics;
+            }
         };
     
         _Visitor.prototype.notifyUnsyncedAssignments = function() {

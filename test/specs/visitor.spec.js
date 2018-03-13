@@ -685,10 +685,10 @@ describe('Visitor', function() {
 
         it('calls the error logger with the error message', function() {
             this.visitor.setErrorLogger(this.errorLogger);
-            this.visitor.logError('something bad happened');
+            this.visitor.logError('something bad happened', { status: 500, responseText: 'Internal Server Error' });
 
             expect(this.errorLogger).to.be.calledOnce;
-            expect(this.errorLogger).to.be.calledWithExactly('something bad happened');
+            expect(this.errorLogger).to.be.calledWithExactly('something bad happened', { status: 500, responseText: 'Internal Server Error' });
         });
 
         it('calls the error logger with a null context', function() {

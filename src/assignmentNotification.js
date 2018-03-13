@@ -40,8 +40,9 @@ var AssignmentNotification = (function() { // jshint ignore:line
             }
         }).fail(function(jqXHR, textStatus, errorThrown) {
             var status = jqXHR && jqXHR.status,
-                responseText = jqXHR && jqXHR.responseText;
-            this._visitor.logError('test_track persistAssignment error: ' + [jqXHR, status, responseText, textStatus, errorThrown].join(', '));
+                responseText = jqXHR && jqXHR.responseText,
+                errorMessage = 'test_track persistAssignment error: ' + [jqXHR, status, responseText, textStatus, errorThrown].join(', ');
+            this._visitor.logError(errorMessage, jqXHR);
         }.bind(this));
     };
 

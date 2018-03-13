@@ -132,7 +132,7 @@ describe('AssignmentNotification', function() {
             this.notification.persistAssignment('success');
 
             expect(this.logErrorStub).to.be.calledOnce;
-            expect(this.logErrorStub).to.be.calledWithExactly('test_track persistAssignment error: [object Object], 500, Internal Server Error, textStatus, errorThrown');
+            expect(this.logErrorStub).to.be.calledWithExactly('test_track persistAssignment error: [object Object], 500, Internal Server Error, textStatus, errorThrown', { status: 500, responseText: 'Internal Server Error' });
         });
     });
 });

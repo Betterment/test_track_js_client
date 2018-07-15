@@ -24,31 +24,35 @@ describe('Session', function() {
                 cookieStub = sinon.stub($, 'cookie').withArgs('custom_cookie_name').returns('existing_visitor_id'),
                 loadVisitorStub = sinon.stub(Visitor, 'loadVisitor').returns($.Deferred().resolve(visitor).promise());
 
-            new Session().getPublicAPI().initialize().then(done());
+            new Session().getPublicAPI().initialize().then(function() {
+                expect(loadVisitorStub).to.be.calledOnce;
+                expect(loadVisitorStub).to.be.calledWithExactly('existing_visitor_id');
 
-            expect(loadVisitorStub).to.be.calledOnce;
-            expect(loadVisitorStub).to.be.calledWithExactly('existing_visitor_id');
+                expect(cookieStub).to.be.calledTwice;
+                expect(cookieStub.firstCall).to.be.calledWithExactly('custom_cookie_name');
+                expect(cookieStub.secondCall).to.be.calledWithExactly('custom_cookie_name', 'existing_visitor_id', {
+                    expires: 365,
+                    path: '/',
+                    domain: '.example.com'
+                });
 
-            expect(cookieStub).to.be.calledTwice;
-            expect(cookieStub.firstCall).to.be.calledWithExactly('custom_cookie_name');
-            expect(cookieStub.secondCall).to.be.calledWithExactly('custom_cookie_name', 'existing_visitor_id', {
-                expires: 365,
-                path: '/',
-                domain: '.example.com'
+                done()
             });
         });
 
-        it('saves the visitor id in a cookie', function() {
+        it('saves the visitor id in a cookie', function(done) {
             var cookieStub = sinon.stub($, 'cookie').withArgs('custom_cookie_name').returns(null);
 
-            new Session().getPublicAPI().initialize();
+            new Session().getPublicAPI().initialize().then(function() {
+                expect(cookieStub).to.be.calledTwice;
+                expect(cookieStub.firstCall).to.be.calledWithExactly('custom_cookie_name');
+                expect(cookieStub.secondCall).to.be.calledWithExactly('custom_cookie_name', sinon.match(/^[a-zA-Z0-9\-]{36}$/), {
+                    expires: 365,
+                    path: '/',
+                    domain: '.example.com'
+                });
 
-            expect(cookieStub).to.be.calledTwice;
-            expect(cookieStub.firstCall).to.be.calledWithExactly('custom_cookie_name');
-            expect(cookieStub.secondCall).to.be.calledWithExactly('custom_cookie_name', sinon.match(/^[a-zA-Z0-9\-]{36}$/), {
-                expires: 365,
-                path: '/',
-                domain: '.example.com'
+                done()
             });
         });
     });
@@ -87,32 +91,39 @@ describe('Session', function() {
             sinon.stub(Visitor, 'loadVisitor').returns($.Deferred().resolve(this.visitor).promise());
 
             this.session = new Session().getPublicAPI();
-            this.session.initialize();
+            return this.session.initialize();
         });
 
         describe('#initialize()', function() {
-            it('calls notifyUnsyncedAssignments when a visitor is loaded', function() {
+            it('calls notifyUnsyncedAssignments when a visitor is loaded', function(done) {
                 sinon.stub(this.visitor, 'notifyUnsyncedAssignments');
-                new Session().getPublicAPI().initialize();
-                expect(this.visitor.notifyUnsyncedAssignments).to.be.calledOnce;
+                new Session().getPublicAPI().initialize().then(function() {
+                    expect(this.visitor.notifyUnsyncedAssignments).to.be.calledOnce;
+
+                    done();
+                }.bind(this));
             });
 
-            it('sets the analytics lib', function() {
+            it('sets the analytics lib', function(done) {
                 var analytics = {track: ''};
 
-                new Session().getPublicAPI().initialize({analytics: analytics});
+                new Session().getPublicAPI().initialize({analytics: analytics}).then(function() {
+                    expect(this.visitor.setAnalytics).to.be.calledOnce;
+                    expect(this.visitor.setAnalytics).to.be.calledWithExactly(analytics);
 
-                expect(this.visitor.setAnalytics).to.be.calledOnce;
-                expect(this.visitor.setAnalytics).to.be.calledWithExactly(analytics);
+                    done();
+                }.bind(this));
             });
 
-            it('sets the error logger', function() {
+            it('sets the error logger', function(done) {
                 var errorLogger = function() { };
 
-                new Session().getPublicAPI().initialize({errorLogger: errorLogger});
+                new Session().getPublicAPI().initialize({errorLogger: errorLogger}).then(function() {
+                    expect(this.visitor.setErrorLogger).to.be.calledOnce;
+                    expect(this.visitor.setErrorLogger).to.be.calledWithExactly(errorLogger);
 
-                expect(this.visitor.setErrorLogger).to.be.calledOnce;
-                expect(this.visitor.setErrorLogger).to.be.calledWithExactly(errorLogger);
+                    done();
+                }.bind(this));
             });
         });
 

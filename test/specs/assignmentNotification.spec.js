@@ -1,24 +1,34 @@
+import Assignment from '../../src/assignment';
+import AssignmentNotification from '../../src/assignmentNotification';
+import TestTrackConfig from '../../src/testTrackConfig';
+import Visitor from '../../src/visitor';
+
 describe('AssignmentNotification', function() {
     var notificationOptions;
+
+    afterEach(function() {
+        sinon.restore();
+        TestTrackConfig._clear();
+    });
 
     function createNotification() {
         return new AssignmentNotification(notificationOptions);
     }
 
     beforeEach(function() {
-        sandbox.stub(TestTrackConfig, 'getUrl').returns('http://testtrack.dev');
+        sinon.stub(TestTrackConfig, 'getUrl').returns('http://testtrack.dev');
 
         this.visitor = new Visitor({
             id: 'visitorId',
             assignments: []
         });
 
-        this.analyticsTrackStub = sandbox.stub();
+        this.analyticsTrackStub = sinon.stub();
         this.visitor.setAnalytics({
             trackAssignment: this.analyticsTrackStub
         });
 
-        this.logErrorStub = sandbox.stub(this.visitor, 'logError');
+        this.logErrorStub = sinon.stub(this.visitor, 'logError');
 
         this.assignment = new Assignment({
             splitName: 'jabba',
@@ -57,11 +67,11 @@ describe('AssignmentNotification', function() {
             expect(this.analyticsTrackStub).to.be.calledWithExactly(
                 'visitorId',
                 this.assignment,
-                sandbox.match.func);
+                sinon.match.func);
         });
 
         it('notifies the test track server with an analytics success', function() {
-            var persistAssignmentStub = sandbox.stub(this.notification, 'persistAssignment');
+            var persistAssignmentStub = sinon.stub(this.notification, 'persistAssignment');
 
             this.notification.send();
 
@@ -73,7 +83,7 @@ describe('AssignmentNotification', function() {
         });
 
         it('notifies the test track server with an analytics failure', function() {
-            var persistAssignmentStub = sandbox.stub(this.notification, 'persistAssignment');
+            var persistAssignmentStub = sinon.stub(this.notification, 'persistAssignment');
 
             this.notification.send();
 
@@ -87,7 +97,7 @@ describe('AssignmentNotification', function() {
 
     describe('#persistAssignment()', function() {
         beforeEach(function() {
-            this.ajaxStub = sandbox.stub($, 'ajax').returns($.Deferred().promise());
+            this.ajaxStub = sinon.stub($, 'ajax').returns($.Deferred().promise());
         });
 
         it('creates an assignment on the test track server', function() {

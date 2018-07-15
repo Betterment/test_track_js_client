@@ -1,24 +1,34 @@
+import Assignment from '../../src/assignment';
+import AssignmentOverride from '../../src/assignmentOverride';
+import TestTrackConfig from '../../src/testTrackConfig';
+import Visitor from '../../src/visitor';
+
 describe('AssignmentOverride', function() {
     var overrideOptions;
+
+    afterEach(function() {
+        sinon.restore();
+        TestTrackConfig._clear();
+    });
 
     function createOverride() {
         return new AssignmentOverride(overrideOptions);
     }
 
     beforeEach(function() {
-        sandbox.stub(TestTrackConfig, 'getUrl').returns('http://testtrack.dev');
+        sinon.stub(TestTrackConfig, 'getUrl').returns('http://testtrack.dev');
 
         this.visitor = new Visitor({
             id: 'visitorId',
             assignments: []
         });
 
-        this.analyticsTrackStub = sandbox.stub();
+        this.analyticsTrackStub = sinon.stub();
         this.visitor.setAnalytics({
             trackAssignment: this.analyticsTrackStub
         });
 
-        this.logErrorStub = sandbox.stub(this.visitor, 'logError');
+        this.logErrorStub = sinon.stub(this.visitor, 'logError');
 
         this.assignment = new Assignment({
             splitName: 'jabba',
@@ -73,11 +83,11 @@ describe('AssignmentOverride', function() {
             expect(this.analyticsTrackStub).to.be.calledWithExactly(
                 'visitorId',
                 this.assignment,
-                sandbox.match.func);
+                sinon.match.func);
         });
 
         it('notifies the test track server with an analytics success', function() {
-            var persistAssignmentStub = sandbox.stub(this.override, 'persistAssignment');
+            var persistAssignmentStub = sinon.stub(this.override, 'persistAssignment');
 
             this.override.send();
 
@@ -89,7 +99,7 @@ describe('AssignmentOverride', function() {
         });
 
         it('notifies the test track server with an analytics failure', function() {
-            var persistAssignmentStub = sandbox.stub(this.override, 'persistAssignment');
+            var persistAssignmentStub = sinon.stub(this.override, 'persistAssignment');
 
             this.override.send();
 
@@ -103,7 +113,7 @@ describe('AssignmentOverride', function() {
 
     describe('#persistAssignment()', function() {
         beforeEach(function() {
-            this.ajaxStub = sandbox.stub($, 'ajax').returns($.Deferred().promise());
+            this.ajaxStub = sinon.stub($, 'ajax').returns($.Deferred().promise());
         });
 
         it('creates an assignment on the test track server', function() {

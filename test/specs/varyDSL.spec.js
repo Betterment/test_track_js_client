@@ -1,6 +1,16 @@
+import Assignment from '../../src/assignment';
+import TestTrackConfig from '../../src/testTrackConfig';
+import VaryDSL from '../../src/varyDSL';
+import Visitor from '../../src/visitor';
+
 describe('VaryDSL', function() {
+    afterEach(function() {
+        sinon.restore();
+        TestTrackConfig._clear();
+    });
+
     beforeEach(function() {
-        this.splitRegistryStub = sandbox.stub(TestTrackConfig, 'getSplitRegistry').returns({
+        this.splitRegistryStub = sinon.stub(TestTrackConfig, 'getSplitRegistry').returns({
             element: {
                 earth: 25,
                 wind: 25,
@@ -19,7 +29,7 @@ describe('VaryDSL', function() {
             id: 'visitor_id',
             assignments: [this.assignment]
         });
-        this.logErrorStub = sandbox.stub(this.visitor, 'logError');
+        this.logErrorStub = sinon.stub(this.visitor, 'logError');
 
         this.vary = new VaryDSL({
             assignment: this.assignment,
@@ -58,7 +68,7 @@ describe('VaryDSL', function() {
         });
 
         it('supports multiple variants', function() {
-            var handler = sandbox.spy();
+            var handler = sinon.spy();
             this.vary.when('earth', 'wind', 'fire', handler);
 
             expect(this.vary._variantHandlers).to.deep.equal({
@@ -69,7 +79,7 @@ describe('VaryDSL', function() {
         });
 
         it('logs an error if given a variant that is not in the split registry', function() {
-            var handler = sandbox.spy();
+            var handler = sinon.spy();
             this.vary.when('earth', 'wind', 'leeloo_multipass', handler);
 
             expect(this.vary._variantHandlers).to.deep.equal({
@@ -90,7 +100,7 @@ describe('VaryDSL', function() {
                 visitor: this.visitor
             });
 
-            vary.when('earth', 'wind', 'leeloo_multipass', sandbox.spy());
+            vary.when('earth', 'wind', 'leeloo_multipass', sinon.spy());
 
             expect(this.logErrorStub).not.to.be.called;
         });
@@ -111,7 +121,7 @@ describe('VaryDSL', function() {
                 visitor: this.visitor
             });
 
-            vary.when('leeloo_multipass', sandbox.spy());
+            vary.when('leeloo_multipass', sinon.spy());
 
             expect(this.logErrorStub).not.to.be.called;
         });
@@ -142,7 +152,7 @@ describe('VaryDSL', function() {
         });
 
         it('adds the variant to the _variantHandlers object', function() {
-            var handler = sandbox.spy();
+            var handler = sinon.spy();
             this.vary.default('water', handler);
             expect(this.vary._variantHandlers).to.deep.equal({
                 water: handler
@@ -150,7 +160,7 @@ describe('VaryDSL', function() {
         });
 
         it('logs an error if given a variant that is not in the split registry', function() {
-            var handler = sandbox.spy();
+            var handler = sinon.spy();
 
             this.vary.default('leeloo_multipass', handler);
 
@@ -170,7 +180,7 @@ describe('VaryDSL', function() {
                 visitor: this.visitor
             });
 
-            vary.default('leeloo_multipass', sandbox.spy());
+            vary.default('leeloo_multipass', sinon.spy());
 
             expect(this.logErrorStub).not.to.be.called;
         });
@@ -191,7 +201,7 @@ describe('VaryDSL', function() {
                 visitor: this.visitor
             });
 
-            vary.default('leeloo_multipass', sandbox.spy());
+            vary.default('leeloo_multipass', sinon.spy());
 
             expect(this.logErrorStub).not.to.be.called;
         });
@@ -199,8 +209,8 @@ describe('VaryDSL', function() {
 
     describe('#run()', function() {
         beforeEach(function() {
-            this.whenHandler = sandbox.spy();
-            this.defaultHandler = sandbox.spy();
+            this.whenHandler = sinon.spy();
+            this.defaultHandler = sinon.spy();
         });
 
         it('throws an error if `default` was never called', function() {

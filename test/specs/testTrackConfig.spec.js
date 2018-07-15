@@ -1,8 +1,15 @@
+import TestTrackConfig from '../../src/testTrackConfig';
+
 describe('TestTrackConfig', function() {
     var cookieName;
 
+    afterEach(function() {
+        sinon.restore();
+        TestTrackConfig._clear();
+    });
+
     beforeEach(function() {
-        sandbox.stub(window, 'ConfigParser').returns({
+        sinon.stub(window, 'ConfigParser').returns({
             getConfig: function() {
                 return {
                     url: "http://testtrack.dev",

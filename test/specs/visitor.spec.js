@@ -1,4 +1,14 @@
+import Assignment from '../../src/assignment';
+import Identifier from '../../src/identifier';
+import TestTrackConfig from '../../src/testTrackConfig';
+import Visitor from '../../src/visitor';
+
 describe('Visitor', function() {
+    afterEach(function() {
+        sinon.restore();
+        TestTrackConfig._clear();
+    });
+
     function newVisitor() {
         return new Visitor({
             id: uuid.v4(),
@@ -18,9 +28,9 @@ describe('Visitor', function() {
     }
 
     beforeEach(function() {
-        sandbox.stub(TestTrackConfig, 'getUrl').returns('http://testtrack.dev');
-        this.bakedAssignmentsStub = sandbox.stub(TestTrackConfig, 'getAssignments').returns(null);
-        this.splitRegistryStub = sandbox.stub(TestTrackConfig, 'getSplitRegistry').returns({
+        sinon.stub(TestTrackConfig, 'getUrl').returns('http://testtrack.dev');
+        this.bakedAssignmentsStub = sinon.stub(TestTrackConfig, 'getAssignments').returns(null);
+        this.splitRegistryStub = sinon.stub(TestTrackConfig, 'getSplitRegistry').returns({
             jabba: { puppet: 50, cgi: 50 },
             wine: { red: 50, white: 25, rose: 25 },
             blue_button: { true: 50, false: 50 }
@@ -50,7 +60,7 @@ describe('Visitor', function() {
 
     describe('.loadVisitor()', function() {
         beforeEach(function() {
-            this.ajaxStub = sandbox.stub($, 'ajax').returns($.Deferred().resolve({
+            this.ajaxStub = sinon.stub($, 'ajax').returns($.Deferred().resolve({
                 id: 'server_visitor_id',
                 assignments: [{
                     split_name: 'jabba',
@@ -59,11 +69,11 @@ describe('Visitor', function() {
                 }]
             }).promise());
 
-            this.visitorConstructorSpy = sandbox.spy(window, 'Visitor');
+            this.visitorConstructorSpy = sinon.spy(window, 'Visitor');
         });
 
         it('is does not hit the server when not passed a visitorId', function(done) {
-            sandbox.stub(uuid, 'v4').returns('generated_uuid');
+            sinon.stub(uuid, 'v4').returns('generated_uuid');
 
             Visitor.loadVisitor(undefined).then(function(visitor) {
                 expect(this.ajaxStub).not.to.be.called;
@@ -109,8 +119,8 @@ describe('Visitor', function() {
         });
 
         it('it loads a visitor from the server for an existing visitor if there are no baked assignments', function(done) {
-            this.sendStub = sandbox.stub();
-            this.notificationStub = sandbox.stub(window, 'AssignmentNotification').returns({
+            this.sendStub = sinon.stub();
+            this.notificationStub = sinon.stub(window, 'AssignmentNotification').returns({
                 send: this.sendStub
             });
 
@@ -180,15 +190,15 @@ describe('Visitor', function() {
 
     describe('#vary()', function() {
         beforeEach(function() {
-            this.logErrorStub = sandbox.stub(this.visitor, 'logError'); // prevent error logging during the test run
+            this.logErrorStub = sinon.stub(this.visitor, 'logError'); // prevent error logging during the test run
 
-            this.getVariantStub = sandbox.stub().returns('red');
-            this.calculatorStub = sandbox.stub(window, 'VariantCalculator').returns({
+            this.getVariantStub = sinon.stub().returns('red');
+            this.calculatorStub = sinon.stub(window, 'VariantCalculator').returns({
                 getVariant: this.getVariantStub
             });
 
-            this.sendStub = sandbox.stub();
-            this.notificationStub = sandbox.stub(window, 'AssignmentNotification').returns({
+            this.sendStub = sinon.stub();
+            this.notificationStub = sinon.stub(window, 'AssignmentNotification').returns({
                 send: this.sendStub
             });
 
@@ -405,7 +415,7 @@ describe('Visitor', function() {
                     ttOffline: true
                 });
 
-                sandbox.stub(this.offlineVisitor, 'logError'); // prevent error logging during the test run
+                sinon.stub(this.offlineVisitor, 'logError'); // prevent error logging during the test run
             });
 
             it('generates a new assignment via VariantCalculator', function() {
@@ -448,8 +458,8 @@ describe('Visitor', function() {
 
         describe('Boolean split', function() {
             beforeEach(function() {
-                this.trueHandler = sandbox.spy();
-                this.falseHandler = sandbox.spy();
+                this.trueHandler = sinon.spy();
+                this.falseHandler = sinon.spy();
 
                 this.vary_blue_button_split = function() {
                     this.visitor.vary('blue_button', {
@@ -485,12 +495,12 @@ describe('Visitor', function() {
 
     describe('#ab()', function() {
         beforeEach(function() {
-            sandbox.stub(this.visitor, 'logError'); // prevent error logging during the test run
+            sinon.stub(this.visitor, 'logError'); // prevent error logging during the test run
         });
 
         it('leverages vary to configure the split', function() {
-            var varySpy = sandbox.spy(this.visitor, 'vary'),
-                handler = sandbox.spy();
+            var varySpy = sinon.spy(this.visitor, 'vary'),
+                handler = sinon.spy();
 
             this.visitor.ab('jabba', {
                 context: 'spec',
@@ -596,8 +606,8 @@ describe('Visitor', function() {
             this.jabbaCGIAssignment = new Assignment({ splitName: 'jabba', variant: 'cgi', isUnsynced: false });
             this.blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: true, isUnsynced: true });
 
-            this.identifierStub = sandbox.stub(window, 'Identifier').returns(identifier);
-            this.saveStub = sandbox.stub(identifier, 'save').callsFake(function() {
+            this.identifierStub = sinon.stub(window, 'Identifier').returns(identifier);
+            this.saveStub = sinon.stub(identifier, 'save').callsFake(function() {
                 this.actualVisitor = new Visitor({
                     id: 'actual_visitor_id',
                     assignments: [this.jabbaCGIAssignment, this.blueButtonAssignment]
@@ -643,8 +653,8 @@ describe('Visitor', function() {
         });
 
         it('notifies any unsynced splits', function(done) {
-            this.sendStub = sandbox.stub();
-            this.notificationStub = sandbox.stub(window, 'AssignmentNotification').returns({
+            this.sendStub = sinon.stub();
+            this.notificationStub = sinon.stub(window, 'AssignmentNotification').returns({
                 send: this.sendStub
             });
 
@@ -680,7 +690,7 @@ describe('Visitor', function() {
 
     describe('#logError()', function() {
         beforeEach(function() {
-            this.errorLogger = sandbox.spy();
+            this.errorLogger = sinon.spy();
         });
 
         it('calls the error logger with the error message', function() {
@@ -699,7 +709,7 @@ describe('Visitor', function() {
         });
 
         it('does a console.error if the error logger was never set', function() {
-            var consoleErrorStub = sandbox.stub(window.console, 'error');
+            var consoleErrorStub = sinon.stub(window.console, 'error');
             this.visitor.logError('something bad happened');
 
             expect(consoleErrorStub).to.be.calledOnce;
@@ -726,8 +736,8 @@ describe('Visitor', function() {
 
     describe('#notifyUnsyncedAssignments', function() {
         it('notifies any unsynced assignments', function() {
-            this.sendStub = sandbox.stub();
-            this.notificationStub = sandbox.stub(window, 'AssignmentNotification').returns({
+            this.sendStub = sinon.stub();
+            this.notificationStub = sinon.stub(window, 'AssignmentNotification').returns({
                 send: this.sendStub
             });
 

@@ -1,4 +1,13 @@
+import Assignment from '../../src/assignment';
+import MixpanelAnalytics from '../../src/mixpanelAnalytics';
+import TestTrackConfig from '../../src/testTrackConfig';
+
 describe('MixpanelAnalytics', function() {
+    afterEach(function() {
+        sinon.restore();
+        TestTrackConfig._clear();
+    });
+
     beforeEach(function() {
         window.mixpanel = {
             track: function() {},
@@ -6,9 +15,9 @@ describe('MixpanelAnalytics', function() {
             identify: function() {},
         };
 
-        this.mixpanelTrackStub = sandbox.stub(window.mixpanel, 'track');
-        this.mixpanelAliasStub = sandbox.stub(window.mixpanel, 'alias');
-        this.mixpanelIdentifyStub = sandbox.stub(window.mixpanel, 'identify');
+        this.mixpanelTrackStub = sinon.stub(window.mixpanel, 'track');
+        this.mixpanelAliasStub = sinon.stub(window.mixpanel, 'alias');
+        this.mixpanelIdentifyStub = sinon.stub(window.mixpanel, 'identify');
 
         this.mixpanelAnalytics = new MixpanelAnalytics();
     });

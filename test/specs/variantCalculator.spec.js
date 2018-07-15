@@ -1,5 +1,14 @@
+import TestTrackConfig from '../../src/testTrackConfig';
+import VariantCalculator from '../../src/variantCalculator';
+import Visitor from '../../src/visitor';
+
 describe('VariantCalculator', function() {
     var calculatorOptions;
+
+    afterEach(function() {
+        sinon.restore();
+        TestTrackConfig._clear();
+    });
 
     function createCalculator() {
         return new VariantCalculator(calculatorOptions);
@@ -10,7 +19,7 @@ describe('VariantCalculator', function() {
             id: '00000000-0000-0000-0000-000000000000',
             assignments: []
         });
-        this.logErrorStub = sandbox.stub(this.visitor, 'logError');
+        this.logErrorStub = sinon.stub(this.visitor, 'logError');
 
         calculatorOptions = {
             visitor: this.visitor,
@@ -19,7 +28,7 @@ describe('VariantCalculator', function() {
 
         this.calculator = createCalculator();
 
-        this.splitRegistryStub = sandbox.stub(TestTrackConfig, 'getSplitRegistry').returns({
+        this.splitRegistryStub = sinon.stub(TestTrackConfig, 'getSplitRegistry').returns({
             logoSize: {
                 extraGiant: 0,
                 giant: 80,
@@ -54,39 +63,39 @@ describe('VariantCalculator', function() {
 
     describe('#getHashFixnum()', function() {
         it('converts 00000000deadbeef into 0', function() {
-            sandbox.stub(this.calculator, 'getSplitVisitorHash').returns('00000000deadbeef');
+            sinon.stub(this.calculator, 'getSplitVisitorHash').returns('00000000deadbeef');
             expect(this.calculator.getHashFixnum()).to.equal(0);
         });
 
         it('converts 0000000fdeadbeef into 15', function() {
-            sandbox.stub(this.calculator, 'getSplitVisitorHash').returns('0000000fdeadbeef');
+            sinon.stub(this.calculator, 'getSplitVisitorHash').returns('0000000fdeadbeef');
             expect(this.calculator.getHashFixnum()).to.equal(15);
         });
 
         it('converts ffffffffdeadbeef into 4294967295', function() {
-            sandbox.stub(this.calculator, 'getSplitVisitorHash').returns('ffffffffdeadbeef');
+            sinon.stub(this.calculator, 'getSplitVisitorHash').returns('ffffffffdeadbeef');
             expect(this.calculator.getHashFixnum()).to.equal(4294967295);
         });
     });
 
     describe('#getAssignmentBucket()', function() {
         it('puts 0 in bucket 0', function() {
-            sandbox.stub(this.calculator, 'getHashFixnum').returns(0);
+            sinon.stub(this.calculator, 'getHashFixnum').returns(0);
             expect(this.calculator.getAssignmentBucket()).to.equal(0);
         });
 
         it('puts 99 in bucket 99', function() {
-            sandbox.stub(this.calculator, 'getHashFixnum').returns(99);
+            sinon.stub(this.calculator, 'getHashFixnum').returns(99);
             expect(this.calculator.getAssignmentBucket()).to.equal(99);
         });
 
         it('puts 100 in bucket 0', function() {
-            sandbox.stub(this.calculator, 'getHashFixnum').returns(100);
+            sinon.stub(this.calculator, 'getHashFixnum').returns(100);
             expect(this.calculator.getAssignmentBucket()).to.equal(0);
         });
 
         it('puts 4294967295 in bucket 95', function() {
-            sandbox.stub(this.calculator, 'getHashFixnum').returns(4294967295);
+            sinon.stub(this.calculator, 'getHashFixnum').returns(4294967295);
             expect(this.calculator.getAssignmentBucket()).to.equal(95);
         });
     });
@@ -141,17 +150,17 @@ describe('VariantCalculator', function() {
 
     describe('#getVariant()', function() {
         it('returns the first variant with non-zero weight from bucket 0', function() {
-            sandbox.stub(this.calculator, 'getAssignmentBucket').returns(0);
+            sinon.stub(this.calculator, 'getAssignmentBucket').returns(0);
             expect(this.calculator.getVariant()).to.equal('giant');
         });
 
         it('returns the last variant with non-zero weight from bucket 99', function() {
-            sandbox.stub(this.calculator, 'getAssignmentBucket').returns(99);
+            sinon.stub(this.calculator, 'getAssignmentBucket').returns(99);
             expect(this.calculator.getVariant()).to.equal('miniscule');
         });
 
         it('returns the correct 1%-wide variant', function() {
-            sandbox.stub(this.calculator, 'getAssignmentBucket').returns(80);
+            sinon.stub(this.calculator, 'getAssignmentBucket').returns(80);
             expect(this.calculator.getVariant()).to.equal('huge');
         });
 
@@ -171,7 +180,7 @@ describe('VariantCalculator', function() {
 
             calculatorOptions.splitName = 'invalidWeighting';
             var calculator = createCalculator();
-            sandbox.stub(calculator, 'getAssignmentBucket').returns(99);
+            sinon.stub(calculator, 'getAssignmentBucket').returns(99);
 
             expect(function() {
                 calculator.getVariant();

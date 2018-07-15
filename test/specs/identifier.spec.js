@@ -1,12 +1,20 @@
+import Identifier from '../../src/identifier';
+import TestTrackConfig from '../../src/testTrackConfig';
+
 describe('Identifier', function() {
     var identifierOptions;
+
+    afterEach(function() {
+        sinon.restore();
+        TestTrackConfig._clear();
+    });
 
     function createIdentifier() {
         return new Identifier(identifierOptions);
     }
 
     beforeEach(function() {
-        sandbox.stub(TestTrackConfig, 'getUrl').returns('http://testtrack.dev');
+        sinon.stub(TestTrackConfig, 'getUrl').returns('http://testtrack.dev');
 
         identifierOptions = {
             visitorId: 'transient_visitor_id',
@@ -40,7 +48,7 @@ describe('Identifier', function() {
 
     describe('#save()', function() {
         beforeEach(function() {
-            this.ajaxStub = sandbox.stub($, 'ajax');
+            this.ajaxStub = sinon.stub($, 'ajax');
         });
 
         it('hits the test track server with the correct parameters', function() {
@@ -62,7 +70,7 @@ describe('Identifier', function() {
         });
 
         it('responds with a Visitor instance with the attributes from the server', function(done) {
-            var visitorConstructorSpy = sandbox.spy(window, 'Visitor'),
+            var visitorConstructorSpy = sinon.spy(window, 'Visitor'),
                 jabbaAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', context: 'mos_eisley', isUnsynced: true }),
                 wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', context: 'napa', isUnsynced: false });
 

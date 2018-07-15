@@ -1,19 +1,30 @@
+import Assignment from '../../src/assignment';
+import Session from '../../src/session';
+import TestTrackConfig from '../../src/testTrackConfig';
+import VaryDSL from '../../src/varyDSL';
+import Visitor from '../../src/visitor';
+
 describe('Session', function() {
+    afterEach(function() {
+        sinon.restore();
+        TestTrackConfig._clear();
+    });
+
     beforeEach(function() {
-        sandbox.stub(TestTrackConfig, 'getCookieDomain').returns('.example.com');
-        sandbox.stub(TestTrackConfig, 'getCookieName').returns('custom_cookie_name');
+        sinon.stub(TestTrackConfig, 'getCookieDomain').returns('.example.com');
+        sinon.stub(TestTrackConfig, 'getCookieName').returns('custom_cookie_name');
     });
 
     describe('Cookie behavior', function() {
-        it('reads the visitor id from a cookie and sets it back in the cookie', function() {
+        it('reads the visitor id from a cookie and sets it back in the cookie', function(done) {
             var visitor = new Visitor({
                     id: 'existing_visitor_id',
                     assignments: []
                 }),
-                cookieStub = sandbox.stub($, 'cookie').withArgs('custom_cookie_name').returns('existing_visitor_id'),
-                loadVisitorStub = sandbox.stub(Visitor, 'loadVisitor').returns($.Deferred().resolve(visitor).promise());
+                cookieStub = sinon.stub($, 'cookie').withArgs('custom_cookie_name').returns('existing_visitor_id'),
+                loadVisitorStub = sinon.stub(Visitor, 'loadVisitor').returns($.Deferred().resolve(visitor).promise());
 
-            new Session().getPublicAPI().initialize();
+            new Session().getPublicAPI().initialize().then(done());
 
             expect(loadVisitorStub).to.be.calledOnce;
             expect(loadVisitorStub).to.be.calledWithExactly('existing_visitor_id');
@@ -28,13 +39,13 @@ describe('Session', function() {
         });
 
         it('saves the visitor id in a cookie', function() {
-            var cookieStub = sandbox.stub($, 'cookie').withArgs('custom_cookie_name').returns(null);
+            var cookieStub = sinon.stub($, 'cookie').withArgs('custom_cookie_name').returns(null);
 
             new Session().getPublicAPI().initialize();
 
             expect(cookieStub).to.be.calledTwice;
             expect(cookieStub.firstCall).to.be.calledWithExactly('custom_cookie_name');
-            expect(cookieStub.secondCall).to.be.calledWithExactly('custom_cookie_name', sandbox.match(/^[a-zA-Z0-9\-]{36}$/), {
+            expect(cookieStub.secondCall).to.be.calledWithExactly('custom_cookie_name', sinon.match(/^[a-zA-Z0-9\-]{36}$/), {
                 expires: 365,
                 path: '/',
                 domain: '.example.com'
@@ -44,7 +55,7 @@ describe('Session', function() {
 
     context('with stubbed visitor and split registry', function() {
         beforeEach(function() {
-            sandbox.stub(TestTrackConfig, 'getSplitRegistry').returns({
+            sinon.stub(TestTrackConfig, 'getSplitRegistry').returns({
                 jabba: { cgi: 50, puppet: 50 }
             });
 
@@ -59,21 +70,21 @@ describe('Session', function() {
                 assignments: [this.jabbaAssignment]
             });
 
-            this.analyticsAliasStub = sandbox.stub();
-            this.analyticsIdentifyStub = sandbox.stub();
+            this.analyticsAliasStub = sinon.stub();
+            this.analyticsIdentifyStub = sinon.stub();
             this.visitor.setAnalytics({
                 alias: this.analyticsAliasStub,
                 identify: this.analyticsIdentifyStub
             })
 
-            sandbox.stub(this.visitor, 'setAnalytics');
-            sandbox.stub(this.visitor, 'setErrorLogger');
-            sandbox.stub(this.visitor, 'linkIdentifier').callsFake(function() {
+            sinon.stub(this.visitor, 'setAnalytics');
+            sinon.stub(this.visitor, 'setErrorLogger');
+            sinon.stub(this.visitor, 'linkIdentifier').callsFake(function() {
                 this.visitor._id = 'other_visitor_id'; // mimic behavior of linkIdentifier that we care about
                 return $.Deferred().resolve().promise();
             }.bind(this));
 
-            sandbox.stub(Visitor, 'loadVisitor').returns($.Deferred().resolve(this.visitor).promise());
+            sinon.stub(Visitor, 'loadVisitor').returns($.Deferred().resolve(this.visitor).promise());
 
             this.session = new Session().getPublicAPI();
             this.session.initialize();
@@ -81,7 +92,7 @@ describe('Session', function() {
 
         describe('#initialize()', function() {
             it('calls notifyUnsyncedAssignments when a visitor is loaded', function() {
-                sandbox.stub(this.visitor, 'notifyUnsyncedAssignments');
+                sinon.stub(this.visitor, 'notifyUnsyncedAssignments');
                 new Session().getPublicAPI().initialize();
                 expect(this.visitor.notifyUnsyncedAssignments).to.be.calledOnce;
             });
@@ -107,7 +118,7 @@ describe('Session', function() {
 
         describe('#logIn()', function() {
             it('updates the visitor id in the cookie', function(done) {
-                var cookieStub = sandbox.stub($, 'cookie');
+                var cookieStub = sinon.stub($, 'cookie');
 
                 this.session.logIn('myappdb_user_id', 444).then(function() {
                     expect(this.visitor.linkIdentifier).to.be.calledOnce;
@@ -134,7 +145,7 @@ describe('Session', function() {
 
         describe('#signUp()', function() {
             it('updates the visitor id in the cookie', function(done) {
-                var cookieStub = sandbox.stub($, 'cookie');
+                var cookieStub = sinon.stub($, 'cookie');
 
                 this.session.signUp('myappdb_user_id', 444).then(function() {
                     expect(this.visitor.linkIdentifier).to.be.calledOnce;
@@ -218,8 +229,8 @@ describe('Session', function() {
                 describe('#persistAssignment()', function() {
                     it('creates an AssignmentOverride and perists it', function(done) {
                         var persistAssignmentDeferred = $.Deferred(),
-                            assignmentOverrideStub = sandbox.stub(window, 'AssignmentOverride').returns({
-                                persistAssignment: sandbox.stub().returns(persistAssignmentDeferred.promise())
+                            assignmentOverrideStub = sinon.stub(window, 'AssignmentOverride').returns({
+                                persistAssignment: sinon.stub().returns(persistAssignmentDeferred.promise())
                             });
 
                         this.crx.persistAssignment('split', 'variant', 'the_username', 'the_password').then(function() {
@@ -257,10 +268,10 @@ describe('Session', function() {
             describe('context of the public API methods', function() {
 
                 beforeEach(function() {
-                    this.varyStub = sandbox.stub(this.session, 'vary');
-                    this.abStub = sandbox.stub(this.session, 'ab');
-                    this.logInStub = sandbox.stub(this.session, 'logIn');
-                    this.signUpStub = sandbox.stub(this.session, 'signUp');
+                    this.varyStub = sinon.stub(this.session, 'vary');
+                    this.abStub = sinon.stub(this.session, 'ab');
+                    this.logInStub = sinon.stub(this.session, 'logIn');
+                    this.signUpStub = sinon.stub(this.session, 'signUp');
                 });
 
                 it('runs #vary() in the context of the session', function() {

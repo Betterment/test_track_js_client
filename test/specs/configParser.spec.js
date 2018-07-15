@@ -1,3 +1,5 @@
+import ConfigParser from '../../src/configParser';
+
 describe('ConfigParser', function() {
     beforeEach(function() {
         window.TT = 'eyJhIjoiYiIsImMiOnsiZCI6ImUifSwiZiI6WyJnIiwiaCJdfQ==';

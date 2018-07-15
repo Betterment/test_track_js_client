@@ -1,6 +1,15 @@
+import ABConfiguration from '../../src/abConfiguration';
+import TestTrackConfig from '../../src/testTrackConfig';
+import Visitor from '../../src/visitor';
+
 describe('ABConfiguration', function() {
+    afterEach(function() {
+        sinon.restore();
+        TestTrackConfig._clear();
+    });
+
     beforeEach(function() {
-        this.splitRegistryStub = sandbox.stub(TestTrackConfig, 'getSplitRegistry').returns({
+        this.splitRegistryStub = sinon.stub(TestTrackConfig, 'getSplitRegistry').returns({
             element: {
                 earth: 25,
                 wind: 25,
@@ -17,7 +26,7 @@ describe('ABConfiguration', function() {
             id: 'visitor_id',
             assignments: []
         });
-        this.logErrorStub = sandbox.stub(this.visitor, 'logError');
+        this.logErrorStub = sinon.stub(this.visitor, 'logError');
     });
 
     it('requires a splitName', function() {

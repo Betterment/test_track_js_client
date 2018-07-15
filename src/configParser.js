@@ -1,14 +1,14 @@
-var ConfigParser = (function() { // jshint ignore:line
-    var _ConfigParser = function() {
-    };
+import base64 from 'base-64';
 
-    _ConfigParser.prototype.getConfig = function() {
-        if (typeof window.atob === 'function') {
-            return JSON.parse(window.atob(window.TT));
-        } else {
-            return JSON.parse(base64.decode(window.TT));
-        }
-    };
+var ConfigParser = function() {
+};
 
-    return _ConfigParser;
-})();
+ConfigParser.prototype.getConfig = function() {
+    if (typeof window.atob === 'function') {
+        return JSON.parse(window.atob(window.TT));
+    } else {
+        return JSON.parse(base64.decode(window.TT));
+    }
+};
+
+export default ConfigParser;

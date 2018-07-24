@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import Assignment from './assignment';
 import TestTrackConfig from './testTrackConfig';
+import Visitor from './visitor';
 
 var Identifier = function(options) {
     this.visitorId = options.visitorId;

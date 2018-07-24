@@ -19,17 +19,27 @@ AssignmentNotification.prototype.send = function() {
     // the assignment notification from the analytics write success we can
     // bring this down to 1 HTTP request
 
-    this.persistAssignment();
+    var firstPersist = this._persistAssignment()
 
+    var secondPersist = $.Deferred();
     this._visitor.analytics.trackAssignment(
         this._visitor.getId(),
         this._assignment,
         function(success) {
-            this.persistAssignment(success ? 'success' : 'failure');
+            var promise = this._persistAssignment(success ? 'success' : 'failure');
+            promise.always(function() {
+                if (promise.state() === 'resolved') {
+                    secondPersist.resolve();
+                } else {
+                    secondPersist.reject();
+                }
+            });
         }.bind(this));
+
+    return $.when(firstPersist, secondPersist);
 };
 
-AssignmentNotification.prototype.persistAssignment = function(trackResult) {
+AssignmentNotification.prototype._persistAssignment = function(trackResult) {
     return $.ajax(TestTrackConfig.getUrl() + '/api/v1/assignment_event', {
         method: 'POST',
         dataType: 'json',

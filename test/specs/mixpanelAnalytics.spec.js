@@ -1,33 +1,25 @@
 import Assignment from '../../src/assignment';
 import MixpanelAnalytics from '../../src/mixpanelAnalytics';
-import TestTrackConfig from '../../src/testTrackConfig';
 
-describe('MixpanelAnalytics', function() {
-    afterEach(function() {
-        sinon.restore();
-        TestTrackConfig._clear();
-    });
-
-    beforeEach(function() {
+describe('MixpanelAnalytics', () => {
+    let testContext;
+    beforeEach(() => {
+        testContext = {};
         window.mixpanel = {
-            track: function() {},
-            alias: function() {},
-            identify: function() {},
+            track: jest.fn(),
+            alias: jest.fn(),
+            identify: jest.fn()
         };
 
-        this.mixpanelTrackStub = sinon.stub(window.mixpanel, 'track');
-        this.mixpanelAliasStub = sinon.stub(window.mixpanel, 'alias');
-        this.mixpanelIdentifyStub = sinon.stub(window.mixpanel, 'identify');
-
-        this.mixpanelAnalytics = new MixpanelAnalytics();
+        testContext.mixpanelAnalytics = new MixpanelAnalytics();
     });
 
-    afterEach(function() {
+    afterEach(() => {
         delete window.mixpanel;
     });
 
-    describe('#trackAssignment()', function() {
-        it('calls window.mixpanel.track()', function() {
+    describe('#trackAssignment()', () => {
+        test('calls window.mixpanel.track()', () => {
             var callback = function() {};
 
             var assignment = new Assignment({
@@ -37,10 +29,10 @@ describe('MixpanelAnalytics', function() {
                 isUnsynced: false
             });
 
-            this.mixpanelAnalytics.trackAssignment('visitor_id', assignment, callback);
+            testContext.mixpanelAnalytics.trackAssignment('visitor_id', assignment, callback);
 
-            expect(this.mixpanelTrackStub).to.be.calledOnce;
-            expect(this.mixpanelTrackStub).to.be.calledWithExactly(
+            expect(window.mixpanel.track).toHaveBeenCalled();
+            expect(window.mixpanel.track).toHaveBeenCalledWith(
                 'SplitAssigned',
                 {
                     TTVisitorID: 'visitor_id',
@@ -52,21 +44,21 @@ describe('MixpanelAnalytics', function() {
         });
     });
 
-    describe('#alias()', function() {
-        it('calls window.mixpanel.alias()', function() {
-            this.mixpanelAnalytics.alias('id');
+    describe('#alias()', () => {
+        test('calls window.mixpanel.alias()', () => {
+            testContext.mixpanelAnalytics.alias('id');
 
-            expect(this.mixpanelAliasStub).to.be.calledOnce;
-            expect(this.mixpanelAliasStub).to.be.calledWithExactly('id');
+            expect(window.mixpanel.alias).toHaveBeenCalled();
+            expect(window.mixpanel.alias).toHaveBeenCalledWith('id');
         });
     });
 
-    describe('#identify()', function() {
-        it('calls window.mixpanel.identify()', function() {
-            this.mixpanelAnalytics.identify('id');
+    describe('#identify()', () => {
+        test('calls window.mixpanel.identify()', () => {
+            testContext.mixpanelAnalytics.identify('id');
 
-            expect(this.mixpanelIdentifyStub).to.be.calledOnce;
-            expect(this.mixpanelIdentifyStub).to.be.calledWithExactly('id');
+            expect(window.mixpanel.identify).toHaveBeenCalled();
+            expect(window.mixpanel.identify).toHaveBeenCalledWith('id');
         });
     });
 });

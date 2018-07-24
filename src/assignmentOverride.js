@@ -19,23 +19,7 @@ var AssignmentOverride = function(options) {
     }
 };
 
-AssignmentOverride.prototype.send = function() {
-    // FIXME: The current implementation of this requires 2 HTTP requests
-    // to guarantee that the server is notified of the assignment. By decoupling
-    // the assignment notification from the analytics write success we can
-    // bring this down to 1 HTTP request
-
-    this.persistAssignment();
-
-    this._visitor.analytics.trackAssignment(
-        this._visitor.getId(),
-        this._assignment,
-        function(success) {
-            this.persistAssignment(success ? 'success' : 'failure');
-        }.bind(this));
-};
-
-AssignmentOverride.prototype.persistAssignment = function(trackResult) {
+AssignmentOverride.prototype.persistAssignment = function() {
     return $.ajax(TestTrackConfig.getUrl() + '/api/v1/assignment_override', {
         method: 'POST',
         dataType: 'json',
@@ -48,7 +32,7 @@ AssignmentOverride.prototype.persistAssignment = function(trackResult) {
             split_name: this._assignment.getSplitName(),
             variant: this._assignment.getVariant(),
             context: this._assignment.getContext(),
-            mixpanel_result: trackResult
+            mixpanel_result: 'success' // we don't want to track overrides
         }
     }).fail(function(jqXHR, textStatus, errorThrown) {
         var status = jqXHR && jqXHR.status,

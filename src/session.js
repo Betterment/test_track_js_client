@@ -116,7 +116,7 @@ Session.prototype.getPublicAPI = function() {
                 var deferred = $.Deferred();
 
                 this._visitorDeferred.then(function(visitor) {
-                    var notification = new AssignmentOverride({
+                    var override = new AssignmentOverride({
                         visitor: visitor,
                         username: username,
                         password: password,
@@ -128,7 +128,7 @@ Session.prototype.getPublicAPI = function() {
                         })
                     });
 
-                    notification.persistAssignment().then(function() {
+                    override.persistAssignment().then(function() {
                         deferred.resolve();
                     });
                 });

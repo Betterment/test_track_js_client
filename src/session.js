@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import 'jquery.cookie';
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
 import TestTrackConfig from './testTrackConfig';

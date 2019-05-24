@@ -1,15 +1,15 @@
-import Assignment from '../../src/assignment';
-import AssignmentNotification from '../../src/assignmentNotification';
-import Identifier from '../../src/identifier';
-import TestTrackConfig from '../../src/testTrackConfig';
-import VariantCalculator from '../../src/variantCalculator';
-import Visitor from '../../src/visitor';
+import Assignment from './assignment';
+import AssignmentNotification from './assignmentNotification';
+import Identifier from './identifier';
+import TestTrackConfig from './testTrackConfig';
+import VariantCalculator from './variantCalculator';
+import Visitor from './visitor';
 import $ from 'jquery';
 import uuid from 'uuid';
 
 jest.mock('uuid');
 
-jest.mock('../../src/testTrackConfig', () => {
+jest.mock('./testTrackConfig', () => {
     return {
         getUrl: () => 'http://testtrack.dev',
         getSplitRegistry: jest.fn().mockReturnValue({
@@ -25,21 +25,21 @@ jest.mock('../../src/testTrackConfig', () => {
 });
 
 const mockGetVariant = jest.fn();
-jest.mock('../../src/variantCalculator', () => {
+jest.mock('./variantCalculator', () => {
     return jest.fn(() => {
         return { getVariant: mockGetVariant };
     });
 });
 
 const mockSend = jest.fn();
-jest.mock('../../src/assignmentNotification', () => {
+jest.mock('./assignmentNotification', () => {
     return jest.fn(() => {
         return { send: mockSend };
     });
 });
 
 const mockSave = jest.fn();
-jest.mock('../../src/identifier', () => {
+jest.mock('./identifier', () => {
     return jest.fn(() => {
         return { save: mockSave };
     });

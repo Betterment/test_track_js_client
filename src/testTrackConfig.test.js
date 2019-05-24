@@ -1,10 +1,10 @@
-import Assignment from '../../src/assignment';
-import ConfigParser from '../../src/configParser';
-import TestTrackConfig from '../../src/testTrackConfig';
+import Assignment from './assignment';
+import ConfigParser from './configParser';
+import TestTrackConfig from './testTrackConfig';
 
 let mockCookieName;
 
-jest.mock('../../src/configParser', () => {
+jest.mock('./configParser', () => {
     return jest.fn().mockImplementation(() => {
         return {
             getConfig: () => {

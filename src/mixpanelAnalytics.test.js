@@ -1,5 +1,5 @@
-import Assignment from '../../src/assignment';
-import MixpanelAnalytics from '../../src/mixpanelAnalytics';
+import Assignment from './assignment';
+import MixpanelAnalytics from './mixpanelAnalytics';
 
 describe('MixpanelAnalytics', () => {
     let testContext;

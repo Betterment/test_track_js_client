@@ -1,8 +1,8 @@
-import ABConfiguration from '../../src/abConfiguration';
-import TestTrackConfig from '../../src/testTrackConfig';
-import Visitor from '../../src/visitor';
+import ABConfiguration from './abConfiguration';
+import TestTrackConfig from './testTrackConfig';
+import Visitor from './visitor';
 
-jest.mock('../../src/testTrackConfig', () => {
+jest.mock('./testTrackConfig', () => {
     return {
         getSplitRegistry: jest.fn()
     };

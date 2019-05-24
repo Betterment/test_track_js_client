@@ -1,14 +1,14 @@
-import Assignment from '../../src/assignment';
-import AssignmentOverride from '../../src/assignmentOverride';
-import Session from '../../src/session';
-import TestTrackConfig from '../../src/testTrackConfig';
-import VaryDSL from '../../src/varyDSL';
-import * as visitor from '../../src/visitor';
+import Assignment from './assignment';
+import AssignmentOverride from './assignmentOverride';
+import Session from './session';
+import TestTrackConfig from './testTrackConfig';
+import VaryDSL from './varyDSL';
+import * as visitor from './visitor';
 import $ from 'jquery';
 
-jest.mock('../../src/assignmentOverride');
+jest.mock('./assignmentOverride');
 
-jest.mock('../../src/configParser', () => {
+jest.mock('./configParser', () => {
     return jest.fn().mockImplementation(() => {
         return {
             getConfig: () => {

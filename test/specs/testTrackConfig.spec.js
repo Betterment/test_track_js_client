@@ -33,13 +33,13 @@ describe('TestTrackConfig', () => {
     });
 
     describe('.getUrl()', () => {
-        test('grabs the correct value from the ConfigParser', () => {
+        it('grabs the correct value from the ConfigParser', () => {
             expect(TestTrackConfig.getUrl()).toBe('http://testtrack.dev');
         });
     });
 
     describe('.getCookieDomain()', () => {
-        test('grabs the correct value from the ConfigParser', () => {
+        it('grabs the correct value from the ConfigParser', () => {
             expect(TestTrackConfig.getCookieDomain()).toBe('.example.com');
         });
     });
@@ -50,7 +50,7 @@ describe('TestTrackConfig', () => {
                 mockCookieName = 'custom_cookie_name';
             });
 
-            test('grabs the correct value from the ConfigParser', () => {
+            it('grabs the correct value from the ConfigParser', () => {
                 expect(TestTrackConfig.getCookieName()).toBe('custom_cookie_name');
             });
         });
@@ -60,14 +60,14 @@ describe('TestTrackConfig', () => {
                 mockCookieName = undefined;
             });
 
-            test('uses the default cookie name', () => {
+            it('uses the default cookie name', () => {
                 expect(TestTrackConfig.getCookieName()).toBe('tt_visitor_id');
             });
         });
     });
 
     describe('.getSplitRegistry()', () => {
-        test('grabs the correct value from the ConfigParser', () => {
+        it('grabs the correct value from the ConfigParser', () => {
             expect(TestTrackConfig.getSplitRegistry()).toEqual({
                 jabba: { cgi: 50, puppet: 50 },
                 wine: { red: 50, white: 25, rose: 25 }
@@ -76,7 +76,7 @@ describe('TestTrackConfig', () => {
     });
 
     describe('.getAssignments()', () => {
-        test('grabs the correct value from the ConfigParser', () => {
+        it('grabs the correct value from the ConfigParser', () => {
             expect(TestTrackConfig.getAssignments()).toEqual([
                 new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: false }),
                 new Assignment({ splitName: 'wine', variant: 'rose', isUnsynced: false })

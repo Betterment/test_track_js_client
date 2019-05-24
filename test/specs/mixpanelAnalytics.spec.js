@@ -19,7 +19,7 @@ describe('MixpanelAnalytics', () => {
     });
 
     describe('#trackAssignment()', () => {
-        test('calls window.mixpanel.track()', () => {
+        it('calls window.mixpanel.track()', () => {
             var callback = function() {};
 
             var assignment = new Assignment({
@@ -45,7 +45,7 @@ describe('MixpanelAnalytics', () => {
     });
 
     describe('#alias()', () => {
-        test('calls window.mixpanel.alias()', () => {
+        it('calls window.mixpanel.alias()', () => {
             testContext.mixpanelAnalytics.alias('id');
 
             expect(window.mixpanel.alias).toHaveBeenCalled();
@@ -54,7 +54,7 @@ describe('MixpanelAnalytics', () => {
     });
 
     describe('#identify()', () => {
-        test('calls window.mixpanel.identify()', () => {
+        it('calls window.mixpanel.identify()', () => {
             testContext.mixpanelAnalytics.identify('id');
 
             expect(window.mixpanel.identify).toHaveBeenCalled();

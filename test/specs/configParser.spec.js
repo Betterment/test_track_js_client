@@ -10,7 +10,7 @@ describe('ConfigParser', () => {
     });
 
     describe('#getConfig()', () => {
-        test('parses the window.TT variable', () => {
+        it('parses the window.TT variable', () => {
             expect(testContext.configParser.getConfig()).toEqual({
                 a: "b", c: { d: "e", }, f: ["g", "h"]
             });
@@ -26,7 +26,7 @@ describe('ConfigParser', () => {
                 window.atob = testContext.originalAtob;
             });
 
-            test('parses the window.TT variable', () => {
+            it('parses the window.TT variable', () => {
                 expect(testContext.configParser.getConfig()).toEqual({
                     a: "b", c: { d: "e", }, f: ["g", "h"]
                 });

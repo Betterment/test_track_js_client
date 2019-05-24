@@ -44,28 +44,28 @@ describe('AssignmentOverride', () => {
         testContext.override = createOverride();
     });
 
-    test('requires a visitor', () => {
+    it('requires a visitor', () => {
         expect(function() {
             delete overrideOptions.visitor;
             createOverride();
         }).toThrowError('must provide visitor');
     });
 
-    test('requires an assignment', () => {
+    it('requires an assignment', () => {
         expect(function() {
             delete overrideOptions.assignment;
             createOverride();
         }).toThrowError('must provide assignment');
     });
 
-    test('requires an username', () => {
+    it('requires an username', () => {
         expect(function() {
             delete overrideOptions.username;
             createOverride();
         }).toThrowError('must provide username');
     });
 
-    test('requires a password', () => {
+    it('requires a password', () => {
         expect(function() {
             delete overrideOptions.password;
             createOverride();
@@ -73,7 +73,7 @@ describe('AssignmentOverride', () => {
     });
 
     describe('#persistAssignment()', () => {
-        test('creates an assignment on the test track server', () => {
+        it('creates an assignment on the test track server', () => {
             testContext.override.persistAssignment();
 
             expect($.ajax).toHaveBeenCalledTimes(1);
@@ -94,7 +94,7 @@ describe('AssignmentOverride', () => {
             });
         });
 
-        test('logs an error if the request fails', () => {
+        it('logs an error if the request fails', () => {
             $.ajax = jest.fn().mockImplementation(function() {
                 return $.Deferred().rejectWith(null, [{ status: 500, responseText: 'Internal Server Error' }, 'textStatus', 'errorThrown']);
             });

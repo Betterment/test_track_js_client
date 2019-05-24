@@ -34,7 +34,7 @@ describe('ABConfiguration', () => {
         testContext.visitor.logError = jest.fn();
     });
 
-    test('requires a splitName', () => {
+    it('requires a splitName', () => {
         expect(function() {
             var abConfiguration = new ABConfiguration({
                 trueVariant: 'red',
@@ -43,7 +43,7 @@ describe('ABConfiguration', () => {
         }.bind(this)).toThrowError('must provide splitName');
     });
 
-    test('requires an trueVariant', () => {
+    it('requires an trueVariant', () => {
         expect(function() {
             var abConfiguration = new ABConfiguration({
                 splitName: 'button_color',
@@ -52,7 +52,7 @@ describe('ABConfiguration', () => {
         }.bind(this)).toThrowError('must provide trueVariant');
     });
 
-    test('requires a visitor', () => {
+    it('requires a visitor', () => {
         expect(function() {
             var abConfiguration = new ABConfiguration({
                 splitName: 'button_color',
@@ -61,7 +61,7 @@ describe('ABConfiguration', () => {
         }.bind(this)).toThrowError('must provide visitor');
     });
 
-    test('allows a null trueVariant', () => {
+    it('allows a null trueVariant', () => {
         expect(function() {
             var abConfiguration = new ABConfiguration({
                 splitName: 'button_color',
@@ -72,7 +72,7 @@ describe('ABConfiguration', () => {
     });
 
     describe('#getVariants()', () => {
-        test('logs an error if the split does not have exactly two variants', () => {
+        it('logs an error if the split does not have exactly two variants', () => {
             var abConfiguration = new ABConfiguration({
                 splitName: 'element',
                 trueVariant: 'water',
@@ -84,7 +84,7 @@ describe('ABConfiguration', () => {
             expect(testContext.visitor.logError).toHaveBeenCalledWith('A/B for element configures split with more than 2 variants');
         });
 
-        test('does not log an error if the split registry is unavailable', () => {
+        it('does not log an error if the split registry is unavailable', () => {
             TestTrackConfig.getSplitRegistry.mockReturnValue(null);
 
             var abConfiguration = new ABConfiguration({
@@ -99,7 +99,7 @@ describe('ABConfiguration', () => {
         });
 
         describe('true variant', () => {
-            test('is true if null was passed in during instantiation', () => {
+            it('is true if null was passed in during instantiation', () => {
                 var abConfiguration = new ABConfiguration({
                     splitName: 'button_color',
                     trueVariant: null,
@@ -109,7 +109,7 @@ describe('ABConfiguration', () => {
                 expect(abConfiguration.getVariants().true).toBe(true);
             });
 
-            test('is whatever was passed in during instantiation', () => {
+            it('is whatever was passed in during instantiation', () => {
                 var abConfiguration = new ABConfiguration({
                     splitName: 'button_color',
                     trueVariant: 'red',
@@ -121,7 +121,7 @@ describe('ABConfiguration', () => {
         });
 
         describe('false variant', () => {
-            test('is the variant of the split that is not the true_variant', () => {
+            it('is the variant of the split that is not the true_variant', () => {
                 var abConfiguration = new ABConfiguration({
                     splitName: 'button_color',
                     trueVariant: 'red',
@@ -131,7 +131,7 @@ describe('ABConfiguration', () => {
                 expect(abConfiguration.getVariants().false).toBe('blue');
             });
 
-            test('is false when there is no split_registry', () => {
+            it('is false when there is no split_registry', () => {
                 TestTrackConfig.getSplitRegistry.mockReturnValue(null);
 
                 var abConfiguration = new ABConfiguration({
@@ -143,7 +143,7 @@ describe('ABConfiguration', () => {
                 expect(abConfiguration.getVariants().false).toBe(false);
             });
 
-            test('is always the same if the split has more than two variants', () => {
+            it('is always the same if the split has more than two variants', () => {
                 var abConfiguration = new ABConfiguration({
                     splitName: 'element',
                     trueVariant: 'earth',

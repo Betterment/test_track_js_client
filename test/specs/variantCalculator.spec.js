@@ -40,14 +40,14 @@ describe('VariantCalculator', () => {
         testContext.calculator = createCalculator();
     });
 
-    test('requires a visitor', () => {
+    it('requires a visitor', () => {
         expect(function() {
             delete calculatorOptions.visitor;
             createCalculator();
         }).toThrowError('must provide visitor');
     });
 
-    test('requires a splitName', () => {
+    it('requires a splitName', () => {
         expect(function() {
             delete calculatorOptions.splitName;
             createCalculator();
@@ -55,53 +55,53 @@ describe('VariantCalculator', () => {
     });
 
     describe('#getSplitVisitorHash()', () => {
-        test('calculates MD5 of splitName and visitorId', () => {
+        it('calculates MD5 of splitName and visitorId', () => {
             // md5('logoSize00000000-0000-0000-0000-000000000000') => 'b72dca208c59ddeab8a1b9bc22f12224'
             expect(testContext.calculator.getSplitVisitorHash()).toBe('b72dca208c59ddeab8a1b9bc22f12224');
         });
     });
 
     describe('#getHashFixnum()', () => {
-        test('converts 00000000deadbeef into 0', () => {
+        it('converts 00000000deadbeef into 0', () => {
             testContext.calculator.getSplitVisitorHash = jest.fn().mockReturnValue('00000000deadbeef');
             expect(testContext.calculator.getHashFixnum()).toBe(0);
         });
 
-        test('converts 0000000fdeadbeef into 15', () => {
+        it('converts 0000000fdeadbeef into 15', () => {
             testContext.calculator.getSplitVisitorHash = jest.fn().mockReturnValue('0000000fdeadbeef');
             expect(testContext.calculator.getHashFixnum()).toBe(15);
         });
 
-        test('converts ffffffffdeadbeef into 4294967295', () => {
+        it('converts ffffffffdeadbeef into 4294967295', () => {
             testContext.calculator.getSplitVisitorHash = jest.fn().mockReturnValue('ffffffffdeadbeef');
             expect(testContext.calculator.getHashFixnum()).toBe(4294967295);
         });
     });
 
     describe('#getAssignmentBucket()', () => {
-        test('puts 0 in bucket 0', () => {
+        it('puts 0 in bucket 0', () => {
             testContext.calculator.getHashFixnum = jest.fn().mockReturnValue(0);
             expect(testContext.calculator.getAssignmentBucket()).toBe(0);
         });
 
-        test('puts 99 in bucket 99', () => {
+        it('puts 99 in bucket 99', () => {
             testContext.calculator.getHashFixnum = jest.fn().mockReturnValue(99);
             expect(testContext.calculator.getAssignmentBucket()).toBe(99);
         });
 
-        test('puts 100 in bucket 0', () => {
+        it('puts 100 in bucket 0', () => {
             testContext.calculator.getHashFixnum = jest.fn().mockReturnValue(100);
             expect(testContext.calculator.getAssignmentBucket()).toBe(0);
         });
 
-        test('puts 4294967295 in bucket 95', () => {
+        it('puts 4294967295 in bucket 95', () => {
             testContext.calculator.getHashFixnum = jest.fn().mockReturnValue(4294967295);
             expect(testContext.calculator.getAssignmentBucket()).toBe(95);
         });
     });
 
     describe('#getSortedVariants()', () => {
-        test('sorts variants alphabetically', () => {
+        it('sorts variants alphabetically', () => {
             expect(testContext.calculator.getSortedVariants()).toEqual([
                 'extraGiant',
                 'giant',
@@ -114,7 +114,7 @@ describe('VariantCalculator', () => {
     });
 
     describe('#getWeighting()', () => {
-        test('throws when given an unknown splitName', () => {
+        it('throws when given an unknown splitName', () => {
             calculatorOptions.splitName = 'nonExistentSplit';
             var calculator = createCalculator();
 
@@ -123,7 +123,7 @@ describe('VariantCalculator', () => {
             }).toThrowError('Unknown split: "nonExistentSplit"');
         });
 
-        test('logs an error when given an unknown splitName', () => {
+        it('logs an error when given an unknown splitName', () => {
             calculatorOptions.splitName = 'nonExistentSplit';
             var calculator = createCalculator();
 
@@ -136,7 +136,7 @@ describe('VariantCalculator', () => {
             expect(testContext.visitor.logError).toHaveBeenCalledWith('Unknown split: "nonExistentSplit"');
         });
 
-        test('returns the weighting for a split', () => {
+        it('returns the weighting for a split', () => {
             expect(testContext.calculator.getWeighting()).toEqual({
                 extraGiant: 0,
                 giant: 80,
@@ -149,28 +149,28 @@ describe('VariantCalculator', () => {
     });
 
     describe('#getVariant()', () => {
-        test('returns the first variant with non-zero weight from bucket 0', () => {
+        it('returns the first variant with non-zero weight from bucket 0', () => {
             testContext.calculator.getAssignmentBucket = jest.fn().mockReturnValue(0);
             expect(testContext.calculator.getVariant()).toBe('giant');
         });
 
-        test('returns the last variant with non-zero weight from bucket 99', () => {
+        it('returns the last variant with non-zero weight from bucket 99', () => {
             testContext.calculator.getAssignmentBucket = jest.fn().mockReturnValue(99);
             expect(testContext.calculator.getVariant()).toBe('miniscule');
         });
 
-        test('returns the correct 1%-wide variant', () => {
+        it('returns the correct 1%-wide variant', () => {
             testContext.calculator.getAssignmentBucket = jest.fn().mockReturnValue(80);
             expect(testContext.calculator.getVariant()).toBe('huge');
         });
 
-        test('returns null if there is no split registry', () => {
+        it('returns null if there is no split registry', () => {
             TestTrackConfig.getSplitRegistry.mockReturnValue(null);
 
             expect(testContext.calculator.getVariant()).toBeNull();
         });
 
-        test('throws an error with an incomplete weighting', () => {
+        it('throws an error with an incomplete weighting', () => {
             TestTrackConfig.getSplitRegistry.mockReturnValue({
                 invalidWeighting: {
                     yes: 33,

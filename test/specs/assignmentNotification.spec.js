@@ -47,14 +47,14 @@ describe('AssignmentNotification', () => {
         testContext.notification = createNotification();
     });
 
-    test('requires a visitor', () => {
+    it('requires a visitor', () => {
         expect(function() {
             delete notificationOptions.visitor;
             createNotification();
         }).toThrowError('must provide visitor');
     });
 
-    test('requires an assignment', () => {
+    it('requires an assignment', () => {
         expect(function() {
             delete notificationOptions.assignment;
             createNotification();
@@ -62,7 +62,7 @@ describe('AssignmentNotification', () => {
     });
 
     describe('#send()', () => {
-        test('tracks an event', () => {
+        it('tracks an event', () => {
             testContext.notification.send();
 
             expect(testContext.analyticsTrackStub).toHaveBeenCalledTimes(1);
@@ -72,7 +72,7 @@ describe('AssignmentNotification', () => {
                 expect.any(Function));
         });
 
-        test('notifies the test track server with an analytics success', () => {
+        it('notifies the test track server with an analytics success', () => {
             testContext.analyticsTrackStub.mockImplementation((visitor_id, assignment, callback) => {
                 callback(true);
             });
@@ -104,7 +104,7 @@ describe('AssignmentNotification', () => {
             });
         });
 
-        test('notifies the test track server with an analytics failure', () => {
+        it('notifies the test track server with an analytics failure', () => {
             testContext.analyticsTrackStub.mockImplementation((visitor_id, assignment, callback) => {
                 callback(false);
             });
@@ -136,7 +136,7 @@ describe('AssignmentNotification', () => {
             });
         });
 
-        test('logs an error if the request fails', () => {
+        it('logs an error if the request fails', () => {
             $.ajax = jest.fn().mockImplementation(function() {
                 return $.Deferred().rejectWith(null, [{ status: 500, responseText: 'Internal Server Error' }, 'textStatus', 'errorThrown']);
             });

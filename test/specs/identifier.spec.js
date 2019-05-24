@@ -47,21 +47,21 @@ describe('Identifier', () => {
         testContext.identifier = createIdentifier();
     });
 
-    test('requires a visitorId', () => {
+    it('requires a visitorId', () => {
         expect(function() {
             delete identifierOptions.visitorId;
             createIdentifier();
         }).toThrowError('must provide visitorId');
     });
 
-    test('requires a identifierType', () => {
+    it('requires a identifierType', () => {
         expect(function() {
             delete identifierOptions.identifierType;
             createIdentifier();
         }).toThrowError('must provide identifierType');
     });
 
-    test('requires a value', () => {
+    it('requires a value', () => {
         expect(function() {
             delete identifierOptions.value;
             createIdentifier();
@@ -69,7 +69,7 @@ describe('Identifier', () => {
     });
 
     describe('#save()', () => {
-        test('hits the test track server with the correct parameters', (done) => {
+        it('hits the test track server with the correct parameters', (done) => {
             testContext.identifier.save().then(function() {
                 expect($.ajax).toHaveBeenCalledTimes(1);
                 expect($.ajax).toHaveBeenCalledWith('http://testtrack.dev/api/v1/identifier', {
@@ -87,7 +87,7 @@ describe('Identifier', () => {
             });
         });
 
-        test('responds with a Visitor instance with the attributes from the server', (done) => {
+        it('responds with a Visitor instance with the attributes from the server', (done) => {
             var jabbaAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', context: 'mos_eisley', isUnsynced: true }),
                 wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', context: 'napa', isUnsynced: false });
 

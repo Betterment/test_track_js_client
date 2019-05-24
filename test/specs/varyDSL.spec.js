@@ -41,7 +41,7 @@ describe('VaryDSL', () => {
         });
     });
 
-    test('requires an assignment', () => {
+    it('requires an assignment', () => {
         expect(function() {
             var vary = new VaryDSL({
                 visitor: testContext.visitor
@@ -49,7 +49,7 @@ describe('VaryDSL', () => {
         }.bind(this)).toThrowError('must provide assignment');
     });
 
-    test('requires a visitor', () => {
+    it('requires a visitor', () => {
         expect(function() {
             var vary = new VaryDSL({
                 assignment: testContext.assignment
@@ -58,20 +58,20 @@ describe('VaryDSL', () => {
     });
 
     describe('#when()', () => {
-        test('throws an error if no variants are provided', () => {
+        it('throws an error if no variants are provided', () => {
             expect(function() {
                 testContext.vary.when(function() {
                 });
             }.bind(this)).toThrowError('must provide at least one variant');
         });
 
-        test('throws an error if handler is not provided', () => {
+        it('throws an error if handler is not provided', () => {
             expect(function() {
                 testContext.vary.when('earth');
             }.bind(this)).toThrowError('must provide handler for earth');
         });
 
-        test('supports multiple variants', () => {
+        it('supports multiple variants', () => {
             var handler = function() {};
             testContext.vary.when('earth', 'wind', 'fire', handler);
 
@@ -82,7 +82,7 @@ describe('VaryDSL', () => {
             });
         });
 
-        test('logs an error if given a variant that is not in the split registry', () => {
+        it('logs an error if given a variant that is not in the split registry', () => {
             var handler = function() {};
             testContext.vary.when('earth', 'wind', 'leeloo_multipass', handler);
 
@@ -95,7 +95,7 @@ describe('VaryDSL', () => {
             expect(testContext.visitor.logError).toHaveBeenCalledWith('configures unknown variant leeloo_multipass');
         });
 
-        test('does not log an error when the split registry is unavailable', () => {
+        it('does not log an error when the split registry is unavailable', () => {
             TestTrackConfig.getSplitRegistry.mockReturnValue(null);
 
             var vary = new VaryDSL({
@@ -108,7 +108,7 @@ describe('VaryDSL', () => {
             expect(testContext.visitor.logError).not.toHaveBeenCalled();
         });
 
-        test('does not log an error for a variant with a 0 weight', () => {
+        it('does not log an error for a variant with a 0 weight', () => {
             TestTrackConfig.getSplitRegistry.mockReturnValue({
                 element: {
                     earth: 25,
@@ -131,13 +131,13 @@ describe('VaryDSL', () => {
     });
 
     describe('#default()', () => {
-        test('throws an error if handler is not provided', () => {
+        it('throws an error if handler is not provided', () => {
             expect(function() {
                 testContext.vary.default('earth');
             }.bind(this)).toThrowError('must provide handler for earth');
         });
 
-        test('throws an error if default is called more than once', () => {
+        it('throws an error if default is called more than once', () => {
             expect(function() {
                 testContext.vary.default('fire', function() {
                 });
@@ -147,14 +147,14 @@ describe('VaryDSL', () => {
             }.bind(this)).toThrowError('must provide exactly one `default`');
         });
 
-        test('sets the default variant', () => {
+        it('sets the default variant', () => {
             testContext.vary.default('water', function() {
             });
 
             expect(testContext.vary.getDefaultVariant()).toBe('water');
         });
 
-        test('adds the variant to the _variantHandlers object', () => {
+        it('adds the variant to the _variantHandlers object', () => {
             var handler = function() {};
             testContext.vary.default('water', handler);
             expect(testContext.vary._variantHandlers).toEqual({
@@ -162,7 +162,7 @@ describe('VaryDSL', () => {
             });
         });
 
-        test('logs an error if given a variant that is not in the split registry', () => {
+        it('logs an error if given a variant that is not in the split registry', () => {
             var handler = function() {};
 
             testContext.vary.default('leeloo_multipass', handler);
@@ -174,7 +174,7 @@ describe('VaryDSL', () => {
             expect(testContext.visitor.logError).toHaveBeenCalledWith('configures unknown variant leeloo_multipass');
         });
 
-        test('does not log an error when the split registry is unavailable', () => {
+        it('does not log an error when the split registry is unavailable', () => {
             TestTrackConfig.getSplitRegistry.mockReturnValue(null);
 
             var vary = new VaryDSL({
@@ -187,7 +187,7 @@ describe('VaryDSL', () => {
             expect(testContext.visitor.logError).not.toHaveBeenCalled();
         });
 
-        test('does not log an error for a variant with a 0 weight', () => {
+        it('does not log an error for a variant with a 0 weight', () => {
             TestTrackConfig.getSplitRegistry.mockReturnValue({
                 element: {
                     earth: 25,
@@ -215,13 +215,13 @@ describe('VaryDSL', () => {
             testContext.defaultHandler = jest.fn();
         });
 
-        test('throws an error if `default` was never called', () => {
+        it('throws an error if `default` was never called', () => {
             expect(function() {
                 testContext.vary.run();
             }.bind(this)).toThrowError('must provide exactly one `default`');
         });
 
-        test('throws an error if `when` was never called', () => {
+        it('throws an error if `when` was never called', () => {
             expect(function() {
                 testContext.vary.default('water', function() {
                 });
@@ -230,7 +230,7 @@ describe('VaryDSL', () => {
             }.bind(this)).toThrowError('must provide at least one `when`');
         });
 
-        test('runs the handler of the assigned variant', () => {
+        it('runs the handler of the assigned variant', () => {
             testContext.vary.when('earth', testContext.whenHandler);
             testContext.vary.default('water', testContext.defaultHandler);
 
@@ -240,7 +240,7 @@ describe('VaryDSL', () => {
             expect(testContext.defaultHandler).not.toHaveBeenCalled();
         });
 
-        test('runs the default handler and is defaulted if the assigned variant is not represented', () => {
+        it('runs the default handler and is defaulted if the assigned variant is not represented', () => {
             var vary = new VaryDSL({
                 assignment: testContext.assignment,
                 visitor: testContext.visitor
@@ -256,7 +256,7 @@ describe('VaryDSL', () => {
             expect(vary.isDefaulted()).toBe(true);
         });
 
-        test('is not defaulted if the assigned variant is represented as the default', () => {
+        it('is not defaulted if the assigned variant is represented as the default', () => {
             var vary = new VaryDSL({
                 assignment: testContext.assignment,
                 visitor: testContext.visitor
@@ -272,7 +272,7 @@ describe('VaryDSL', () => {
             expect(vary.isDefaulted()).toBe(false);
         });
 
-        test('logs an error if not all variants are represented', () => {
+        it('logs an error if not all variants are represented', () => {
             testContext.vary.when('earth', testContext.whenHandler);
             testContext.vary.default('fire', testContext.defaultHandler);
 
@@ -281,7 +281,7 @@ describe('VaryDSL', () => {
             expect(testContext.visitor.logError).toHaveBeenCalledWith('does not configure variants wind and water');
         });
 
-        test('does not log an error when the split registry is unavailable', () => {
+        it('does not log an error when the split registry is unavailable', () => {
             TestTrackConfig.getSplitRegistry.mockReturnValue(null);
 
             var vary = new VaryDSL({

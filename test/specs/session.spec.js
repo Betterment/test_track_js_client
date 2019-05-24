@@ -38,7 +38,7 @@ describe('Session', () => {
     });
 
     describe('Cookie behavior', () => {
-        test('reads the visitor id from a cookie and sets it back in the cookie', done => {
+        it('reads the visitor id from a cookie and sets it back in the cookie', done => {
             var v = new visitor.default({ id: 'existing_visitor_id', assignments: [] });
             visitor.default.loadVisitor = jest.fn().mockReturnValue($.Deferred().resolve(v).promise());
 
@@ -58,7 +58,7 @@ describe('Session', () => {
             });
         });
 
-        test('saves the visitor id in a cookie', done => {
+        it('saves the visitor id in a cookie', done => {
             $.cookie = jest.fn().mockReturnValue(null);
 
             var v = new visitor.default({ id: 'generated_visitor_id', assignments: [] });
@@ -111,7 +111,7 @@ describe('Session', () => {
         });
 
         describe('#initialize()', () => {
-            test('calls notifyUnsyncedAssignments when a visitor is loaded', done => {
+            it('calls notifyUnsyncedAssignments when a visitor is loaded', done => {
                 testContext.visitor.notifyUnsyncedAssignments = jest.fn();
                 new Session().getPublicAPI().initialize().then(function() {
                     expect(testContext.visitor.notifyUnsyncedAssignments).toHaveBeenCalledTimes(1);
@@ -120,7 +120,7 @@ describe('Session', () => {
                 }.bind(this));
             });
 
-            test('sets the analytics lib', done => {
+            it('sets the analytics lib', done => {
                 var analytics = {track: ''};
                 testContext.visitor.setAnalytics = jest.fn();
 
@@ -133,7 +133,7 @@ describe('Session', () => {
                 }.bind(this));
             });
 
-            test('sets the error logger', done => {
+            it('sets the error logger', done => {
                 var errorLogger = function() { };
                 testContext.visitor.setErrorLogger = jest.fn();
 
@@ -147,7 +147,7 @@ describe('Session', () => {
         });
 
         describe('#logIn()', () => {
-            test('updates the visitor id in the cookie', done => {
+            it('updates the visitor id in the cookie', done => {
                 $.cookie = jest.fn();
 
                 testContext.session.logIn('myappdb_user_id', 444).then(function() {
@@ -163,7 +163,7 @@ describe('Session', () => {
                 }.bind(this));
             });
 
-            test('calls analytics.identify with the resolved visitor id', done => {
+            it('calls analytics.identify with the resolved visitor id', done => {
                 testContext.session.logIn('myappdb_user_id', 444).then(function() {
                     expect(testContext.visitor.analytics.identify).toHaveBeenCalledTimes(1);
                     expect(testContext.visitor.analytics.identify).toHaveBeenCalledWith('other_visitor_id');
@@ -173,7 +173,7 @@ describe('Session', () => {
         });
 
         describe('#signUp()', () => {
-            test('updates the visitor id in the cookie', done => {
+            it('updates the visitor id in the cookie', done => {
                 $.cookie = jest.fn();
 
                 testContext.session.signUp('myappdb_user_id', 444).then(function() {
@@ -189,7 +189,7 @@ describe('Session', () => {
                 }.bind(this));
             });
 
-            test('calls analytics.alias with the resolved visitor id', done => {
+            it('calls analytics.alias with the resolved visitor id', done => {
                 testContext.session.signUp('myappdb_user_id', 444).then(function() {
                     expect(testContext.visitor.analytics.alias).toHaveBeenCalledTimes(1);
                     expect(testContext.visitor.analytics.alias).toHaveBeenCalledWith('other_visitor_id');
@@ -199,7 +199,7 @@ describe('Session', () => {
         });
 
         describe('#vary()', () => {
-            test('calls the correct vary function for the given split', done => {
+            it('calls the correct vary function for the given split', done => {
                 testContext.session.vary('jabba', {
                     context: 'spec',
                     variants: {
@@ -216,7 +216,7 @@ describe('Session', () => {
         });
 
         describe('#ab()', () => {
-            test('passes true or false into the callback', done => {
+            it('passes true or false into the callback', done => {
                 testContext.session.ab('jabba', {
                     context: 'spec',
                     trueVariant: 'cgi',
@@ -234,7 +234,7 @@ describe('Session', () => {
                 testContext.session.initialize();
                 testContext.publicApi = testContext.session.getPublicAPI();
             });
-            test('returns an object with a limited set of methods', () => {
+            it('returns an object with a limited set of methods', () => {
                 expect(testContext.publicApi).toEqual(expect.objectContaining({
                     'vary': expect.any(Function),
                     'ab': expect.any(Function),
@@ -251,7 +251,7 @@ describe('Session', () => {
 
             describe('_crx', () => {
                 describe('#persistAssignment()', () => {
-                    test('creates an AssignmentOverride and persists it', done => {
+                    it('creates an AssignmentOverride and persists it', done => {
                         let persistAssignmentDeferred = $.Deferred();
                         AssignmentOverride.mockImplementation(() => {
                             return {
@@ -283,7 +283,7 @@ describe('Session', () => {
                 });
 
                 describe('#loadInfo()', () => {
-                    test('returns a promise that resolves with the split registry, assignment registry and visitor id', done => {
+                    it('returns a promise that resolves with the split registry, assignment registry and visitor id', done => {
                         testContext.publicApi._crx.loadInfo().then(function(info) {
                             expect(info.visitorId).toEqual('dummy_visitor_id');
                             expect(info.splitRegistry).toEqual({
@@ -309,22 +309,22 @@ describe('Session', () => {
                     testContext.publicApi = testContext.session.getPublicAPI();
                 });
 
-                test('runs #vary() in the context of the session', () => {
+                it('runs #vary() in the context of the session', () => {
                     testContext.publicApi.vary();
                     expect(testContext.session.vary).toHaveBeenCalled();
                 });
 
-                test('runs #ab() in the context of the session', () => {
+                it('runs #ab() in the context of the session', () => {
                     testContext.publicApi.ab();
                     expect(testContext.session.ab).toHaveBeenCalled();
                 });
 
-                test('runs #logIn() in the context of the session', () => {
+                it('runs #logIn() in the context of the session', () => {
                     testContext.publicApi.logIn();
                     expect(testContext.session.logIn).toHaveBeenCalled();
                 });
 
-                test('runs #signUp() in the context of the session', () => {
+                it('runs #signUp() in the context of the session', () => {
                     testContext.publicApi.signUp();
                     expect(testContext.session.signUp).toHaveBeenCalled();
                 });

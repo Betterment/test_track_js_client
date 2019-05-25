@@ -44,14 +44,14 @@ describe('VariantCalculator', () => {
     expect(function() {
       delete calculatorOptions.visitor;
       createCalculator();
-    }).toThrowError('must provide visitor');
+    }).toThrow('must provide visitor');
   });
 
   it('requires a splitName', () => {
     expect(function() {
       delete calculatorOptions.splitName;
       createCalculator();
-    }).toThrowError('must provide splitName');
+    }).toThrow('must provide splitName');
   });
 
   describe('#getSplitVisitorHash()', () => {
@@ -120,7 +120,7 @@ describe('VariantCalculator', () => {
 
       expect(function() {
         calculator.getVariant();
-      }).toThrowError('Unknown split: "nonExistentSplit"');
+      }).toThrow('Unknown split: "nonExistentSplit"');
     });
 
     it('logs an error when given an unknown splitName', () => {
@@ -129,7 +129,9 @@ describe('VariantCalculator', () => {
 
       try {
         calculator.getVariant();
-      } catch (e) {}
+      } catch (e) {
+        // ignore
+      }
 
       expect(testContext.visitor.logError).toHaveBeenCalledTimes(1);
       expect(testContext.visitor.logError).toHaveBeenCalledWith('Unknown split: "nonExistentSplit"');
@@ -184,9 +186,7 @@ describe('VariantCalculator', () => {
 
       expect(function() {
         calculator.getVariant();
-      }).toThrowError(
-        'Assignment bucket out of range. 99 unmatched in invalidWeighting: {"yes":33,"no":33,"maybe":33}'
-      );
+      }).toThrow('Assignment bucket out of range. 99 unmatched in invalidWeighting: {"yes":33,"no":33,"maybe":33}');
     });
   });
 });

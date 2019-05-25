@@ -5,10 +5,12 @@
   "main": "dist/testTrack.bundle.js",
   "module": "dist/testTrack.js",
   "scripts": {
-    "test": "jest",
     "build": "rollup -c",
+    "lint": "eslint \"src/**/*.js\"",
+    "prettier:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "prettier:write": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "release": "release-it",
-    "prettier:write": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\""
+    "test": "jest"
   },
   "contributors": [
     "Ryan O'Neill <ryan.oneill@betterment.com>",
@@ -21,6 +23,9 @@
     "@babel/preset-env": "^7.0.0",
     "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^24.8.0",
+    "eslint": "^5.16.0",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-plugin-jest": "^22.6.4",
     "jest": "^24.8.0",
     "prettier": "1.17.1",
     "regenerator-runtime": "^0.13.1",

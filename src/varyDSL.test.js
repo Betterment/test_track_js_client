@@ -44,21 +44,21 @@ describe('VaryDSL', () => {
   it('requires an assignment', () => {
     expect(
       function() {
-        var vary = new VaryDSL({
+        new VaryDSL({
           visitor: testContext.visitor
         });
       }.bind(this)
-    ).toThrowError('must provide assignment');
+    ).toThrow('must provide assignment');
   });
 
   it('requires a visitor', () => {
     expect(
       function() {
-        var vary = new VaryDSL({
+        new VaryDSL({
           assignment: testContext.assignment
         });
       }.bind(this)
-    ).toThrowError('must provide visitor');
+    ).toThrow('must provide visitor');
   });
 
   describe('#when()', () => {
@@ -67,7 +67,7 @@ describe('VaryDSL', () => {
         function() {
           testContext.vary.when(function() {});
         }.bind(this)
-      ).toThrowError('must provide at least one variant');
+      ).toThrow('must provide at least one variant');
     });
 
     it('throws an error if handler is not provided', () => {
@@ -75,7 +75,7 @@ describe('VaryDSL', () => {
         function() {
           testContext.vary.when('earth');
         }.bind(this)
-      ).toThrowError('must provide handler for earth');
+      ).toThrow('must provide handler for earth');
     });
 
     it('supports multiple variants', () => {
@@ -143,7 +143,7 @@ describe('VaryDSL', () => {
         function() {
           testContext.vary.default('earth');
         }.bind(this)
-      ).toThrowError('must provide handler for earth');
+      ).toThrow('must provide handler for earth');
     });
 
     it('throws an error if default is called more than once', () => {
@@ -153,7 +153,7 @@ describe('VaryDSL', () => {
 
           testContext.vary.default('water', function() {});
         }.bind(this)
-      ).toThrowError('must provide exactly one `default`');
+      ).toThrow('must provide exactly one `default`');
     });
 
     it('sets the default variant', () => {
@@ -228,7 +228,7 @@ describe('VaryDSL', () => {
         function() {
           testContext.vary.run();
         }.bind(this)
-      ).toThrowError('must provide exactly one `default`');
+      ).toThrow('must provide exactly one `default`');
     });
 
     it('throws an error if `when` was never called', () => {
@@ -238,7 +238,7 @@ describe('VaryDSL', () => {
 
           testContext.vary.run();
         }.bind(this)
-      ).toThrowError('must provide at least one `when`');
+      ).toThrow('must provide at least one `when`');
     });
 
     it('runs the handler of the assigned variant', () => {

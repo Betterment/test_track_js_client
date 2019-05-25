@@ -1,6 +1,6 @@
 import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
-import TestTrackConfig from './testTrackConfig';
+import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
 import Visitor from './visitor';
 import $ from 'jquery';
 
@@ -51,14 +51,14 @@ describe('AssignmentNotification', () => {
     expect(function() {
       delete notificationOptions.visitor;
       createNotification();
-    }).toThrowError('must provide visitor');
+    }).toThrow('must provide visitor');
   });
 
   it('requires an assignment', () => {
     expect(function() {
       delete notificationOptions.assignment;
       createNotification();
-    }).toThrowError('must provide assignment');
+    }).toThrow('must provide assignment');
   });
 
   describe('#send()', () => {

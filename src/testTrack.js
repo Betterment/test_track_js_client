@@ -18,13 +18,17 @@ try {
     $(document.body).addClass('_tt');
     try {
       window.dispatchEvent(new CustomEvent('tt:class:added'));
-    } catch (e) {}
+    } catch (e) {
+      // ignore
+    }
   });
   // **** The order of these two lines is important, they support 2 different cases:
   // in the case where there is already code listening for 'tt:lib:loaded', trigger it immediately
   // in the case where there is not yet code listening for 'tt:lib:loaded', listen for 'tt:listener:ready' and then trigger 'tt:lib:loaded'
   notifyListener();
   window.addEventListener('tt:listener:ready', notifyListener);
-} catch (e) {}
+} catch (e) {
+  // ignore
+}
 
 export default TestTrack;

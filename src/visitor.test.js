@@ -53,13 +53,6 @@ describe('Visitor', () => {
     TestTrackConfig.getAssignments.mockReset();
   });
 
-  function newVisitor() {
-    return new Visitor({
-      id: uuid.v4(),
-      assignments: []
-    });
-  }
-
   function existingVisitor(visitorId) {
     return new Visitor({
       id: visitorId || 'EXISTING_VISITOR_ID',
@@ -79,7 +72,7 @@ describe('Visitor', () => {
         new Visitor({
           assignments: []
         });
-      }).toThrowError('must provide id');
+      }).toThrow('must provide id');
     });
 
     it('requires assignments', () => {
@@ -87,7 +80,7 @@ describe('Visitor', () => {
         new Visitor({
           id: 'visitor_id'
         });
-      }).toThrowError('must provide assignments');
+      }).toThrow('must provide assignments');
     });
   });
 
@@ -251,7 +244,7 @@ describe('Visitor', () => {
             defaultVariant: 'white'
           });
         }.bind(this)
-      ).toThrowError('must provide variants object to `vary` for wine');
+      ).toThrow('must provide variants object to `vary` for wine');
     });
 
     it('throws an error if a context is not provided', () => {
@@ -265,7 +258,7 @@ describe('Visitor', () => {
             }
           });
         }.bind(this)
-      ).toThrowError('must provide context to `vary` for wine');
+      ).toThrow('must provide context to `vary` for wine');
     });
 
     it('throws an error if a defaultVariant is not provided', () => {
@@ -279,7 +272,7 @@ describe('Visitor', () => {
             }
           });
         }.bind(this)
-      ).toThrowError('must provide defaultVariant to `vary` for wine');
+      ).toThrow('must provide defaultVariant to `vary` for wine');
     });
 
     it('throws an error if the defaultVariant is not represented in the variants object', () => {
@@ -294,7 +287,7 @@ describe('Visitor', () => {
             defaultVariant: 'rose'
           });
         }.bind(this)
-      ).toThrowError('defaultVariant: rose must be represented in variants object');
+      ).toThrow('defaultVariant: rose must be represented in variants object');
     });
 
     describe('New Assignment', () => {
@@ -689,7 +682,7 @@ describe('Visitor', () => {
         function() {
           testContext.visitor.setErrorLogger('teapot');
         }.bind(this)
-      ).toThrowError('must provide function for errorLogger');
+      ).toThrow('must provide function for errorLogger');
     });
 
     it('sets the error logger on the visitor', () => {
@@ -718,12 +711,11 @@ describe('Visitor', () => {
       testContext.visitor.setErrorLogger(testContext.errorLogger);
       testContext.visitor.logError('something bad happened');
 
-      console.log(testContext.errorLogger.mock.instances);
       expect(testContext.errorLogger.mock.instances[0]).toBeNull();
     });
 
     it('does a console.error if the error logger was never set', () => {
-      var consoleSpy = jest.spyOn(global.console, 'error');
+      var consoleSpy = jest.spyOn(window.console, 'error');
       testContext.visitor.logError('something bad happened');
 
       expect(consoleSpy).toHaveBeenCalledTimes(1);
@@ -738,7 +730,7 @@ describe('Visitor', () => {
         function() {
           testContext.visitor.setAnalytics('teapot');
         }.bind(this)
-      ).toThrowError('must provide object for setAnalytics');
+      ).toThrow('must provide object for setAnalytics');
     });
 
     it('sets the analytics object on the visitor', () => {

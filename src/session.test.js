@@ -1,8 +1,8 @@
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
 import Session from './session';
-import TestTrackConfig from './testTrackConfig';
-import VaryDSL from './varyDSL';
+import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
+import VaryDSL from './varyDSL'; // eslint-disable-line no-unused-vars
 import * as visitor from './visitor';
 import $ from 'jquery';
 

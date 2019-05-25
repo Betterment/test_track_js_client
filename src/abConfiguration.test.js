@@ -37,46 +37,46 @@ describe('ABConfiguration', () => {
   it('requires a splitName', () => {
     expect(
       function() {
-        var abConfiguration = new ABConfiguration({
+        new ABConfiguration({
           trueVariant: 'red',
           visitor: testContext.visitor
         });
       }.bind(this)
-    ).toThrowError('must provide splitName');
+    ).toThrow('must provide splitName');
   });
 
   it('requires an trueVariant', () => {
     expect(
       function() {
-        var abConfiguration = new ABConfiguration({
+        new ABConfiguration({
           splitName: 'button_color',
           visitor: testContext.visitor
         });
       }.bind(this)
-    ).toThrowError('must provide trueVariant');
+    ).toThrow('must provide trueVariant');
   });
 
   it('requires a visitor', () => {
     expect(
       function() {
-        var abConfiguration = new ABConfiguration({
+        new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red'
         });
       }.bind(this)
-    ).toThrowError('must provide visitor');
+    ).toThrow('must provide visitor');
   });
 
   it('allows a null trueVariant', () => {
     expect(
       function() {
-        var abConfiguration = new ABConfiguration({
+        new ABConfiguration({
           splitName: 'button_color',
           trueVariant: null,
           visitor: testContext.visitor
         });
       }.bind(this)
-    ).not.toThrowError();
+    ).not.toThrow();
   });
 
   describe('#getVariants()', () => {

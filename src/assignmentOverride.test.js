@@ -1,6 +1,6 @@
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
-import TestTrackConfig from './testTrackConfig';
+import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
 import Visitor from './visitor';
 import $ from 'jquery';
 
@@ -48,28 +48,28 @@ describe('AssignmentOverride', () => {
     expect(function() {
       delete overrideOptions.visitor;
       createOverride();
-    }).toThrowError('must provide visitor');
+    }).toThrow('must provide visitor');
   });
 
   it('requires an assignment', () => {
     expect(function() {
       delete overrideOptions.assignment;
       createOverride();
-    }).toThrowError('must provide assignment');
+    }).toThrow('must provide assignment');
   });
 
   it('requires an username', () => {
     expect(function() {
       delete overrideOptions.username;
       createOverride();
-    }).toThrowError('must provide username');
+    }).toThrow('must provide username');
   });
 
   it('requires a password', () => {
     expect(function() {
       delete overrideOptions.password;
       createOverride();
-    }).toThrowError('must provide password');
+    }).toThrow('must provide password');
   });
 
   describe('#persistAssignment()', () => {

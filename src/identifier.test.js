@@ -1,7 +1,7 @@
 import Assignment from './assignment';
 import Identifier from './identifier';
-import TestTrackConfig from './testTrackConfig';
-import Visitor from './visitor';
+import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
+import Visitor from './visitor'; // eslint-disable-line no-unused-vars
 import $ from 'jquery';
 
 jest.mock('./testTrackConfig', () => {
@@ -58,21 +58,21 @@ describe('Identifier', () => {
     expect(function() {
       delete identifierOptions.visitorId;
       createIdentifier();
-    }).toThrowError('must provide visitorId');
+    }).toThrow('must provide visitorId');
   });
 
   it('requires a identifierType', () => {
     expect(function() {
       delete identifierOptions.identifierType;
       createIdentifier();
-    }).toThrowError('must provide identifierType');
+    }).toThrow('must provide identifierType');
   });
 
   it('requires a value', () => {
     expect(function() {
       delete identifierOptions.value;
       createIdentifier();
-    }).toThrowError('must provide value');
+    }).toThrow('must provide value');
   });
 
   describe('#save()', () => {
@@ -103,7 +103,7 @@ describe('Identifier', () => {
         }),
         wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', context: 'napa', isUnsynced: false });
 
-      testContext.identifier.save().then(function(visitor) {
+      testContext.identifier.save().then(function() {
         expect(Visitor).toHaveBeenCalledTimes(1);
         expect(Visitor).toHaveBeenCalledWith({
           id: 'actual_visitor_id',

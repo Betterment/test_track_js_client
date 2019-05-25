@@ -17,7 +17,7 @@ var Identifier = function(options) {
   }
 };
 
-Identifier.prototype.save = function(identifierType, value) {
+Identifier.prototype.save = function() {
   var deferred = $.Deferred();
 
   $.ajax(TestTrackConfig.getUrl() + '/api/v1/identifier', {

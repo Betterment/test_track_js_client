@@ -1,28 +1,33 @@
-describe('ConfigParser', function() {
-    beforeEach(function() {
+import ConfigParser from '../../src/configParser';
+
+describe('ConfigParser', () => {
+    let testContext;
+
+    beforeEach(() => {
+        testContext = {};
+        testContext.configParser = new ConfigParser();
         window.TT = 'eyJhIjoiYiIsImMiOnsiZCI6ImUifSwiZiI6WyJnIiwiaCJdfQ==';
-        this.configParser = new ConfigParser();
     });
 
-    describe('#getConfig()', function() {
-        it('parses the window.TT variable', function() {
-            expect(this.configParser.getConfig()).to.deep.equal({
+    describe('#getConfig()', () => {
+        it('parses the window.TT variable', () => {
+            expect(testContext.configParser.getConfig()).toEqual({
                 a: "b", c: { d: "e", }, f: ["g", "h"]
             });
         });
 
-        context('atob is not available', function() {
-            beforeEach(function() {
-                this.originalAtob = window.atob;
+        describe('atob is not available', () => {
+            beforeEach(() => {
+                testContext.originalAtob = window.atob;
                 window.atob = undefined;
             });
 
-            afterEach(function() {
-                window.atob = this.originalAtob;
+            afterEach(() => {
+                window.atob = testContext.originalAtob;
             });
 
-            it('parses the window.TT variable', function() {
-                expect(this.configParser.getConfig()).to.deep.equal({
+            it('parses the window.TT variable', () => {
+                expect(testContext.configParser.getConfig()).toEqual({
                     a: "b", c: { d: "e", }, f: ["g", "h"]
                 });
             });

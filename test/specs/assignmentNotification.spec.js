@@ -1,26 +1,38 @@
-describe('AssignmentNotification', function() {
-    var notificationOptions;
+import Assignment from '../../src/assignment';
+import AssignmentNotification from '../../src/assignmentNotification';
+import TestTrackConfig from '../../src/testTrackConfig';
+import Visitor from '../../src/visitor';
+import $ from 'jquery';
 
+jest.mock('../../src/testTrackConfig', () => {
+    return {
+        getUrl: () => 'http://testtrack.dev'
+    };
+});
+
+describe('AssignmentNotification', () => {
+    let notificationOptions;
     function createNotification() {
         return new AssignmentNotification(notificationOptions);
     }
 
-    beforeEach(function() {
-        sandbox.stub(TestTrackConfig, 'getUrl').returns('http://testtrack.dev');
+    let testContext;
+    beforeEach(() => {
+        testContext = {};
+        $.ajax = jest.fn().mockImplementation(() => $.Deferred().resolve());
 
-        this.visitor = new Visitor({
+        testContext.visitor = new Visitor({
             id: 'visitorId',
             assignments: []
         });
 
-        this.analyticsTrackStub = sandbox.stub();
-        this.visitor.setAnalytics({
-            trackAssignment: this.analyticsTrackStub
+        testContext.analyticsTrackStub = jest.fn();
+        testContext.visitor.setAnalytics({
+            trackAssignment: testContext.analyticsTrackStub
         });
+        testContext.visitor.logError = jest.fn();
 
-        this.logErrorStub = sandbox.stub(this.visitor, 'logError');
-
-        this.assignment = new Assignment({
+        testContext.assignment = new Assignment({
             splitName: 'jabba',
             variant: 'cgi',
             context: 'spec',
@@ -28,73 +40,47 @@ describe('AssignmentNotification', function() {
         });
 
         notificationOptions = {
-            visitor: this.visitor,
-            assignment: this.assignment
+            visitor: testContext.visitor,
+            assignment: testContext.assignment
         };
 
-        this.notification = createNotification();
+        testContext.notification = createNotification();
     });
 
-    it('requires a visitor', function() {
+    it('requires a visitor', () => {
         expect(function() {
             delete notificationOptions.visitor;
             createNotification();
-        }).to.throw('must provide visitor');
+        }).toThrowError('must provide visitor');
     });
 
-    it('requires an assignment', function() {
+    it('requires an assignment', () => {
         expect(function() {
             delete notificationOptions.assignment;
             createNotification();
-        }).to.throw('must provide assignment');
+        }).toThrowError('must provide assignment');
     });
 
-    describe('#send()', function() {
-        it('tracks an event', function() {
-            this.notification.send();
+    describe('#send()', () => {
+        it('tracks an event', () => {
+            testContext.notification.send();
 
-            expect(this.analyticsTrackStub).to.be.calledOnce;
-            expect(this.analyticsTrackStub).to.be.calledWithExactly(
+            expect(testContext.analyticsTrackStub).toHaveBeenCalledTimes(1);
+            expect(testContext.analyticsTrackStub).toHaveBeenCalledWith(
                 'visitorId',
-                this.assignment,
-                sandbox.match.func);
+                testContext.assignment,
+                expect.any(Function));
         });
 
-        it('notifies the test track server with an analytics success', function() {
-            var persistAssignmentStub = sandbox.stub(this.notification, 'persistAssignment');
+        it('notifies the test track server with an analytics success', () => {
+            testContext.analyticsTrackStub.mockImplementation((visitor_id, assignment, callback) => {
+                callback(true);
+            });
 
-            this.notification.send();
+            testContext.notification.send();
 
-            this.analyticsTrackStub.yield(true);
-
-            expect(persistAssignmentStub).to.be.calledTwice;
-            expect(persistAssignmentStub.firstCall).to.be.calledWithExactly();
-            expect(persistAssignmentStub.secondCall).to.be.calledWithExactly("success");
-        });
-
-        it('notifies the test track server with an analytics failure', function() {
-            var persistAssignmentStub = sandbox.stub(this.notification, 'persistAssignment');
-
-            this.notification.send();
-
-            this.analyticsTrackStub.yield(false);
-
-            expect(persistAssignmentStub).to.be.calledTwice;
-            expect(persistAssignmentStub.firstCall).to.be.calledWithExactly();
-            expect(persistAssignmentStub.secondCall).to.be.calledWithExactly("failure");
-        });
-    });
-
-    describe('#persistAssignment()', function() {
-        beforeEach(function() {
-            this.ajaxStub = sandbox.stub($, 'ajax').returns($.Deferred().promise());
-        });
-
-        it('creates an assignment on the test track server', function() {
-            this.notification.persistAssignment();
-
-            expect(this.ajaxStub).to.be.calledOnce;
-            expect(this.ajaxStub).to.be.calledWith('http://testtrack.dev/api/v1/assignment_event', {
+            expect($.ajax).toHaveBeenCalledTimes(2);
+            expect($.ajax).toHaveBeenNthCalledWith(1, 'http://testtrack.dev/api/v1/assignment_event', {
                 method: 'POST',
                 dataType: 'json',
                 crossDomain: true,
@@ -105,13 +91,7 @@ describe('AssignmentNotification', function() {
                     mixpanel_result: undefined
                 }
             });
-        });
-
-        it('includes mixpanel result in request if provided', function() {
-            this.notification.persistAssignment('success');
-
-            expect(this.ajaxStub).to.be.calledOnce;
-            expect(this.ajaxStub).to.be.calledWith('http://testtrack.dev/api/v1/assignment_event', {
+            expect($.ajax).toHaveBeenNthCalledWith(2, 'http://testtrack.dev/api/v1/assignment_event', {
                 method: 'POST',
                 dataType: 'json',
                 crossDomain: true,
@@ -124,15 +104,47 @@ describe('AssignmentNotification', function() {
             });
         });
 
-        it('logs an error if the request fails', function() {
-            var deferred = $.Deferred();
-            deferred.reject({ status: 500, responseText: 'Internal Server Error' }, 'textStatus', 'errorThrown');
-            this.ajaxStub.returns(deferred.promise());
+        it('notifies the test track server with an analytics failure', () => {
+            testContext.analyticsTrackStub.mockImplementation((visitor_id, assignment, callback) => {
+                callback(false);
+            });
 
-            this.notification.persistAssignment('success');
+            testContext.notification.send();
 
-            expect(this.logErrorStub).to.be.calledOnce;
-            expect(this.logErrorStub).to.be.calledWithExactly('test_track persistAssignment error: [object Object], 500, Internal Server Error, textStatus, errorThrown');
+            expect($.ajax).toHaveBeenCalledTimes(2);
+            expect($.ajax).toHaveBeenNthCalledWith(1, 'http://testtrack.dev/api/v1/assignment_event', {
+                method: 'POST',
+                dataType: 'json',
+                crossDomain: true,
+                data: {
+                    visitor_id: 'visitorId',
+                    split_name: 'jabba',
+                    context: 'spec',
+                    mixpanel_result: undefined
+                }
+            });
+            expect($.ajax).toHaveBeenNthCalledWith(2, 'http://testtrack.dev/api/v1/assignment_event', {
+                method: 'POST',
+                dataType: 'json',
+                crossDomain: true,
+                data: {
+                    visitor_id: 'visitorId',
+                    split_name: 'jabba',
+                    context: 'spec',
+                    mixpanel_result: 'failure'
+                }
+            });
+        });
+
+        it('logs an error if the request fails', () => {
+            $.ajax = jest.fn().mockImplementation(function() {
+                return $.Deferred().rejectWith(null, [{ status: 500, responseText: 'Internal Server Error' }, 'textStatus', 'errorThrown']);
+            });
+
+            testContext.notification.send();
+
+            expect(testContext.visitor.logError).toHaveBeenCalledTimes(1);
+            expect(testContext.visitor.logError).toHaveBeenCalledWith('test_track persistAssignment error: [object Object], 500, Internal Server Error, textStatus, errorThrown');
         });
     });
 });

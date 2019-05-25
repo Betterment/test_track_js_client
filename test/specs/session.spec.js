@@ -1,119 +1,160 @@
-describe('Session', function() {
-    beforeEach(function() {
-        sandbox.stub(TestTrackConfig, 'getCookieDomain').returns('.example.com');
-        sandbox.stub(TestTrackConfig, 'getCookieName').returns('custom_cookie_name');
+import Assignment from '../../src/assignment';
+import AssignmentOverride from '../../src/assignmentOverride';
+import Session from '../../src/session';
+import TestTrackConfig from '../../src/testTrackConfig';
+import VaryDSL from '../../src/varyDSL';
+import * as visitor from '../../src/visitor';
+import $ from 'jquery';
+
+jest.mock('../../src/assignmentOverride');
+
+jest.mock('../../src/configParser', () => {
+    return jest.fn().mockImplementation(() => {
+        return {
+            getConfig: () => {
+                return {
+                    url: "http://testtrack.dev",
+                    cookieDomain: ".example.com",
+                    cookieName: 'custom_cookie_name',
+                    registry: {
+                        jabba: { cgi: 50, puppet: 50 },
+                        wine: { red: 50, white: 25, rose: 25 }
+                    },
+                    assignments: {
+                        jabba: 'puppet',
+                        wine: 'rose'
+                    }
+                };
+            }
+        };
+    });
+});
+
+describe('Session', () => {
+    let testContext;
+    beforeEach(() => {
+        testContext = {};
+        $.cookie = jest.fn().mockReturnValue('existing_visitor_id');
     });
 
-    describe('Cookie behavior', function() {
-        it('reads the visitor id from a cookie and sets it back in the cookie', function() {
-            var visitor = new Visitor({
-                    id: 'existing_visitor_id',
-                    assignments: []
-                }),
-                cookieStub = sandbox.stub($, 'cookie').withArgs('custom_cookie_name').returns('existing_visitor_id'),
-                loadVisitorStub = sandbox.stub(Visitor, 'loadVisitor').returns($.Deferred().resolve(visitor).promise());
+    describe('Cookie behavior', () => {
+        it('reads the visitor id from a cookie and sets it back in the cookie', done => {
+            var v = new visitor.default({ id: 'existing_visitor_id', assignments: [] });
+            visitor.default.loadVisitor = jest.fn().mockReturnValue($.Deferred().resolve(v).promise());
 
-            new Session().getPublicAPI().initialize();
+            new Session().getPublicAPI().initialize().then(function() {
+                expect(visitor.default.loadVisitor).toHaveBeenCalledWith('existing_visitor_id');
 
-            expect(loadVisitorStub).to.be.calledOnce;
-            expect(loadVisitorStub).to.be.calledWithExactly('existing_visitor_id');
+                expect($.cookie).toHaveBeenCalledTimes(2);
+                expect($.cookie).toHaveBeenNthCalledWith(1, 'custom_cookie_name');
 
-            expect(cookieStub).to.be.calledTwice;
-            expect(cookieStub.firstCall).to.be.calledWithExactly('custom_cookie_name');
-            expect(cookieStub.secondCall).to.be.calledWithExactly('custom_cookie_name', 'existing_visitor_id', {
-                expires: 365,
-                path: '/',
-                domain: '.example.com'
+                expect($.cookie).toHaveBeenNthCalledWith(2, 'custom_cookie_name', 'existing_visitor_id', {
+                    expires: 365,
+                    path: '/',
+                    domain: '.example.com'
+                });
+
+                done();
             });
         });
 
-        it('saves the visitor id in a cookie', function() {
-            var cookieStub = sandbox.stub($, 'cookie').withArgs('custom_cookie_name').returns(null);
+        it('saves the visitor id in a cookie', done => {
+            $.cookie = jest.fn().mockReturnValue(null);
 
-            new Session().getPublicAPI().initialize();
+            var v = new visitor.default({ id: 'generated_visitor_id', assignments: [] });
+            visitor.default.loadVisitor = jest.fn().mockReturnValue($.Deferred().resolve(v).promise());
 
-            expect(cookieStub).to.be.calledTwice;
-            expect(cookieStub.firstCall).to.be.calledWithExactly('custom_cookie_name');
-            expect(cookieStub.secondCall).to.be.calledWithExactly('custom_cookie_name', sandbox.match(/^[a-zA-Z0-9\-]{36}$/), {
-                expires: 365,
-                path: '/',
-                domain: '.example.com'
+            new Session().getPublicAPI().initialize().then(function() {
+                expect(visitor.default.loadVisitor).toHaveBeenCalledWith(null);
+
+                expect($.cookie).toHaveBeenCalledTimes(2);
+                expect($.cookie).toHaveBeenNthCalledWith(1, 'custom_cookie_name');
+
+                expect($.cookie).toHaveBeenNthCalledWith(2, 'custom_cookie_name', 'generated_visitor_id', {
+                    expires: 365,
+                    path: '/',
+                    domain: '.example.com'
+                });
+
+                done()
             });
         });
     });
 
-    context('with stubbed visitor and split registry', function() {
-        beforeEach(function() {
-            sandbox.stub(TestTrackConfig, 'getSplitRegistry').returns({
-                jabba: { cgi: 50, puppet: 50 }
-            });
-
-            this.jabbaAssignment = new Assignment({
+    describe('with stubbed visitor and split registry', () => {
+        beforeEach(() => {
+            testContext.jabbaAssignment = new Assignment({
                 splitName: 'jabba',
                 variant: 'cgi',
                 isUnsynced: false
             });
 
-            this.visitor = new Visitor({
+            testContext.visitor = new visitor.default({
                 id: 'dummy_visitor_id',
-                assignments: [this.jabbaAssignment]
+                assignments: [testContext.jabbaAssignment]
             });
 
-            this.analyticsAliasStub = sandbox.stub();
-            this.analyticsIdentifyStub = sandbox.stub();
-            this.visitor.setAnalytics({
-                alias: this.analyticsAliasStub,
-                identify: this.analyticsIdentifyStub
-            })
+            testContext.visitor.analytics = {
+                alias: jest.fn(),
+                identify: jest.fn()
+            };
 
-            sandbox.stub(this.visitor, 'setAnalytics');
-            sandbox.stub(this.visitor, 'setErrorLogger');
-            sandbox.stub(this.visitor, 'linkIdentifier').callsFake(function() {
-                this.visitor._id = 'other_visitor_id'; // mimic behavior of linkIdentifier that we care about
+            testContext.visitor.linkIdentifier = jest.fn().mockImplementation(() => {
+                testContext.visitor.getId = jest.fn(() => 'other_visitor_id'); // mimic behavior of linkIdentifier that we care about
                 return $.Deferred().resolve().promise();
-            }.bind(this));
-
-            sandbox.stub(Visitor, 'loadVisitor').returns($.Deferred().resolve(this.visitor).promise());
-
-            this.session = new Session().getPublicAPI();
-            this.session.initialize();
-        });
-
-        describe('#initialize()', function() {
-            it('calls notifyUnsyncedAssignments when a visitor is loaded', function() {
-                sandbox.stub(this.visitor, 'notifyUnsyncedAssignments');
-                new Session().getPublicAPI().initialize();
-                expect(this.visitor.notifyUnsyncedAssignments).to.be.calledOnce;
             });
 
-            it('sets the analytics lib', function() {
+            visitor.default.loadVisitor = jest.fn().mockReturnValue($.Deferred().resolve(testContext.visitor).promise());
+
+            testContext.session = new Session().getPublicAPI();
+            return testContext.session.initialize();
+        });
+
+        describe('#initialize()', () => {
+            it('calls notifyUnsyncedAssignments when a visitor is loaded', done => {
+                testContext.visitor.notifyUnsyncedAssignments = jest.fn();
+                new Session().getPublicAPI().initialize().then(function() {
+                    expect(testContext.visitor.notifyUnsyncedAssignments).toHaveBeenCalledTimes(1);
+
+                    done();
+                }.bind(this));
+            });
+
+            it('sets the analytics lib', done => {
                 var analytics = {track: ''};
+                testContext.visitor.setAnalytics = jest.fn();
 
-                new Session().getPublicAPI().initialize({analytics: analytics});
+                new Session().getPublicAPI().initialize({analytics: analytics}).then(function() {
+                    expect(testContext.visitor.setAnalytics).toHaveBeenCalledTimes(1);
+                    expect(testContext.visitor.setAnalytics).toHaveBeenCalledTimes(1);
+                    expect(testContext.visitor.setAnalytics).toHaveBeenCalledWith(analytics);
 
-                expect(this.visitor.setAnalytics).to.be.calledOnce;
-                expect(this.visitor.setAnalytics).to.be.calledWithExactly(analytics);
+                    done();
+                }.bind(this));
             });
 
-            it('sets the error logger', function() {
+            it('sets the error logger', done => {
                 var errorLogger = function() { };
+                testContext.visitor.setErrorLogger = jest.fn();
 
-                new Session().getPublicAPI().initialize({errorLogger: errorLogger});
+                new Session().getPublicAPI().initialize({errorLogger: errorLogger}).then(function() {
+                    expect(testContext.visitor.setErrorLogger).toHaveBeenCalledTimes(1);
+                    expect(testContext.visitor.setErrorLogger).toHaveBeenCalledWith(errorLogger);
 
-                expect(this.visitor.setErrorLogger).to.be.calledOnce;
-                expect(this.visitor.setErrorLogger).to.be.calledWithExactly(errorLogger);
+                    done();
+                }.bind(this));
             });
         });
 
-        describe('#logIn()', function() {
-            it('updates the visitor id in the cookie', function(done) {
-                var cookieStub = sandbox.stub($, 'cookie');
+        describe('#logIn()', () => {
+            it('updates the visitor id in the cookie', done => {
+                $.cookie = jest.fn();
 
-                this.session.logIn('myappdb_user_id', 444).then(function() {
-                    expect(this.visitor.linkIdentifier).to.be.calledOnce;
-                    expect(this.visitor.linkIdentifier).to.be.calledWithExactly('myappdb_user_id', 444);
-                    expect(cookieStub).to.be.calledOnce;
-                    expect(cookieStub).to.be.calledWithExactly('custom_cookie_name', 'other_visitor_id', {
+                testContext.session.logIn('myappdb_user_id', 444).then(function() {
+                    expect(testContext.visitor.linkIdentifier).toHaveBeenCalledTimes(1);
+                    expect(testContext.visitor.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
+                    expect($.cookie).toHaveBeenCalledTimes(1);
+                    expect($.cookie).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
                         expires: 365,
                         path: '/',
                         domain: '.example.com'
@@ -122,25 +163,24 @@ describe('Session', function() {
                 }.bind(this));
             });
 
-            it('calls analytics.identify with the resolved visitor id', function(done) {
-                var self = this;
-                this.session.logIn('myappdb_user_id', 444).then(function() {
-                    expect(self.analyticsIdentifyStub).to.be.calledOnce;
-                    expect(self.analyticsIdentifyStub).to.be.calledWithExactly('other_visitor_id');
+            it('calls analytics.identify with the resolved visitor id', done => {
+                testContext.session.logIn('myappdb_user_id', 444).then(function() {
+                    expect(testContext.visitor.analytics.identify).toHaveBeenCalledTimes(1);
+                    expect(testContext.visitor.analytics.identify).toHaveBeenCalledWith('other_visitor_id');
                     done();
                 });
             });
         });
 
-        describe('#signUp()', function() {
-            it('updates the visitor id in the cookie', function(done) {
-                var cookieStub = sandbox.stub($, 'cookie');
+        describe('#signUp()', () => {
+            it('updates the visitor id in the cookie', done => {
+                $.cookie = jest.fn();
 
-                this.session.signUp('myappdb_user_id', 444).then(function() {
-                    expect(this.visitor.linkIdentifier).to.be.calledOnce;
-                    expect(this.visitor.linkIdentifier).to.be.calledWithExactly('myappdb_user_id', 444);
-                    expect(cookieStub).to.be.calledOnce;
-                    expect(cookieStub).to.be.calledWithExactly('custom_cookie_name', 'other_visitor_id', {
+                testContext.session.signUp('myappdb_user_id', 444).then(function() {
+                    expect(testContext.visitor.linkIdentifier).toHaveBeenCalledTimes(1);
+                    expect(testContext.visitor.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
+                    expect($.cookie).toHaveBeenCalledTimes(1);
+                    expect($.cookie).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
                         expires: 365,
                         path: '/',
                         domain: '.example.com'
@@ -149,19 +189,18 @@ describe('Session', function() {
                 }.bind(this));
             });
 
-            it('calls analytics.alias with the resolved visitor id', function(done) {
-                var self = this;
-                this.session.signUp('myappdb_user_id', 444).then(function() {
-                    expect(self.analyticsAliasStub).to.be.calledOnce;
-                    expect(self.analyticsAliasStub).to.be.calledWithExactly('other_visitor_id');
+            it('calls analytics.alias with the resolved visitor id', done => {
+                testContext.session.signUp('myappdb_user_id', 444).then(function() {
+                    expect(testContext.visitor.analytics.alias).toHaveBeenCalledTimes(1);
+                    expect(testContext.visitor.analytics.alias).toHaveBeenCalledWith('other_visitor_id');
                     done();
                 });
             });
         });
 
-        describe('#vary()', function() {
-            it('calls the correct vary function for the given split', function(done) {
-                this.session.vary('jabba', {
+        describe('#vary()', () => {
+            it('calls the correct vary function for the given split', done => {
+                testContext.session.vary('jabba', {
                     context: 'spec',
                     variants: {
                         cgi: function() {
@@ -176,56 +215,56 @@ describe('Session', function() {
             });
         });
 
-        describe('#ab()', function() {
-            it('passes true or false into the callback', function(done) {
-                this.session.ab('jabba', {
+        describe('#ab()', () => {
+            it('passes true or false into the callback', done => {
+                testContext.session.ab('jabba', {
                     context: 'spec',
                     trueVariant: 'cgi',
                     callback: function(cgi) {
-                        expect(cgi).to.be.true;
+                        expect(cgi).toBe(true);
                         done();
                     }
                 });
             });
         });
 
-        describe('#getPublicAPI()', function() {
-            var session = new Session();
+        describe('#getPublicAPI()', () => {
+            beforeEach(() => {
+                testContext.session = new Session();
+                testContext.session.initialize();
+                testContext.publicApi = testContext.session.getPublicAPI();
+            });
+            it('returns an object with a limited set of methods', () => {
+                expect(testContext.publicApi).toEqual(expect.objectContaining({
+                    'vary': expect.any(Function),
+                    'ab': expect.any(Function),
+                    'logIn': expect.any(Function),
+                    'signUp': expect.any(Function),
+                    'initialize': expect.any(Function)
+                }));
 
-            it ('returns an object with a limited set of methods', function() {
-                expect(session.getPublicAPI()).to.have.all.keys([
-                    'vary',
-                    'ab',
-                    'logIn',
-                    'signUp',
-                    'initialize',
-                    '_crx'
-                ]);
-
-                expect(session.getPublicAPI()._crx).to.have.all.keys([
-                    'loadInfo',
-                    'persistAssignment'
-                ]);
+                expect(testContext.publicApi._crx).toEqual(expect.objectContaining({
+                    'loadInfo': expect.any(Function),
+                    'persistAssignment': expect.any(Function)
+                }));
             });
 
-            describe('_crx', function() {
-                beforeEach(function() {
-                    var session = new Session().getPublicAPI();
-                    session.initialize();
-                    this.crx = session._crx;
-                });
+            describe('_crx', () => {
+                describe('#persistAssignment()', () => {
+                    it('creates an AssignmentOverride and persists it', done => {
+                        let persistAssignmentDeferred = $.Deferred();
+                        AssignmentOverride.mockImplementation(() => {
+                            return {
+                                persistAssignment: () => {
+                                    return persistAssignmentDeferred.promise();
+                                }
+                            };
+                        });
 
-                describe('#persistAssignment()', function() {
-                    it('creates an AssignmentOverride and perists it', function(done) {
-                        var persistAssignmentDeferred = $.Deferred(),
-                            assignmentOverrideStub = sandbox.stub(window, 'AssignmentOverride').returns({
-                                persistAssignment: sandbox.stub().returns(persistAssignmentDeferred.promise())
-                            });
-
-                        this.crx.persistAssignment('split', 'variant', 'the_username', 'the_password').then(function() {
-                            expect(assignmentOverrideStub).to.be.calledOnce;
-                            expect(assignmentOverrideStub).to.be.calledWithExactly({
-                                visitor: this.visitor,
+                        testContext.publicApi._crx.persistAssignment('split', 'variant', 'the_username', 'the_password').then(function() {
+                            expect(AssignmentOverride).toHaveBeenCalledTimes(1);
+                            expect(AssignmentOverride).toHaveBeenCalledWith({
+                                visitor: testContext.visitor,
                                 username: 'the_username',
                                 password: 'the_password',
                                 assignment: new Assignment({
@@ -235,6 +274,7 @@ describe('Session', function() {
                                     isUnsynced: true
                                 })
                             });
+
                             done();
                         }.bind(this));
 
@@ -242,45 +282,51 @@ describe('Session', function() {
                     });
                 });
 
-                describe('#loadInfo()', function() {
-                    it('returns a promise that resolves with the split registry, assignment registry and visitor id', function(done) {
-                        this.crx.loadInfo().then(function(info) {
-                            expect(info.visitorId).to.equal('dummy_visitor_id');
-                            expect(info.splitRegistry).to.deep.equal({ jabba: { cgi: 50, puppet: 50 } });
-                            expect(info.assignmentRegistry).to.deep.equal({ jabba: 'cgi' });
+                describe('#loadInfo()', () => {
+                    it('returns a promise that resolves with the split registry, assignment registry and visitor id', done => {
+                        testContext.publicApi._crx.loadInfo().then(function(info) {
+                            expect(info.visitorId).toEqual('dummy_visitor_id');
+                            expect(info.splitRegistry).toEqual({
+                                jabba: { cgi: 50, puppet: 50 },
+                                wine: { red: 50, white: 25, rose: 25 }
+                            });
+                            expect(info.assignmentRegistry).toEqual({ jabba: 'cgi' });
+
                             done();
                         });
                     });
                 });
             });
 
-            describe('context of the public API methods', function() {
+            describe('context of the public API methods', () => {
+                beforeEach(() => {
+                    testContext.session.vary = jest.fn();
+                    testContext.session.ab = jest.fn();
+                    testContext.session.logIn = jest.fn();
+                    testContext.session.signUp = jest.fn();
 
-                beforeEach(function() {
-                    this.varyStub = sandbox.stub(this.session, 'vary');
-                    this.abStub = sandbox.stub(this.session, 'ab');
-                    this.logInStub = sandbox.stub(this.session, 'logIn');
-                    this.signUpStub = sandbox.stub(this.session, 'signUp');
+                    // pull a fresh instance of publicApi to pick up the stubbed methods
+                    testContext.publicApi = testContext.session.getPublicAPI();
                 });
 
-                it('runs #vary() in the context of the session', function() {
-                    this.session.vary();
-                    expect(this.varyStub.thisValues[0]).to.equal(this.session);
+                it('runs #vary() in the context of the session', () => {
+                    testContext.publicApi.vary();
+                    expect(testContext.session.vary).toHaveBeenCalled();
                 });
 
-                it('runs #ab() in the context of the session', function() {
-                    this.session.ab();
-                    expect(this.abStub.thisValues[0]).to.equal(this.session);
+                it('runs #ab() in the context of the session', () => {
+                    testContext.publicApi.ab();
+                    expect(testContext.session.ab).toHaveBeenCalled();
                 });
 
-                it('runs #logIn() in the context of the session', function() {
-                    this.session.logIn();
-                    expect(this.logInStub.thisValues[0]).to.equal(this.session);
+                it('runs #logIn() in the context of the session', () => {
+                    testContext.publicApi.logIn();
+                    expect(testContext.session.logIn).toHaveBeenCalled();
                 });
 
-                it('runs #signUp() in the context of the session', function() {
-                    this.session.signUp();
-                    expect(this.signUpStub.thisValues[0]).to.equal(this.session);
+                it('runs #signUp() in the context of the session', () => {
+                    testContext.publicApi.signUp();
+                    expect(testContext.session.signUp).toHaveBeenCalled();
                 });
             });
         });

@@ -1,12 +1,42 @@
-describe('Identifier', function() {
-    var identifierOptions;
+import Assignment from '../../src/assignment';
+import Identifier from '../../src/identifier';
+import TestTrackConfig from '../../src/testTrackConfig';
+import Visitor from '../../src/visitor';
+import $ from 'jquery';
 
+jest.mock('../../src/testTrackConfig', () => {
+    return {
+        getUrl: () => 'http://testtrack.dev'
+    };
+});
+
+jest.mock('../../src/visitor');
+
+describe('Identifier', () => {
+    let identifierOptions;
     function createIdentifier() {
         return new Identifier(identifierOptions);
     }
 
-    beforeEach(function() {
-        sandbox.stub(TestTrackConfig, 'getUrl').returns('http://testtrack.dev');
+    let testContext;
+    beforeEach(() => {
+        testContext = {};
+        $.ajax = jest.fn().mockImplementation(() => $.Deferred().resolveWith(null, [{
+            visitor: {
+                id: 'actual_visitor_id',
+                assignments: [{
+                    split_name: 'jabba',
+                    variant: 'puppet',
+                    context: 'mos_eisley',
+                    unsynced: true
+                }, {
+                    split_name: 'wine',
+                    variant: 'red',
+                    context: 'napa',
+                    unsynced: false
+                }]
+            }
+        }]));
 
         identifierOptions = {
             visitorId: 'transient_visitor_id',
@@ -14,84 +44,60 @@ describe('Identifier', function() {
             value: 444
         };
 
-        this.identifier = createIdentifier();
+        testContext.identifier = createIdentifier();
     });
 
-    it('requires a visitorId', function() {
+    it('requires a visitorId', () => {
         expect(function() {
             delete identifierOptions.visitorId;
             createIdentifier();
-        }).to.throw('must provide visitorId');
+        }).toThrowError('must provide visitorId');
     });
 
-    it('requires a identifierType', function() {
+    it('requires a identifierType', () => {
         expect(function() {
             delete identifierOptions.identifierType;
             createIdentifier();
-        }).to.throw('must provide identifierType');
+        }).toThrowError('must provide identifierType');
     });
 
-    it('requires a value', function() {
+    it('requires a value', () => {
         expect(function() {
             delete identifierOptions.value;
             createIdentifier();
-        }).to.throw('must provide value');
+        }).toThrowError('must provide value');
     });
 
-    describe('#save()', function() {
-        beforeEach(function() {
-            this.ajaxStub = sandbox.stub($, 'ajax');
-        });
+    describe('#save()', () => {
+        it('hits the test track server with the correct parameters', (done) => {
+            testContext.identifier.save().then(function() {
+                expect($.ajax).toHaveBeenCalledTimes(1);
+                expect($.ajax).toHaveBeenCalledWith('http://testtrack.dev/api/v1/identifier', {
+                    method: 'POST',
+                    dataType: 'json',
+                    crossDomain: true,
+                    data: {
+                        identifier_type: 'myappdb_user_id',
+                        value: 444,
+                        visitor_id: 'transient_visitor_id'
+                    }
+                });
 
-        it('hits the test track server with the correct parameters', function() {
-            this.ajaxStub.returns($.Deferred().promise());
-
-            this.identifier.save();
-
-            expect(this.ajaxStub).to.be.calledOnce;
-            expect(this.ajaxStub).to.be.calledWith('http://testtrack.dev/api/v1/identifier', {
-                method: 'POST',
-                dataType: 'json',
-                crossDomain: true,
-                data: {
-                    identifier_type: 'myappdb_user_id',
-                    value: 444,
-                    visitor_id: 'transient_visitor_id'
-                }
+                done();
             });
         });
 
-        it('responds with a Visitor instance with the attributes from the server', function(done) {
-            var visitorConstructorSpy = sandbox.spy(window, 'Visitor'),
-                jabbaAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', context: 'mos_eisley', isUnsynced: true }),
+        it('responds with a Visitor instance with the attributes from the server', (done) => {
+            var jabbaAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', context: 'mos_eisley', isUnsynced: true }),
                 wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', context: 'napa', isUnsynced: false });
 
-            this.ajaxStub.returns($.Deferred().resolve({
-                visitor: {
-                    id: 'actual_visitor_id',
-                    assignments: [{
-                        split_name: 'jabba',
-                        variant: 'puppet',
-                        context: 'mos_eisley',
-                        unsynced: true
-                    }, {
-                        split_name: 'wine',
-                        variant: 'red',
-                        context: 'napa',
-                        unsynced: false
-                    }]
-                }
-            }).promise());
-
-            this.identifier.save().then(function(visitor) {
-                expect(visitorConstructorSpy).to.be.calledOnce;
-                expect(visitorConstructorSpy).to.be.calledWithExactly({
+            testContext.identifier.save().then(function(visitor) {
+                expect(Visitor).toHaveBeenCalledTimes(1);
+                expect(Visitor).toHaveBeenCalledWith({
                     id: 'actual_visitor_id',
                     assignments: [jabbaAssignment, wineAssignment]
                 });
 
-                expect(visitor.getId()).to.equal('actual_visitor_id');
-                expect(visitor.getAssignmentRegistry()).to.deep.equal({ jabba: jabbaAssignment, wine: wineAssignment });
                 done();
             });
         });

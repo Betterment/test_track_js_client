@@ -24,9 +24,15 @@ yarn add test_track_js_client
 
 You can find the latest version of the test track JS client [here](https://github.com/Betterment/test_track_js_client/releases).
 
-The test track JS client currently has the following dependencies: `blueimp-md5`, `node-uuid`, `jquery` and `jquery.cookie`.
+The test track JS client currently has the following dependencies: [`blueimp-md5`](https://github.com/blueimp/JavaScript-MD5), [`node-uuid`](https://www.npmjs.com/package/node-uuid), [`jquery`](https://jquery.com/) and [`jquery.cookie`](https://github.com/carhartl/jquery-cookie).
 
-If you're using a fancy build pipeline ([grunt](http://gruntjs.com/), [gulp](http://gulpjs.com/), [broccoli](http://broccolijs.com/), [webpack](https://webpack.github.io/)), then you are all set. If not, you have a few other [options](#alternative-setup) for loading the client into your page.
+The client is distributed with two artifacts:
+- `testTrack.js` is an ES6 module with no bundled dependencies.
+- `testTrack.bundle.js` is a UMD-style module, bundled with `blueimp-md5`, `node-uuid`, and `jquery.cookie`. You must provide `jquery` separately.
+
+If you're using a fancy build pipeline ([grunt](https://gruntjs.com/), [gulp](https://gulpjs.com/), [webpack](https://webpack.js.org/)), then you are all set. If not, you have a few other [options](#alternative-setup) for loading the client into your page.
+
+Note: test track JS client makes use of `bind`, so you may need a [polyfill](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#Polyfill) to support older browsers.
 
 ## Configuration
 
@@ -155,19 +161,10 @@ TestTrack.initialize({
 
 ### Simple HTML setup
 
-You can load the dependencies and the library via `script` tags, like this:
+You can load the bundled and minified version of the client that includes all of the dependencies for you (except jQuery), like this:
 ```html
 <script type="text/javascript" src="path/to/deps/jquery/dist/jquery.js"></script>
-<script type="text/javascript" src="path/to/deps/jquery.cookie/jquery.cookie.js"></script>
-<script type="text/javascript" src="path/to/deps/blueimp-md5/js/md5.js"></script>
-<script type="text/javascript" src="path/to/deps/node-uuid/uuid.js"></script>
-<script type="text/javascript" src="path/to/deps/test_track_js_client/dist/testTrack.min.js"></script>
-```
-
-Or, you can load the bundled and minified version of the client that includes all of the dependencies for you (except jQuery), like this:
-```html
-<script type="text/javascript" src="path/to/deps/jquery/dist/jquery.js"></script>
-<script type="text/javascript" src="path/to/deps/test_track_js_client/dist/testTrack.bundled.min.js"></script>
+<script type="text/javascript" src="path/to/deps/test_track_js_client/dist/testTrack.bundle.js"></script>
 ```
 
 ### RequireJS setup
@@ -177,10 +174,7 @@ You must provide aliases for the test track JS client's dependencies in your Req
 ```js
 require.config({
     paths: {
-        'jquery': 'path/to/deps/jquery/dist/jquery.js',
-        'jquery.cookie': 'path/to/deps/jquery.cookie/jquery.cookie.js',
-        'node-uuid': 'path/to/deps/node-uuid/uuid',
-        'blueimp-md5': 'path/to/deps/blueimp-md5/js/md5'
+        'jquery': 'path/to/deps/jquery/dist/jquery.js'
     }
 });
 ```
@@ -201,7 +195,7 @@ define([
 
 We would love for you to contribute! Anything that benefits the majority of `test_track` users—from a documentation fix to an entirely new feature—is encouraged.
 
-Before diving in, [check our issue tracker](//github.com/Betterment/test_track_js_client/issues) and consider creating a new issue to get early feedback on your proposed change.
+Before diving in, [check our issue tracker](https://github.com/Betterment/test_track_js_client/issues) and consider creating a new issue to get early feedback on your proposed change.
 
 ### Suggested Workflow
 
@@ -213,4 +207,5 @@ Before diving in, [check our issue tracker](//github.com/Betterment/test_track_j
 ### Running tests
 
 1. run `yarn install` to download dependencies
-1. run `grunt` to run the tests and build the distributables
+1. run `yarn test` to run the tests
+1. run `yarn build` to build the distributables

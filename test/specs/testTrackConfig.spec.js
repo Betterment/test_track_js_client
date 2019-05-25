@@ -1,13 +1,17 @@
-describe('TestTrackConfig', function() {
-    var cookieName;
+import Assignment from '../../src/assignment';
+import ConfigParser from '../../src/configParser';
+import TestTrackConfig from '../../src/testTrackConfig';
 
-    beforeEach(function() {
-        sandbox.stub(window, 'ConfigParser').returns({
-            getConfig: function() {
+let mockCookieName;
+
+jest.mock('../../src/configParser', () => {
+    return jest.fn().mockImplementation(() => {
+        return {
+            getConfig: () => {
                 return {
                     url: "http://testtrack.dev",
                     cookieDomain: ".example.com",
-                    cookieName: cookieName,
+                    cookieName: mockCookieName,
                     registry: {
                         jabba: { cgi: 50, puppet: 50 },
                         wine: { red: 50, white: 25, rose: 25 }
@@ -18,55 +22,62 @@ describe('TestTrackConfig', function() {
                     }
                 };
             }
+        };
+    });
+});
+
+describe('TestTrackConfig', () => {
+    beforeEach(() => {
+        ConfigParser.mockClear();
+        TestTrackConfig._clear();
+    });
+
+    describe('.getUrl()', () => {
+        it('grabs the correct value from the ConfigParser', () => {
+            expect(TestTrackConfig.getUrl()).toBe('http://testtrack.dev');
         });
     });
 
-    describe('.getUrl()', function() {
-        it('grabs the correct value from the ConfigParser', function() {
-            expect(TestTrackConfig.getUrl()).to.equal('http://testtrack.dev');
+    describe('.getCookieDomain()', () => {
+        it('grabs the correct value from the ConfigParser', () => {
+            expect(TestTrackConfig.getCookieDomain()).toBe('.example.com');
         });
     });
 
-    describe('.getCookieDomain()', function() {
-        it('grabs the correct value from the ConfigParser', function() {
-            expect(TestTrackConfig.getCookieDomain()).to.equal('.example.com');
-        });
-    });
-
-    describe('.getCookieName()', function() {
-        describe('when there is a configured cookie name', function() {
-            beforeEach(function() {
-                cookieName = 'custom_cookie_name';
+    describe('.getCookieName()', () => {
+        describe('when there is a configured cookie name', () => {
+            beforeEach(() => {
+                mockCookieName = 'custom_cookie_name';
             });
 
-            it('grabs the correct value from the ConfigParser', function() {
-                expect(TestTrackConfig.getCookieName()).to.equal('custom_cookie_name');
+            it('grabs the correct value from the ConfigParser', () => {
+                expect(TestTrackConfig.getCookieName()).toBe('custom_cookie_name');
             });
         });
 
-        describe('when there is no configured cookie name', function() {
-            beforeEach(function() {
-                cookieName = undefined;
+        describe('when there is no configured cookie name', () => {
+            beforeEach(() => {
+                mockCookieName = undefined;
             });
 
-            it('uses the default cookie name', function() {
-                expect(TestTrackConfig.getCookieName()).to.equal('tt_visitor_id');
+            it('uses the default cookie name', () => {
+                expect(TestTrackConfig.getCookieName()).toBe('tt_visitor_id');
             });
         });
     });
 
-    describe('.getSplitRegistry()', function() {
-        it('grabs the correct value from the ConfigParser', function() {
-            expect(TestTrackConfig.getSplitRegistry()).to.deep.equal({
+    describe('.getSplitRegistry()', () => {
+        it('grabs the correct value from the ConfigParser', () => {
+            expect(TestTrackConfig.getSplitRegistry()).toEqual({
                 jabba: { cgi: 50, puppet: 50 },
                 wine: { red: 50, white: 25, rose: 25 }
             });
         });
     });
 
-    describe('.getAssignments()', function() {
-        it('grabs the correct value from the ConfigParser', function() {
-            expect(TestTrackConfig.getAssignments()).to.deep.equal([
+    describe('.getAssignments()', () => {
+        it('grabs the correct value from the ConfigParser', () => {
+            expect(TestTrackConfig.getAssignments()).toEqual([
                 new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: false }),
                 new Assignment({ splitName: 'wine', variant: 'rose', isUnsynced: false })
             ]);

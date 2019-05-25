@@ -1,6 +1,20 @@
-describe('VaryDSL', function() {
-    beforeEach(function() {
-        this.splitRegistryStub = sandbox.stub(TestTrackConfig, 'getSplitRegistry').returns({
+import Assignment from '../../src/assignment';
+import TestTrackConfig from '../../src/testTrackConfig';
+import VaryDSL from '../../src/varyDSL';
+import Visitor from '../../src/visitor';
+
+jest.mock('../../src/testTrackConfig', () => {
+    return {
+        getSplitRegistry: jest.fn()
+    };
+});
+
+describe('VaryDSL', () => {
+    let testContext;
+    beforeEach(() => {
+        testContext = {};
+        TestTrackConfig.getSplitRegistry.mockClear();
+        TestTrackConfig.getSplitRegistry.mockReturnValue({
             element: {
                 earth: 25,
                 wind: 25,
@@ -9,94 +23,93 @@ describe('VaryDSL', function() {
             }
         });
 
-        this.assignment = new Assignment({
+        testContext.assignment = new Assignment({
             splitName: 'element',
             variant: 'earth',
             isUnsynced: true
         });
 
-        this.visitor = new Visitor({
+        testContext.visitor = new Visitor({
             id: 'visitor_id',
-            assignments: [this.assignment]
+            assignments: [testContext.assignment]
         });
-        this.logErrorStub = sandbox.stub(this.visitor, 'logError');
+        testContext.visitor.logError = jest.fn();
 
-        this.vary = new VaryDSL({
-            assignment: this.assignment,
-            visitor: this.visitor
+        testContext.vary = new VaryDSL({
+            assignment: testContext.assignment,
+            visitor: testContext.visitor
         });
     });
 
-    it('requires an assignment', function() {
+    it('requires an assignment', () => {
         expect(function() {
             var vary = new VaryDSL({
-                visitor: this.visitor
+                visitor: testContext.visitor
             });
-        }.bind(this)).to.throw('must provide assignment');
+        }.bind(this)).toThrowError('must provide assignment');
     });
 
-    it('requires a visitor', function() {
+    it('requires a visitor', () => {
         expect(function() {
             var vary = new VaryDSL({
-                assignment: this.assignment
+                assignment: testContext.assignment
             });
-        }.bind(this)).to.throw('must provide visitor');
+        }.bind(this)).toThrowError('must provide visitor');
     });
 
-    describe('#when()', function() {
-        it('throws an error if no variants are provided', function() {
+    describe('#when()', () => {
+        it('throws an error if no variants are provided', () => {
             expect(function() {
-                this.vary.when(function() {
+                testContext.vary.when(function() {
                 });
-            }.bind(this)).to.throw('must provide at least one variant');
+            }.bind(this)).toThrowError('must provide at least one variant');
         });
 
-        it('throws an error if handler is not provided', function() {
+        it('throws an error if handler is not provided', () => {
             expect(function() {
-                this.vary.when('earth');
-            }.bind(this)).to.throw('must provide handler for earth');
+                testContext.vary.when('earth');
+            }.bind(this)).toThrowError('must provide handler for earth');
         });
 
-        it('supports multiple variants', function() {
-            var handler = sandbox.spy();
-            this.vary.when('earth', 'wind', 'fire', handler);
+        it('supports multiple variants', () => {
+            var handler = function() {};
+            testContext.vary.when('earth', 'wind', 'fire', handler);
 
-            expect(this.vary._variantHandlers).to.deep.equal({
+            expect(testContext.vary._variantHandlers).toEqual({
                 earth: handler,
                 wind: handler,
                 fire: handler
             });
         });
 
-        it('logs an error if given a variant that is not in the split registry', function() {
-            var handler = sandbox.spy();
-            this.vary.when('earth', 'wind', 'leeloo_multipass', handler);
+        it('logs an error if given a variant that is not in the split registry', () => {
+            var handler = function() {};
+            testContext.vary.when('earth', 'wind', 'leeloo_multipass', handler);
 
-            expect(this.vary._variantHandlers).to.deep.equal({
+            expect(testContext.vary._variantHandlers).toEqual({
                 earth: handler,
                 wind: handler,
                 leeloo_multipass: handler
             });
 
-            expect(this.logErrorStub).to.be.calledOnce;
-            expect(this.logErrorStub).to.be.calledWithExactly('configures unknown variant leeloo_multipass');
+            expect(testContext.visitor.logError).toHaveBeenCalledWith('configures unknown variant leeloo_multipass');
         });
 
-        it('does not log an error when the split registry is unavailable', function() {
-            this.splitRegistryStub.returns(null);
+        it('does not log an error when the split registry is unavailable', () => {
+            TestTrackConfig.getSplitRegistry.mockReturnValue(null);
 
             var vary = new VaryDSL({
-                assignment: this.assignment,
-                visitor: this.visitor
+                assignment: testContext.assignment,
+                visitor: testContext.visitor
             });
 
-            vary.when('earth', 'wind', 'leeloo_multipass', sandbox.spy());
+            vary.when('earth', 'wind', 'leeloo_multipass', jest.fn());
 
-            expect(this.logErrorStub).not.to.be.called;
+            expect(testContext.visitor.logError).not.toHaveBeenCalled();
         });
 
-        it('does not log an error for a variant with a 0 weight', function() {
-            this.splitRegistryStub.returns({
+        it('does not log an error for a variant with a 0 weight', () => {
+            TestTrackConfig.getSplitRegistry.mockReturnValue({
                 element: {
                     earth: 25,
                     wind: 25,
@@ -107,76 +120,75 @@ describe('VaryDSL', function() {
             });
 
             var vary = new VaryDSL({
-                assignment: this.assignment,
-                visitor: this.visitor
+                assignment: testContext.assignment,
+                visitor: testContext.visitor
             });
 
-            vary.when('leeloo_multipass', sandbox.spy());
+            vary.when('leeloo_multipass', function() {});
 
-            expect(this.logErrorStub).not.to.be.called;
+            expect(testContext.visitor.logError).not.toHaveBeenCalled();
         });
     });
 
-    describe('#default()', function() {
-        it('throws an error if handler is not provided', function() {
+    describe('#default()', () => {
+        it('throws an error if handler is not provided', () => {
             expect(function() {
-                this.vary.default('earth');
-            }.bind(this)).to.throw('must provide handler for earth');
+                testContext.vary.default('earth');
+            }.bind(this)).toThrowError('must provide handler for earth');
         });
 
-        it('throws an error if default is called more than once', function() {
+        it('throws an error if default is called more than once', () => {
             expect(function() {
-                this.vary.default('fire', function() {
+                testContext.vary.default('fire', function() {
                 });
 
-                this.vary.default('water', function() {
+                testContext.vary.default('water', function() {
                 });
-            }.bind(this)).to.throw('must provide exactly one `default`');
+            }.bind(this)).toThrowError('must provide exactly one `default`');
         });
 
-        it('sets the default variant', function() {
-            this.vary.default('water', function() {
+        it('sets the default variant', () => {
+            testContext.vary.default('water', function() {
             });
 
-            expect(this.vary.getDefaultVariant()).to.equal('water');
+            expect(testContext.vary.getDefaultVariant()).toBe('water');
         });
 
-        it('adds the variant to the _variantHandlers object', function() {
-            var handler = sandbox.spy();
-            this.vary.default('water', handler);
-            expect(this.vary._variantHandlers).to.deep.equal({
+        it('adds the variant to the _variantHandlers object', () => {
+            var handler = function() {};
+            testContext.vary.default('water', handler);
+            expect(testContext.vary._variantHandlers).toEqual({
                 water: handler
             });
         });
 
-        it('logs an error if given a variant that is not in the split registry', function() {
-            var handler = sandbox.spy();
+        it('logs an error if given a variant that is not in the split registry', () => {
+            var handler = function() {};
 
-            this.vary.default('leeloo_multipass', handler);
+            testContext.vary.default('leeloo_multipass', handler);
 
-            expect(this.vary._variantHandlers).to.deep.equal({
+            expect(testContext.vary._variantHandlers).toEqual({
                 leeloo_multipass: handler
             });
 
-            expect(this.logErrorStub).to.be.calledOnce;
-            expect(this.logErrorStub).to.be.calledWithExactly('configures unknown variant leeloo_multipass');
+            expect(testContext.visitor.logError).toHaveBeenCalledWith('configures unknown variant leeloo_multipass');
         });
 
-        it('does not log an error when the split registry is unavailable', function() {
-            this.splitRegistryStub.returns(null);
+        it('does not log an error when the split registry is unavailable', () => {
+            TestTrackConfig.getSplitRegistry.mockReturnValue(null);
 
             var vary = new VaryDSL({
-                assignment: this.assignment,
-                visitor: this.visitor
+                assignment: testContext.assignment,
+                visitor: testContext.visitor
             });
 
-            vary.default('leeloo_multipass', sandbox.spy());
+            vary.default('leeloo_multipass', function() {});
 
-            expect(this.logErrorStub).not.to.be.called;
+            expect(testContext.visitor.logError).not.toHaveBeenCalled();
         });
 
-        it('does not log an error for a variant with a 0 weight', function() {
-            this.splitRegistryStub.returns({
+        it('does not log an error for a variant with a 0 weight', () => {
+            TestTrackConfig.getSplitRegistry.mockReturnValue({
                 element: {
                     earth: 25,
                     wind: 25,
@@ -187,103 +199,102 @@ describe('VaryDSL', function() {
             });
 
             var vary = new VaryDSL({
-                assignment: this.assignment,
-                visitor: this.visitor
+                assignment: testContext.assignment,
+                visitor: testContext.visitor
             });
 
-            vary.default('leeloo_multipass', sandbox.spy());
+            vary.default('leeloo_multipass', function() {});
 
-            expect(this.logErrorStub).not.to.be.called;
+            expect(testContext.visitor.logError).not.toHaveBeenCalled();
         });
     });
 
-    describe('#run()', function() {
-        beforeEach(function() {
-            this.whenHandler = sandbox.spy();
-            this.defaultHandler = sandbox.spy();
+    describe('#run()', () => {
+        beforeEach(() => {
+            testContext.whenHandler = jest.fn();
+            testContext.defaultHandler = jest.fn();
         });
 
-        it('throws an error if `default` was never called', function() {
+        it('throws an error if `default` was never called', () => {
             expect(function() {
-                this.vary.run();
-            }.bind(this)).to.throw('must provide exactly one `default`');
+                testContext.vary.run();
+            }.bind(this)).toThrowError('must provide exactly one `default`');
         });
 
-        it('throws an error if `when` was never called', function() {
+        it('throws an error if `when` was never called', () => {
             expect(function() {
-                this.vary.default('water', function() {
+                testContext.vary.default('water', function() {
                 });
 
-                this.vary.run();
-            }.bind(this)).to.throw('must provide at least one `when`');
+                testContext.vary.run();
+            }.bind(this)).toThrowError('must provide at least one `when`');
         });
 
-        it('runs the handler of the assigned variant', function() {
-            this.vary.when('earth', this.whenHandler);
-            this.vary.default('water', this.defaultHandler);
+        it('runs the handler of the assigned variant', () => {
+            testContext.vary.when('earth', testContext.whenHandler);
+            testContext.vary.default('water', testContext.defaultHandler);
 
-            this.vary.run();
+            testContext.vary.run();
 
-            expect(this.whenHandler).to.be.calledOnce;
-            expect(this.defaultHandler).not.to.be.called;
+            expect(testContext.whenHandler).toHaveBeenCalled();
+            expect(testContext.defaultHandler).not.toHaveBeenCalled();
         });
 
-        it('runs the default handler and is defaulted if the assigned variant is not represented', function() {
+        it('runs the default handler and is defaulted if the assigned variant is not represented', () => {
             var vary = new VaryDSL({
-                assignment: this.assignment,
-                visitor: this.visitor
+                assignment: testContext.assignment,
+                visitor: testContext.visitor
             });
 
-            vary.when('fire', this.whenHandler);
-            vary.default('water', this.defaultHandler);
+            vary.when('fire', testContext.whenHandler);
+            vary.default('water', testContext.defaultHandler);
 
             vary.run();
 
-            expect(this.defaultHandler).to.be.calledOnce;
-            expect(this.whenHandler).not.to.be.called;
-            expect(vary.isDefaulted()).to.be.true;
+            expect(testContext.defaultHandler).toHaveBeenCalled();
+            expect(testContext.whenHandler).not.toHaveBeenCalled();
+            expect(vary.isDefaulted()).toBe(true);
         });
 
-        it('is not defaulted if the assigned variant is represented as the default', function() {
+        it('is not defaulted if the assigned variant is represented as the default', () => {
             var vary = new VaryDSL({
-                assignment: this.assignment,
-                visitor: this.visitor
+                assignment: testContext.assignment,
+                visitor: testContext.visitor
             });
 
-            vary.when('water', this.whenHandler);
-            vary.default('earth', this.defaultHandler);
+            vary.when('water', testContext.whenHandler);
+            vary.default('earth', testContext.defaultHandler);
 
             vary.run();
 
-            expect(this.defaultHandler).to.be.calledOnce;
-            expect(this.whenHandler).not.to.be.called;
-            expect(vary.isDefaulted()).to.be.false;
+            expect(testContext.defaultHandler).toHaveBeenCalled();
+            expect(testContext.whenHandler).not.toHaveBeenCalled();
+            expect(vary.isDefaulted()).toBe(false);
         });
 
-        it('logs an error if not all variants are represented', function() {
-            this.vary.when('earth', this.whenHandler);
-            this.vary.default('fire', this.defaultHandler);
+        it('logs an error if not all variants are represented', () => {
+            testContext.vary.when('earth', testContext.whenHandler);
+            testContext.vary.default('fire', testContext.defaultHandler);
 
-            this.vary.run();
+            testContext.vary.run();
 
-            expect(this.logErrorStub).to.be.calledOnce;
-            expect(this.logErrorStub).to.be.calledWithExactly('does not configure variants wind and water');
+            expect(testContext.visitor.logError).toHaveBeenCalledWith('does not configure variants wind and water');
         });
 
-        it('does not log an error when the split registry is unavailable', function() {
-            this.splitRegistryStub.returns(null);
+        it('does not log an error when the split registry is unavailable', () => {
+            TestTrackConfig.getSplitRegistry.mockReturnValue(null);
 
             var vary = new VaryDSL({
-                assignment: this.assignment,
-                visitor: this.visitor
+                assignment: testContext.assignment,
+                visitor: testContext.visitor
             });
 
-            vary.when('earth', this.whenHandler);
-            vary.default('fire', this.defaultHandler);
+            vary.when('earth', testContext.whenHandler);
+            vary.default('fire', testContext.defaultHandler);
 
             vary.run();
 
-            expect(this.logErrorStub).not.to.be.called;
+            expect(testContext.visitor.logError).not.toHaveBeenCalled();
         });
     });
 });

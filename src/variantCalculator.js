@@ -1,68 +1,69 @@
-var VariantCalculator = (function() { // jshint ignore:line
-    var _VariantCalculator = function(options) {
-        this.visitor = options.visitor;
-        this.splitName = options.splitName;
+import md5 from 'blueimp-md5'
+import TestTrackConfig from './testTrackConfig';
 
-        if (!this.visitor) {
-            throw new Error('must provide visitor');
-        } else if (!this.splitName) {
-            throw new Error('must provide splitName');
+var VariantCalculator = function(options) {
+    this.visitor = options.visitor;
+    this.splitName = options.splitName;
+
+    if (!this.visitor) {
+        throw new Error('must provide visitor');
+    } else if (!this.splitName) {
+        throw new Error('must provide splitName');
+    }
+};
+
+VariantCalculator.prototype.getVariant = function() {
+    if (!TestTrackConfig.getSplitRegistry()) {
+        return null;
+    }
+
+    var bucketCeiling = 0,
+        assignmentBucket = this.getAssignmentBucket(),
+        weighting = this.getWeighting(),
+        sortedVariants = this.getSortedVariants();
+
+    for (var i = 0; i < sortedVariants.length; i++) {
+        var variant = sortedVariants[i];
+
+        bucketCeiling += weighting[variant];
+        if (bucketCeiling > assignmentBucket) {
+            return variant;
         }
-    };
+    }
 
-    _VariantCalculator.prototype.getVariant = function() {
-        if (!TestTrackConfig.getSplitRegistry()) {
-            return null;
-        }
+    throw new Error('Assignment bucket out of range. ' + assignmentBucket + ' unmatched in ' + this.splitName + ': ' + JSON.stringify(weighting));
+};
 
-        var bucketCeiling = 0,
-            assignmentBucket = this.getAssignmentBucket(),
-            weighting = this.getWeighting(),
-            sortedVariants = this.getSortedVariants();
+VariantCalculator.prototype.getSplitVisitorHash = function() {
+    return md5(this.splitName + this.visitor.getId());
+};
 
-        for (var i = 0; i < sortedVariants.length; i++) {
-            var variant = sortedVariants[i];
+VariantCalculator.prototype.getHashFixnum = function() {
+    return parseInt(this.getSplitVisitorHash().substr(0, 8), 16);
+};
 
-            bucketCeiling += weighting[variant];
-            if (bucketCeiling > assignmentBucket) {
-                return variant;
-            }
-        }
+VariantCalculator.prototype.getAssignmentBucket = function() {
+    return this.getHashFixnum() % 100;
+};
 
-        throw new Error('Assignment bucket out of range. ' + assignmentBucket + ' unmatched in ' + this.splitName + ': ' + JSON.stringify(weighting));
-    };
+VariantCalculator.prototype.getSortedVariants = function() {
+    return this.getVariants().sort();
+};
 
-    _VariantCalculator.prototype.getSplitVisitorHash = function() {
-        return md5(this.splitName + this.visitor.getId());
-    };
+VariantCalculator.prototype.getVariants = function() {
+    return Object.getOwnPropertyNames(this.getWeighting());
+};
 
-    _VariantCalculator.prototype.getHashFixnum = function() {
-        return parseInt(this.getSplitVisitorHash().substr(0, 8), 16);
-    };
+VariantCalculator.prototype.getWeighting = function() {
+    var weighting = TestTrackConfig.getSplitRegistry()[this.splitName];
 
-    _VariantCalculator.prototype.getAssignmentBucket = function() {
-        return this.getHashFixnum() % 100;
-    };
+    if (!weighting) {
+        var message = 'Unknown split: "' + this.splitName + '"';
+        this.visitor.logError(message);
+        throw new Error(message);
+    }
 
-    _VariantCalculator.prototype.getSortedVariants = function() {
-        return this.getVariants().sort();
-    };
+    return weighting;
+};
 
-    _VariantCalculator.prototype.getVariants = function() {
-        return Object.getOwnPropertyNames(this.getWeighting());
-    };
-
-    _VariantCalculator.prototype.getWeighting = function() {
-        var weighting = TestTrackConfig.getSplitRegistry()[this.splitName];
-
-        if (!weighting) {
-            var message = 'Unknown split: "' + this.splitName + '"';
-            this.visitor.logError(message);
-            throw new Error(message);
-        }
-
-        return weighting;
-    };
-
-    return _VariantCalculator;
-})();
+export default VariantCalculator;

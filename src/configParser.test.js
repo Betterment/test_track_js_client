@@ -1,4 +1,4 @@
-import ConfigParser from '../../src/configParser';
+import ConfigParser from './configParser';
 
 describe('ConfigParser', () => {
     let testContext;

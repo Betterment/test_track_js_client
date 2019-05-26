@@ -1,8 +1,8 @@
-import TestTrackConfig from '../../src/testTrackConfig';
-import VariantCalculator from '../../src/variantCalculator';
-import Visitor from '../../src/visitor';
+import TestTrackConfig from './testTrackConfig';
+import VariantCalculator from './variantCalculator';
+import Visitor from './visitor';
 
-jest.mock('../../src/testTrackConfig', () => {
+jest.mock('./testTrackConfig', () => {
     return {
         getSplitRegistry: jest.fn().mockReturnValue({
             logoSize: {

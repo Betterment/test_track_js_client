@@ -1,16 +1,16 @@
-import Assignment from '../../src/assignment';
-import Identifier from '../../src/identifier';
-import TestTrackConfig from '../../src/testTrackConfig';
-import Visitor from '../../src/visitor';
+import Assignment from './assignment';
+import Identifier from './identifier';
+import TestTrackConfig from './testTrackConfig';
+import Visitor from './visitor';
 import $ from 'jquery';
 
-jest.mock('../../src/testTrackConfig', () => {
+jest.mock('./testTrackConfig', () => {
     return {
         getUrl: () => 'http://testtrack.dev'
     };
 });
 
-jest.mock('../../src/visitor');
+jest.mock('./visitor');
 
 describe('Identifier', () => {
     let identifierOptions;

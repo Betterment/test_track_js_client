@@ -1,9 +1,9 @@
-import Assignment from '../../src/assignment';
-import TestTrackConfig from '../../src/testTrackConfig';
-import VaryDSL from '../../src/varyDSL';
-import Visitor from '../../src/visitor';
+import Assignment from './assignment';
+import TestTrackConfig from './testTrackConfig';
+import VaryDSL from './varyDSL';
+import Visitor from './visitor';
 
-jest.mock('../../src/testTrackConfig', () => {
+jest.mock('./testTrackConfig', () => {
     return {
         getSplitRegistry: jest.fn()
     };

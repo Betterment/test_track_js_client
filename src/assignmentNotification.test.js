@@ -1,10 +1,10 @@
-import Assignment from '../../src/assignment';
-import AssignmentNotification from '../../src/assignmentNotification';
-import TestTrackConfig from '../../src/testTrackConfig';
-import Visitor from '../../src/visitor';
+import Assignment from './assignment';
+import AssignmentNotification from './assignmentNotification';
+import TestTrackConfig from './testTrackConfig';
+import Visitor from './visitor';
 import $ from 'jquery';
 
-jest.mock('../../src/testTrackConfig', () => {
+jest.mock('./testTrackConfig', () => {
     return {
         getUrl: () => 'http://testtrack.dev'
     };

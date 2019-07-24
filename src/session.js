@@ -115,7 +115,7 @@ Session.prototype.getPublicAPI = function() {
 
           deferred.resolve({
             visitorId: visitor.getId(),
-            splitRegistry: TestTrackConfig.getSplitRegistry(),
+            splitRegistry: TestTrackConfig.getSplitRegistry().asV1Hash(),
             assignmentRegistry: assignmentRegistry
           });
         });

@@ -5,6 +5,7 @@ import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unuse
 import VaryDSL from './varyDSL'; // eslint-disable-line no-unused-vars
 import * as visitor from './visitor';
 import $ from 'jquery';
+import { mockSplitRegistry } from './test-utils'
 
 jest.mock('./assignmentOverride');
 
@@ -16,10 +17,10 @@ jest.mock('./configParser', () => {
           url: 'http://testtrack.dev',
           cookieDomain: '.example.com',
           cookieName: 'custom_cookie_name',
-          registry: {
-            jabba: { cgi: 50, puppet: 50 },
-            wine: { red: 50, white: 25, rose: 25 }
-          },
+          registry: [
+            { name: 'jabba', weights: { cgi: 50, puppet: 50 }, feature_gate: false },
+            { name: 'wine', weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
+          ],
           assignments: {
             jabba: 'puppet',
             wine: 'rose'

@@ -12,14 +12,15 @@ jest.mock('./configParser', () => {
           url: 'http://testtrack.dev',
           cookieDomain: '.example.com',
           cookieName: mockCookieName,
-          registry: {
-            jabba: { cgi: 50, puppet: 50 },
-            wine: { red: 50, white: 25, rose: 25 }
-          },
+          registry: [
+            { name: 'jabba', weights: { cgi: 50, puppet: 50 }, feature_gate: true },
+            { name: 'wine', weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
+          ],
           assignments: {
             jabba: 'puppet',
             wine: 'rose'
-          }
+          },
+          experienceSamplingRate: 1
         };
       }
     };
@@ -68,10 +69,15 @@ describe('TestTrackConfig', () => {
 
   describe('.getSplitRegistry()', () => {
     it('grabs the correct value from the ConfigParser', () => {
-      expect(TestTrackConfig.getSplitRegistry()).toEqual({
-        jabba: { cgi: 50, puppet: 50 },
-        wine: { red: 50, white: 25, rose: 25 }
-      });
+      let splitRegistry = TestTrackConfig.getSplitRegistry();
+
+      let jabba = splitRegistry.getSplit('jabba');
+      expect(jabba.getWeighting()).toEqual({ cgi: 50, puppet: 50 });
+      expect(jabba.isFeatureGate()).toEqual(true);
+
+      let wine = splitRegistry.getSplit('wine');
+      expect(wine.getWeighting()).toEqual({ red: 50, white: 25, rose: 25 });
+      expect(wine.isFeatureGate()).toEqual(false);
     });
   });
 

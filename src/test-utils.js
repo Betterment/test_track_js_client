@@ -3,13 +3,13 @@ import Split from './split';
 
 function mockSplitRegistry(v1RegistryHash) {
   let mock = jest.fn(),
-    registryHash = {};
+    splits = [];
 
   for (var splitName in v1RegistryHash) {
-    registryHash[splitName] = new Split(splitName, false, v1RegistryHash[splitName]);
+    splits.push(new Split(splitName, false, v1RegistryHash[splitName]));
   }
 
-  mock.mockReturnValue(new SplitRegistry(registryHash));
+  mock.mockReturnValue(new SplitRegistry(splits));
 
   return mock
 }

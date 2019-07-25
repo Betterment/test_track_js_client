@@ -1,5 +1,6 @@
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
+import Cookies from 'js-cookie';
 import Session from './session';
 import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
 import VaryDSL from './varyDSL'; // eslint-disable-line no-unused-vars
@@ -30,11 +31,13 @@ jest.mock('./configParser', () => {
   });
 });
 
+jest.mock('js-cookie');
+
 describe('Session', () => {
   let testContext;
   beforeEach(() => {
     testContext = {};
-    $.cookie = jest.fn().mockReturnValue('existing_visitor_id');
+    Cookies.get.mockReturnValue('existing_visitor_id');
   });
 
   describe('Cookie behavior', () => {
@@ -52,10 +55,11 @@ describe('Session', () => {
         .then(function() {
           expect(visitor.default.loadVisitor).toHaveBeenCalledWith('existing_visitor_id');
 
-          expect($.cookie).toHaveBeenCalledTimes(2);
-          expect($.cookie).toHaveBeenNthCalledWith(1, 'custom_cookie_name');
+          expect(Cookies.get).toHaveBeenCalledTimes(1);
+          expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
 
-          expect($.cookie).toHaveBeenNthCalledWith(2, 'custom_cookie_name', 'existing_visitor_id', {
+          expect(Cookies.set).toHaveBeenCalledTimes(1);
+          expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'existing_visitor_id', {
             expires: 365,
             path: '/',
             domain: '.example.com'
@@ -66,7 +70,7 @@ describe('Session', () => {
     });
 
     it('saves the visitor id in a cookie', done => {
-      $.cookie = jest.fn().mockReturnValue(null);
+      Cookies.get.mockReturnValue(null);
 
       var v = new visitor.default({ id: 'generated_visitor_id', assignments: [] });
       visitor.default.loadVisitor = jest.fn().mockReturnValue(
@@ -81,10 +85,11 @@ describe('Session', () => {
         .then(function() {
           expect(visitor.default.loadVisitor).toHaveBeenCalledWith(null);
 
-          expect($.cookie).toHaveBeenCalledTimes(2);
-          expect($.cookie).toHaveBeenNthCalledWith(1, 'custom_cookie_name');
+          expect(Cookies.get).toHaveBeenCalledTimes(1);
+          expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
 
-          expect($.cookie).toHaveBeenNthCalledWith(2, 'custom_cookie_name', 'generated_visitor_id', {
+          expect(Cookies.set).toHaveBeenCalledTimes(1);
+          expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'generated_visitor_id', {
             expires: 365,
             path: '/',
             domain: '.example.com'
@@ -183,14 +188,14 @@ describe('Session', () => {
 
     describe('#logIn()', () => {
       it('updates the visitor id in the cookie', done => {
-        $.cookie = jest.fn();
+        Cookies.set.mockClear();
 
         testContext.session.logIn('myappdb_user_id', 444).then(
           function() {
             expect(testContext.visitor.linkIdentifier).toHaveBeenCalledTimes(1);
             expect(testContext.visitor.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
-            expect($.cookie).toHaveBeenCalledTimes(1);
-            expect($.cookie).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
+            expect(Cookies.set).toHaveBeenCalledTimes(1);
+            expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
               expires: 365,
               path: '/',
               domain: '.example.com'
@@ -211,14 +216,14 @@ describe('Session', () => {
 
     describe('#signUp()', () => {
       it('updates the visitor id in the cookie', done => {
-        $.cookie = jest.fn();
+        Cookies.set.mockClear();
 
         testContext.session.signUp('myappdb_user_id', 444).then(
           function() {
             expect(testContext.visitor.linkIdentifier).toHaveBeenCalledTimes(1);
             expect(testContext.visitor.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
-            expect($.cookie).toHaveBeenCalledTimes(1);
-            expect($.cookie).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
+            expect(Cookies.set).toHaveBeenCalledTimes(1);
+            expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
               expires: 365,
               path: '/',
               domain: '.example.com'

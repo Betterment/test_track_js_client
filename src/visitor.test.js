@@ -5,10 +5,10 @@ import TestTrackConfig from './testTrackConfig';
 import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
 import $ from 'jquery';
-import uuid from 'uuid';
+import uuid from 'uuid/v4';
 import { mockSplitRegistry } from './test-utils';
 
-jest.mock('uuid');
+jest.mock('uuid/v4');
 
 jest.mock('./testTrackConfig', () => {
   return {

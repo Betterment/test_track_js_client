@@ -42,7 +42,7 @@
     "blueimp-md5": "2.10.0",
     "jquery": "~3.4.1",
     "jquery.cookie": "1.4.1",
-    "node-uuid": "1.4.8"
+    "uuid": "^3.3.2"
   },
   "files": [
     "dist/*"

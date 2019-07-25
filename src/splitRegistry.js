@@ -4,7 +4,7 @@ var SplitRegistry = function(splitArray) {
 };
 
 SplitRegistry.prototype.getSplit = function(splitName) {
-  return !this._offline && this.getSplits()[splitName];
+  return this.getSplits()[splitName];
 };
 
 SplitRegistry.prototype.isUnavailable = function() {
@@ -12,10 +12,6 @@ SplitRegistry.prototype.isUnavailable = function() {
 };
 
 SplitRegistry.prototype.asV1Hash = function() {
-  if (this._offline) {
-    return {};
-  }
-
   var v1Hash = {};
   for (var splitName in this.getSplits()) {
     var split = this._splits[splitName];
@@ -26,6 +22,10 @@ SplitRegistry.prototype.asV1Hash = function() {
 };
 
 SplitRegistry.prototype.getSplits = function() {
+  if (this._offline) {
+    return {};
+  }
+
   if (!this._splits) {
     this._splits = {};
     this._splitArray.forEach(

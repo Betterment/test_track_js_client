@@ -1,5 +1,4 @@
 import ABConfiguration from './abConfiguration';
-import Split from './split';
 import SplitRegistry from './splitRegistry';
 import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';

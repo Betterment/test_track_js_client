@@ -5,7 +5,6 @@ import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unuse
 import VaryDSL from './varyDSL'; // eslint-disable-line no-unused-vars
 import * as visitor from './visitor';
 import $ from 'jquery';
-import { mockSplitRegistry } from './test-utils';
 
 jest.mock('./assignmentOverride');
 

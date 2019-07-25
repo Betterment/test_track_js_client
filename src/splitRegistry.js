@@ -11,7 +11,7 @@ SplitRegistry.prototype.isUnavailable = function() {
   return this._offline;
 };
 
-SplitRegistry.prototype.asV1Hash = function(splitName) {
+SplitRegistry.prototype.asV1Hash = function() {
   if (this._offline) {
     return {};
   }

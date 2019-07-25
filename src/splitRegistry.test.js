@@ -1,5 +1,5 @@
-import Split from "./split";
-import SplitRegistry from "./splitRegistry";
+import Split from './split';
+import SplitRegistry from './splitRegistry';
 
 describe('SplitRegistry', () => {
   let splitRegistry;
@@ -31,7 +31,7 @@ describe('SplitRegistry', () => {
 
   describe('.asV1Hash()', () => {
     it('returns whether the split is a feature gate', () => {
-      expect(splitRegistry.asV1Hash()).toEqual({ split1: { foo: 50, bar: 50, baz: 0 }, split2: { up: 50, down: 50 }});
+      expect(splitRegistry.asV1Hash()).toEqual({ split1: { foo: 50, bar: 50, baz: 0 }, split2: { up: 50, down: 50 } });
     });
   });
 });

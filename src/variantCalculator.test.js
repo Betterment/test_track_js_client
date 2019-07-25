@@ -37,7 +37,7 @@ describe('VariantCalculator', () => {
         miniscule: 19,
         teeny: 0
       }
-    })
+    });
   });
 
   it('requires a visitor', () => {

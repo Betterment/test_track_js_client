@@ -3,7 +3,7 @@ import SplitRegistry from './splitRegistry';
 import TestTrackConfig from './testTrackConfig';
 import VaryDSL from './varyDSL';
 import Visitor from './visitor';
-import { mockSplitRegistry } from './test-utils'
+import { mockSplitRegistry } from './test-utils';
 
 jest.mock('./testTrackConfig');
 

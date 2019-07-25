@@ -6,7 +6,7 @@ import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
 import $ from 'jquery';
 import uuid from 'uuid';
-import { mockSplitRegistry } from './test-utils'
+import { mockSplitRegistry } from './test-utils';
 
 jest.mock('uuid');
 

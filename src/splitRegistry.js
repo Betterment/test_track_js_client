@@ -27,13 +27,15 @@ SplitRegistry.prototype.asV1Hash = function(splitName) {
 
 SplitRegistry.prototype.getSplits = function() {
   if (!this._splits) {
-    this._splits = {}
-    this._splitArray.forEach(function(split) {
-      this._splits[split.getName()] = split;
-    }.bind(this));
+    this._splits = {};
+    this._splitArray.forEach(
+      function(split) {
+        this._splits[split.getName()] = split;
+      }.bind(this)
+    );
   }
 
   return this._splits;
-}
+};
 
 export default SplitRegistry;

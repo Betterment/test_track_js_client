@@ -46,11 +46,7 @@ var TestTrackConfig = {
     if (!registry) {
       var splits = [];
       rawRegistry.forEach(function(rawSplit) {
-        splits.push(new Split(
-            rawSplit['name'],
-            rawSplit['feature_gate'],
-            rawSplit['weights']
-          ));
+        splits.push(new Split(rawSplit['name'], rawSplit['feature_gate'], rawSplit['weights']));
       });
       registry = new SplitRegistry(splits);
     }

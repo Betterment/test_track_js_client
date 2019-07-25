@@ -1,9 +1,9 @@
-import Split from "./split";
+import Split from './split';
 
 describe('Split', () => {
   let split;
   beforeEach(() => {
-    split = new Split('split name', true, { foo: 50, bar: 50, baz: 0 })
+    split = new Split('split name', true, { foo: 50, bar: 50, baz: 0 });
   });
 
   describe('.getVariants()', () => {

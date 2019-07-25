@@ -11,7 +11,7 @@ function mockSplitRegistry(v1RegistryHash) {
 
   mock.mockReturnValue(new SplitRegistry(splits));
 
-  return mock
+  return mock;
 }
 
-export { mockSplitRegistry }
+export { mockSplitRegistry };

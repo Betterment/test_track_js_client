@@ -30,7 +30,7 @@ describe('SplitRegistry', () => {
   });
 
   describe('.asV1Hash()', () => {
-    it('returns whether the split is a feature gate', () => {
+    it('returns a v1 style split registry', () => {
       expect(splitRegistry.asV1Hash()).toEqual({ split1: { foo: 50, bar: 50, baz: 0 }, split2: { up: 50, down: 50 } });
     });
   });

@@ -89,4 +89,10 @@ describe('TestTrackConfig', () => {
       ]);
     });
   });
+
+  describe('.getExperienceSamplingRate()', () => {
+    it('returns the provided sampling rate', () => {
+      expect(TestTrackConfig.getExperienceSamplingRate()).toEqual(1);
+    });
+  });
 });

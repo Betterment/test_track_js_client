@@ -1,8 +1,8 @@
+import SplitRegistry from './splitRegistry';
 import TestTrackConfig from './testTrackConfig';
 import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
 import { mockSplitRegistry } from './test-utils';
-import SplitRegistry from './splitRegistry';
 
 jest.mock('./testTrackConfig');
 

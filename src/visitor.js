@@ -68,7 +68,7 @@ Visitor.loadVisitor = function(visitorId) {
     });
   }
 
-  return deferred.promise();
+  return Promise.resolve(deferred.promise());
 };
 
 Visitor.prototype.getId = function() {
@@ -184,7 +184,7 @@ Visitor.prototype.linkIdentifier = function(identifierType, value) {
     }.bind(this)
   );
 
-  return deferred.promise();
+  return Promise.resolve(deferred.promise());
 };
 
 Visitor.prototype.setAnalytics = function(analytics) {

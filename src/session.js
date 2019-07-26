@@ -36,7 +36,7 @@ Session.prototype.initialize = function(options) {
 
   this._setCookie();
 
-  return this._visitorDeferred.promise();
+  return Promise.resolve(this._visitorDeferred.promise());
 };
 
 Session.prototype.vary = function(splitName, options) {
@@ -66,7 +66,7 @@ Session.prototype.logIn = function(identifierType, value) {
     }.bind(this)
   );
 
-  return deferred.promise();
+  return Promise.resolve(deferred.promise());
 };
 
 Session.prototype.signUp = function(identifierType, value) {
@@ -84,7 +84,7 @@ Session.prototype.signUp = function(identifierType, value) {
     }.bind(this)
   );
 
-  return deferred.promise();
+  return Promise.resolve(deferred.promise());
 };
 
 Session.prototype._setCookie = function() {
@@ -120,7 +120,7 @@ Session.prototype.getPublicAPI = function() {
           });
         });
 
-        return deferred.promise();
+        return Promise.resolve(deferred.promise());
       }.bind(this),
 
       persistAssignment: function(splitName, variant, username, password) {
@@ -144,7 +144,7 @@ Session.prototype.getPublicAPI = function() {
           });
         });
 
-        return deferred.promise();
+        return Promise.resolve(deferred.promise());
       }.bind(this)
     }
   };

@@ -1,13 +1,20 @@
 var MixpanelAnalytics = function() {};
 
-MixpanelAnalytics.prototype.trackAssignment = function(visitorId, assignment, callback) {
+MixpanelAnalytics.prototype.trackAssignment = function(visitorId, assignment) {
   var assignmentProperties = {
-    TTVisitorID: visitorId,
-    SplitName: assignment.getSplitName(),
-    SplitVariant: assignment.getVariant(),
-    SplitContext: assignment.getContext()
-  };
-  window.mixpanel && window.mixpanel.track('SplitAssigned', assignmentProperties, callback);
+      TTVisitorID: visitorId,
+      SplitName: assignment.getSplitName(),
+      SplitVariant: assignment.getVariant(),
+      SplitContext: assignment.getContext()
+    },
+    resolver,
+    promise = new Promise(function(resolve) {
+      resolver = resolve;
+    });
+
+  window.mixpanel && window.mixpanel.track('SplitAssigned', assignmentProperties, resolver);
+
+  return promise;
 };
 
 MixpanelAnalytics.prototype.identify = function(visitorId) {

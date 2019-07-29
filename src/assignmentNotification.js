@@ -20,13 +20,9 @@ AssignmentNotification.prototype.send = function() {
 
   const firstPersist = this._persistAssignment();
 
-  const secondPersist = new Promise((resolve, reject) => {
-    this._visitor.analytics.trackAssignment(this._visitor.getId(), this._assignment, success =>
-      this._persistAssignment(success ? 'success' : 'failure')
-        .then(resolve)
-        .catch(reject)
-    );
-  });
+  const secondPersist = this._visitor.analytics
+    .trackAssignment(this._visitor.getId(), this._assignment)
+    .then(success => this._persistAssignment(success ? 'success' : 'failure'));
 
   return Promise.all([firstPersist, secondPersist]);
 };

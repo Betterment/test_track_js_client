@@ -26,7 +26,7 @@ describe('AssignmentNotification', () => {
       assignments: []
     });
 
-    testContext.analyticsTrackStub = jest.fn();
+    testContext.analyticsTrackStub = jest.fn().mockResolvedValue(true);
     testContext.visitor.setAnalytics({
       trackAssignment: testContext.analyticsTrackStub
     });
@@ -66,54 +66,46 @@ describe('AssignmentNotification', () => {
       testContext.notification.send();
 
       expect(testContext.analyticsTrackStub).toHaveBeenCalledTimes(1);
-      expect(testContext.analyticsTrackStub).toHaveBeenCalledWith(
-        'visitorId',
-        testContext.assignment,
-        expect.any(Function)
-      );
+      expect(testContext.analyticsTrackStub).toHaveBeenCalledWith('visitorId', testContext.assignment);
     });
 
     it('notifies the test track server with an analytics success', () => {
-      testContext.analyticsTrackStub.mockImplementation((visitor_id, assignment, callback) => {
-        callback(true);
-      });
+      testContext.analyticsTrackStub.mockResolvedValue(true);
 
-      testContext.notification.send();
-
-      expect(client.post).toHaveBeenCalledTimes(2);
-      expect(client.post).toHaveBeenNthCalledWith(1, '/v1/assignment_event', {
-        visitor_id: 'visitorId',
-        split_name: 'jabba',
-        context: 'spec',
-        mixpanel_result: undefined
-      });
-      expect(client.post).toHaveBeenNthCalledWith(2, '/v1/assignment_event', {
-        visitor_id: 'visitorId',
-        split_name: 'jabba',
-        context: 'spec',
-        mixpanel_result: 'success'
+      return testContext.notification.send().then(() => {
+        expect(client.post).toHaveBeenCalledTimes(2);
+        expect(client.post).toHaveBeenNthCalledWith(1, '/v1/assignment_event', {
+          visitor_id: 'visitorId',
+          split_name: 'jabba',
+          context: 'spec',
+          mixpanel_result: undefined
+        });
+        expect(client.post).toHaveBeenNthCalledWith(2, '/v1/assignment_event', {
+          visitor_id: 'visitorId',
+          split_name: 'jabba',
+          context: 'spec',
+          mixpanel_result: 'success'
+        });
       });
     });
 
     it('notifies the test track server with an analytics failure', () => {
-      testContext.analyticsTrackStub.mockImplementation((visitor_id, assignment, callback) => {
-        callback(false);
-      });
+      testContext.analyticsTrackStub.mockResolvedValue(false);
 
-      testContext.notification.send();
-
-      expect(client.post).toHaveBeenCalledTimes(2);
-      expect(client.post).toHaveBeenNthCalledWith(1, '/v1/assignment_event', {
-        visitor_id: 'visitorId',
-        split_name: 'jabba',
-        context: 'spec',
-        mixpanel_result: undefined
-      });
-      expect(client.post).toHaveBeenNthCalledWith(2, '/v1/assignment_event', {
-        visitor_id: 'visitorId',
-        split_name: 'jabba',
-        context: 'spec',
-        mixpanel_result: 'failure'
+      return testContext.notification.send().then(() => {
+        expect(client.post).toHaveBeenCalledTimes(2);
+        expect(client.post).toHaveBeenNthCalledWith(1, '/v1/assignment_event', {
+          visitor_id: 'visitorId',
+          split_name: 'jabba',
+          context: 'spec',
+          mixpanel_result: undefined
+        });
+        expect(client.post).toHaveBeenNthCalledWith(2, '/v1/assignment_event', {
+          visitor_id: 'visitorId',
+          split_name: 'jabba',
+          context: 'spec',
+          mixpanel_result: 'failure'
+        });
       });
     });
 

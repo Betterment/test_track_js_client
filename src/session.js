@@ -6,9 +6,11 @@ import Visitor from './visitor';
 
 var Session = function() {
   this._loaded;
-  this._visitorLoaded = new Promise(function(resolve) {
-    this._loaded = resolve;
-  }.bind(this));
+  this._visitorLoaded = new Promise(
+    function(resolve) {
+      this._loaded = resolve;
+    }.bind(this)
+  );
 };
 
 Session.prototype.initialize = function(options) {
@@ -54,8 +56,10 @@ Session.prototype.ab = function(splitName, options) {
 };
 
 Session.prototype.logIn = function(identifierType, value) {
-  return this._visitorLoaded.then(function(visitor) {
-      return visitor.linkIdentifier(identifierType, value).then(function() {
+  return this._visitorLoaded.then(
+    function(visitor) {
+      return visitor.linkIdentifier(identifierType, value).then(
+        function() {
           this._setCookie();
           visitor.analytics.identify(visitor.getId());
         }.bind(this)
@@ -65,7 +69,8 @@ Session.prototype.logIn = function(identifierType, value) {
 };
 
 Session.prototype.signUp = function(identifierType, value) {
-  return this._visitorLoaded.then(function(visitor) {
+  return this._visitorLoaded.then(
+    function(visitor) {
       return visitor.linkIdentifier(identifierType, value).then(
         function() {
           this._setCookie();

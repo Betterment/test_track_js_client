@@ -5,7 +5,6 @@ import Session from './session';
 import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
 import VaryDSL from './varyDSL'; // eslint-disable-line no-unused-vars
 import * as visitor from './visitor';
-import $ from 'jquery';
 
 jest.mock('./assignmentOverride');
 
@@ -43,11 +42,7 @@ describe('Session', () => {
   describe('Cookie behavior', () => {
     it('reads the visitor id from a cookie and sets it back in the cookie', () => {
       var v = new visitor.default({ id: 'existing_visitor_id', assignments: [] });
-      visitor.default.loadVisitor = jest.fn().mockReturnValue(
-        $.Deferred()
-          .resolve(v)
-          .promise()
-      );
+      visitor.default.loadVisitor = jest.fn().mockResolvedValue(v);
 
       return new Session()
         .getPublicAPI()
@@ -71,11 +66,7 @@ describe('Session', () => {
       Cookies.get.mockReturnValue(null);
 
       var v = new visitor.default({ id: 'generated_visitor_id', assignments: [] });
-      visitor.default.loadVisitor = jest.fn().mockReturnValue(
-        $.Deferred()
-          .resolve(v)
-          .promise()
-      );
+      visitor.default.loadVisitor = jest.fn().mockResolvedValue(v);
 
       return new Session()
         .getPublicAPI()
@@ -116,16 +107,10 @@ describe('Session', () => {
 
       testContext.visitor.linkIdentifier = jest.fn().mockImplementation(() => {
         testContext.visitor.getId = jest.fn(() => 'other_visitor_id'); // mimic behavior of linkIdentifier that we care about
-        return $.Deferred()
-          .resolve()
-          .promise();
+        return Promise.resolve();
       });
 
-      visitor.default.loadVisitor = jest.fn().mockReturnValue(
-        $.Deferred()
-          .resolve(testContext.visitor)
-          .promise()
-      );
+      visitor.default.loadVisitor = jest.fn().mockResolvedValue(testContext.visitor);
 
       testContext.session = new Session().getPublicAPI();
       return testContext.session.initialize().then(() => {
@@ -274,13 +259,10 @@ describe('Session', () => {
 
       describe('_crx', () => {
         describe('#persistAssignment()', () => {
-          it('creates an AssignmentOverride and persists it', done => {
-            let persistAssignmentDeferred = $.Deferred();
+          it('creates an AssignmentOverride and persists it', () => {
             AssignmentOverride.mockImplementation(() => {
               return {
-                persistAssignment: () => {
-                  return persistAssignmentDeferred.promise();
-                }
+                persistAssignment: jest.fn().mockResolvedValue()
               };
             });
 

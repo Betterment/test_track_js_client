@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import Cookies from 'js-cookie';
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
@@ -6,13 +5,16 @@ import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';
 
 var Session = function() {
-  this._visitorDeferred = $.Deferred();
+  this._loaded;
+  this._visitorLoaded = new Promise(function(resolve) {
+    this._loaded = resolve;
+  }.bind(this));
 };
 
 Session.prototype.initialize = function(options) {
   var visitorId = Cookies.get(TestTrackConfig.getCookieName());
 
-  this._visitorDeferred.then(function(visitor) {
+  this._visitorLoaded.then(function(visitor) {
     visitor.notifyUnsyncedAssignments();
   });
 
@@ -30,65 +32,52 @@ Session.prototype.initialize = function(options) {
         options.onVisitorLoaded.call(null, visitor);
       }
 
-      this._visitorDeferred.resolve(visitor);
+      this._loaded(visitor);
     }.bind(this)
   );
 
   this._setCookie();
 
-  return Promise.resolve(this._visitorDeferred.promise());
+  return this._visitorLoaded;
 };
 
 Session.prototype.vary = function(splitName, options) {
-  this._visitorDeferred.then(function(visitor) {
+  this._visitorLoaded.then(function(visitor) {
     visitor.vary(splitName, options);
   });
 };
 
 Session.prototype.ab = function(splitName, options) {
-  this._visitorDeferred.then(function(visitor) {
+  this._visitorLoaded.then(function(visitor) {
     visitor.ab(splitName, options);
   });
 };
 
 Session.prototype.logIn = function(identifierType, value) {
-  var deferred = $.Deferred();
-
-  this._visitorDeferred.then(
-    function(visitor) {
-      visitor.linkIdentifier(identifierType, value).then(
-        function() {
+  return this._visitorLoaded.then(function(visitor) {
+      return visitor.linkIdentifier(identifierType, value).then(function() {
           this._setCookie();
           visitor.analytics.identify(visitor.getId());
-          deferred.resolve();
         }.bind(this)
       );
     }.bind(this)
   );
-
-  return Promise.resolve(deferred.promise());
 };
 
 Session.prototype.signUp = function(identifierType, value) {
-  var deferred = $.Deferred();
-
-  this._visitorDeferred.then(
-    function(visitor) {
-      visitor.linkIdentifier(identifierType, value).then(
+  return this._visitorLoaded.then(function(visitor) {
+      return visitor.linkIdentifier(identifierType, value).then(
         function() {
           this._setCookie();
           visitor.analytics.alias(visitor.getId());
-          deferred.resolve();
         }.bind(this)
       );
     }.bind(this)
   );
-
-  return Promise.resolve(deferred.promise());
 };
 
 Session.prototype._setCookie = function() {
-  this._visitorDeferred.then(function(visitor) {
+  this._visitorLoaded.then(function(visitor) {
     Cookies.set(TestTrackConfig.getCookieName(), visitor.getId(), {
       expires: 365,
       path: '/',
@@ -106,27 +95,22 @@ Session.prototype.getPublicAPI = function() {
     initialize: this.initialize.bind(this),
     _crx: {
       loadInfo: function() {
-        var deferred = $.Deferred();
-        this._visitorDeferred.then(function(visitor) {
+        return this._visitorLoaded.then(function(visitor) {
           var assignmentRegistry = {};
           for (var splitName in visitor.getAssignmentRegistry()) {
             assignmentRegistry[splitName] = visitor.getAssignmentRegistry()[splitName].getVariant();
           }
 
-          deferred.resolve({
+          return {
             visitorId: visitor.getId(),
             splitRegistry: TestTrackConfig.getSplitRegistry().asV1Hash(),
             assignmentRegistry: assignmentRegistry
-          });
+          };
         });
-
-        return Promise.resolve(deferred.promise());
       }.bind(this),
 
       persistAssignment: function(splitName, variant, username, password) {
-        var deferred = $.Deferred();
-
-        this._visitorDeferred.then(function(visitor) {
+        return this._visitorLoaded.then(function(visitor) {
           var override = new AssignmentOverride({
             visitor: visitor,
             username: username,
@@ -139,12 +123,8 @@ Session.prototype.getPublicAPI = function() {
             })
           });
 
-          override.persistAssignment().then(function() {
-            deferred.resolve();
-          });
+          return override.persistAssignment();
         });
-
-        return Promise.resolve(deferred.promise());
       }.bind(this)
     }
   };

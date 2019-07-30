@@ -16,10 +16,10 @@ jest.mock('./configParser', () => {
           url: 'http://testtrack.dev',
           cookieDomain: '.example.com',
           cookieName: 'custom_cookie_name',
-          registry: [
-            { name: 'jabba', weights: { cgi: 50, puppet: 50 }, feature_gate: false },
-            { name: 'wine', weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
-          ],
+          registry: {
+            jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
+            wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
+          },
           assignments: {
             jabba: 'puppet',
             wine: 'rose'

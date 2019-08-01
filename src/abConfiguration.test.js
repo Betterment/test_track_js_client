@@ -3,155 +3,165 @@ import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';
 
 jest.mock('./testTrackConfig', () => {
-    return {
-        getSplitRegistry: jest.fn()
-    };
+  return {
+    getSplitRegistry: jest.fn()
+  };
 });
 
 describe('ABConfiguration', () => {
-    let testContext;
+  let testContext;
 
-    beforeEach(() => {
-        testContext = {};
-        TestTrackConfig.getSplitRegistry.mockClear();
-        TestTrackConfig.getSplitRegistry.mockReturnValue({
-            element: {
-                earth: 25,
-                wind: 25,
-                fire: 25,
-                water: 25
-            },
-            button_color: {
-                red: 50,
-                blue: 50
-            }
-        });
-
-        testContext.visitor = new Visitor({
-            id: 'visitor_id',
-            assignments: []
-        });
-        testContext.visitor.logError = jest.fn();
+  beforeEach(() => {
+    testContext = {};
+    TestTrackConfig.getSplitRegistry.mockClear();
+    TestTrackConfig.getSplitRegistry.mockReturnValue({
+      element: {
+        earth: 25,
+        wind: 25,
+        fire: 25,
+        water: 25
+      },
+      button_color: {
+        red: 50,
+        blue: 50
+      }
     });
 
-    it('requires a splitName', () => {
-        expect(function() {
-            var abConfiguration = new ABConfiguration({
-                trueVariant: 'red',
-                visitor: testContext.visitor
-            });
-        }.bind(this)).toThrowError('must provide splitName');
+    testContext.visitor = new Visitor({
+      id: 'visitor_id',
+      assignments: []
+    });
+    testContext.visitor.logError = jest.fn();
+  });
+
+  it('requires a splitName', () => {
+    expect(
+      function() {
+        new ABConfiguration({
+          trueVariant: 'red',
+          visitor: testContext.visitor
+        });
+      }.bind(this)
+    ).toThrow('must provide splitName');
+  });
+
+  it('requires an trueVariant', () => {
+    expect(
+      function() {
+        new ABConfiguration({
+          splitName: 'button_color',
+          visitor: testContext.visitor
+        });
+      }.bind(this)
+    ).toThrow('must provide trueVariant');
+  });
+
+  it('requires a visitor', () => {
+    expect(
+      function() {
+        new ABConfiguration({
+          splitName: 'button_color',
+          trueVariant: 'red'
+        });
+      }.bind(this)
+    ).toThrow('must provide visitor');
+  });
+
+  it('allows a null trueVariant', () => {
+    expect(
+      function() {
+        new ABConfiguration({
+          splitName: 'button_color',
+          trueVariant: null,
+          visitor: testContext.visitor
+        });
+      }.bind(this)
+    ).not.toThrow();
+  });
+
+  describe('#getVariants()', () => {
+    it('logs an error if the split does not have exactly two variants', () => {
+      var abConfiguration = new ABConfiguration({
+        splitName: 'element',
+        trueVariant: 'water',
+        visitor: testContext.visitor
+      });
+
+      abConfiguration.getVariants();
+
+      expect(testContext.visitor.logError).toHaveBeenCalledWith(
+        'A/B for element configures split with more than 2 variants'
+      );
     });
 
-    it('requires an trueVariant', () => {
-        expect(function() {
-            var abConfiguration = new ABConfiguration({
-                splitName: 'button_color',
-                visitor: testContext.visitor
-            });
-        }.bind(this)).toThrowError('must provide trueVariant');
+    it('does not log an error if the split registry is unavailable', () => {
+      TestTrackConfig.getSplitRegistry.mockReturnValue(null);
+
+      var abConfiguration = new ABConfiguration({
+        splitName: 'element',
+        trueVariant: 'water',
+        visitor: testContext.visitor
+      });
+
+      abConfiguration.getVariants();
+
+      expect(testContext.visitor.logError).not.toHaveBeenCalled();
     });
 
-    it('requires a visitor', () => {
-        expect(function() {
-            var abConfiguration = new ABConfiguration({
-                splitName: 'button_color',
-                trueVariant: 'red'
-            });
-        }.bind(this)).toThrowError('must provide visitor');
-    });
-
-    it('allows a null trueVariant', () => {
-        expect(function() {
-            var abConfiguration = new ABConfiguration({
-                splitName: 'button_color',
-                trueVariant: null,
-                visitor: testContext.visitor
-            });
-        }.bind(this)).not.toThrowError();
-    });
-
-    describe('#getVariants()', () => {
-        it('logs an error if the split does not have exactly two variants', () => {
-            var abConfiguration = new ABConfiguration({
-                splitName: 'element',
-                trueVariant: 'water',
-                visitor: testContext.visitor
-            });
-
-            abConfiguration.getVariants();
-
-            expect(testContext.visitor.logError).toHaveBeenCalledWith('A/B for element configures split with more than 2 variants');
+    describe('true variant', () => {
+      it('is true if null was passed in during instantiation', () => {
+        var abConfiguration = new ABConfiguration({
+          splitName: 'button_color',
+          trueVariant: null,
+          visitor: testContext.visitor
         });
 
-        it('does not log an error if the split registry is unavailable', () => {
-            TestTrackConfig.getSplitRegistry.mockReturnValue(null);
+        expect(abConfiguration.getVariants().true).toBe(true);
+      });
 
-            var abConfiguration = new ABConfiguration({
-                splitName: 'element',
-                trueVariant: 'water',
-                visitor: testContext.visitor
-            });
-
-            abConfiguration.getVariants();
-
-            expect(testContext.visitor.logError).not.toHaveBeenCalled();
+      it('is whatever was passed in during instantiation', () => {
+        var abConfiguration = new ABConfiguration({
+          splitName: 'button_color',
+          trueVariant: 'red',
+          visitor: testContext.visitor
         });
 
-        describe('true variant', () => {
-            it('is true if null was passed in during instantiation', () => {
-                var abConfiguration = new ABConfiguration({
-                    splitName: 'button_color',
-                    trueVariant: null,
-                    visitor: testContext.visitor
-                });
-
-                expect(abConfiguration.getVariants().true).toBe(true);
-            });
-
-            it('is whatever was passed in during instantiation', () => {
-                var abConfiguration = new ABConfiguration({
-                    splitName: 'button_color',
-                    trueVariant: 'red',
-                    visitor: testContext.visitor
-                });
-
-                expect(abConfiguration.getVariants().true).toBe('red');
-            });
-        });
-
-        describe('false variant', () => {
-            it('is the variant of the split that is not the true_variant', () => {
-                var abConfiguration = new ABConfiguration({
-                    splitName: 'button_color',
-                    trueVariant: 'red',
-                    visitor: testContext.visitor
-                });
-
-                expect(abConfiguration.getVariants().false).toBe('blue');
-            });
-
-            it('is false when there is no split_registry', () => {
-                TestTrackConfig.getSplitRegistry.mockReturnValue(null);
-
-                var abConfiguration = new ABConfiguration({
-                    splitName: 'button_color',
-                    trueVariant: 'red',
-                    visitor: testContext.visitor
-                });
-
-                expect(abConfiguration.getVariants().false).toBe(false);
-            });
-
-            it('is always the same if the split has more than two variants', () => {
-                var abConfiguration = new ABConfiguration({
-                    splitName: 'element',
-                    trueVariant: 'earth',
-                    visitor: testContext.visitor
-                });
-
-                expect(abConfiguration.getVariants().false).toBe('fire');
-            });
-        });
+        expect(abConfiguration.getVariants().true).toBe('red');
+      });
     });
+
+    describe('false variant', () => {
+      it('is the variant of the split that is not the true_variant', () => {
+        var abConfiguration = new ABConfiguration({
+          splitName: 'button_color',
+          trueVariant: 'red',
+          visitor: testContext.visitor
+        });
+
+        expect(abConfiguration.getVariants().false).toBe('blue');
+      });
+
+      it('is false when there is no split_registry', () => {
+        TestTrackConfig.getSplitRegistry.mockReturnValue(null);
+
+        var abConfiguration = new ABConfiguration({
+          splitName: 'button_color',
+          trueVariant: 'red',
+          visitor: testContext.visitor
+        });
+
+        expect(abConfiguration.getVariants().false).toBe(false);
+      });
+
+      it('is always the same if the split has more than two variants', () => {
+        var abConfiguration = new ABConfiguration({
+          splitName: 'element',
+          trueVariant: 'earth',
+          visitor: testContext.visitor
+        });
+
+        expect(abConfiguration.getVariants().false).toBe('fire');
+      });
+    });
+  });
 });

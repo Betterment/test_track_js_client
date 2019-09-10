@@ -1,6 +1,6 @@
 var SplitRegistry = function(splitArray) {
   this._splitArray = splitArray;
-  this._offline = splitArray == null;
+  this._offline = splitArray === null;
 };
 
 SplitRegistry.prototype.getSplit = function(splitName) {

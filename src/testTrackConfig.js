@@ -44,11 +44,11 @@ var TestTrackConfig = {
     }
 
     if (!registry) {
-      var splits = [];
-      for (var splitName in rawRegistry) {
+      var splits = Object.keys(rawRegistry).map(function(splitName) {
         var rawSplit = rawRegistry[splitName];
-        splits.push(new Split(splitName, rawSplit['feature_gate'], rawSplit['weights']));
-      }
+        return new Split(splitName, rawSplit['feature_gate'], rawSplit['weights']);
+      });
+
       registry = new SplitRegistry(splits);
     }
 

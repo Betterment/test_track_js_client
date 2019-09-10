@@ -99,7 +99,7 @@ describe('VaryDSL', () => {
       expect(testContext.visitor.logError).toHaveBeenCalledWith('configures unknown variant leeloo_multipass');
     });
 
-    it('does not log an error when the split registry is unavailable', () => {
+    it('does not log an error when the split registry is not loaded', () => {
       TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
 
       var vary = new VaryDSL({
@@ -179,7 +179,7 @@ describe('VaryDSL', () => {
       expect(testContext.visitor.logError).toHaveBeenCalledWith('configures unknown variant leeloo_multipass');
     });
 
-    it('does not log an error when the split registry is unavailable', () => {
+    it('does not log an error when the split registry is not loaded', () => {
       TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
 
       var vary = new VaryDSL({
@@ -289,7 +289,7 @@ describe('VaryDSL', () => {
       expect(testContext.visitor.logError).toHaveBeenCalledWith('does not configure variants wind and water');
     });
 
-    it('does not log an error when the split registry is unavailable', () => {
+    it('does not log an error when the split registry is not loaded', () => {
       TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
 
       var vary = new VaryDSL({

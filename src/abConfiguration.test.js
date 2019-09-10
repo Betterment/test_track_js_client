@@ -92,7 +92,7 @@ describe('ABConfiguration', () => {
       );
     });
 
-    it('does not log an error if the split registry is unavailable', () => {
+    it('does not log an error if the split registry is not loaded', () => {
       TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
 
       var abConfiguration = new ABConfiguration({

@@ -20,12 +20,12 @@ describe('SplitRegistry', () => {
     });
   });
 
-  describe('.isUnavailable()', () => {
-    it('is unavaible if null is passed in', () => {
-      expect(splitRegistry.isUnavailable()).toEqual(false);
+  describe('.isLoaded()', () => {
+    it('is not loaded if null is passed in', () => {
+      expect(splitRegistry.isLoaded()).toEqual(true);
 
-      let unavailableRegistry = new SplitRegistry(null);
-      expect(unavailableRegistry.isUnavailable()).toEqual(true);
+      let notLoadedRegistry = new SplitRegistry(null);
+      expect(notLoadedRegistry.isLoaded()).toEqual(false);
     });
   });
 

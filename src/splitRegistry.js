@@ -1,14 +1,14 @@
 var SplitRegistry = function(splitArray) {
   this._splitArray = splitArray;
-  this._offline = splitArray === null;
+  this._loaded = splitArray !== null;
 };
 
 SplitRegistry.prototype.getSplit = function(splitName) {
   return this.getSplits()[splitName];
 };
 
-SplitRegistry.prototype.isUnavailable = function() {
-  return this._offline;
+SplitRegistry.prototype.isLoaded = function() {
+  return this._loaded;
 };
 
 SplitRegistry.prototype.asV1Hash = function() {
@@ -22,7 +22,7 @@ SplitRegistry.prototype.asV1Hash = function() {
 };
 
 SplitRegistry.prototype.getSplits = function() {
-  if (this._offline) {
+  if (!this._loaded) {
     return {};
   }
 

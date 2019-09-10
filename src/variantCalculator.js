@@ -13,7 +13,7 @@ var VariantCalculator = function(options) {
 };
 
 VariantCalculator.prototype.getVariant = function() {
-  if (TestTrackConfig.getSplitRegistry().isUnavailable()) {
+  if (!TestTrackConfig.getSplitRegistry().isLoaded()) {
     return null;
   }
 

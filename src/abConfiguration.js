@@ -56,11 +56,11 @@ ABConfiguration.prototype._getNonTrueVariants = function() {
 };
 
 ABConfiguration.prototype._getSplit = function() {
-  return this._splitRegistry ? this._splitRegistry[this._splitName] : null;
+  return this._splitRegistry.getSplit(this._splitName);
 };
 
 ABConfiguration.prototype._getSplitVariants = function() {
-  return this._getSplit() && Object.getOwnPropertyNames(this._getSplit());
+  return this._getSplit() && this._getSplit().getVariants();
 };
 
 export default ABConfiguration;

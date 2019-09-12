@@ -1,20 +1,17 @@
 import Assignment from './assignment';
+import SplitRegistry from './splitRegistry';
 import TestTrackConfig from './testTrackConfig';
 import VaryDSL from './varyDSL';
 import Visitor from './visitor';
+import { mockSplitRegistry } from './test-utils';
 
-jest.mock('./testTrackConfig', () => {
-  return {
-    getSplitRegistry: jest.fn()
-  };
-});
+jest.mock('./testTrackConfig');
 
 describe('VaryDSL', () => {
   let testContext;
   beforeEach(() => {
     testContext = {};
-    TestTrackConfig.getSplitRegistry.mockClear();
-    TestTrackConfig.getSplitRegistry.mockReturnValue({
+    TestTrackConfig.getSplitRegistry = mockSplitRegistry({
       element: {
         earth: 25,
         wind: 25,
@@ -102,8 +99,8 @@ describe('VaryDSL', () => {
       expect(testContext.visitor.logError).toHaveBeenCalledWith('configures unknown variant leeloo_multipass');
     });
 
-    it('does not log an error when the split registry is unavailable', () => {
-      TestTrackConfig.getSplitRegistry.mockReturnValue(null);
+    it('does not log an error when the split registry is not loaded', () => {
+      TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
 
       var vary = new VaryDSL({
         assignment: testContext.assignment,
@@ -116,7 +113,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error for a variant with a 0 weight', () => {
-      TestTrackConfig.getSplitRegistry.mockReturnValue({
+      TestTrackConfig.getSplitRegistry = mockSplitRegistry({
         element: {
           earth: 25,
           wind: 25,
@@ -182,8 +179,8 @@ describe('VaryDSL', () => {
       expect(testContext.visitor.logError).toHaveBeenCalledWith('configures unknown variant leeloo_multipass');
     });
 
-    it('does not log an error when the split registry is unavailable', () => {
-      TestTrackConfig.getSplitRegistry.mockReturnValue(null);
+    it('does not log an error when the split registry is not loaded', () => {
+      TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
 
       var vary = new VaryDSL({
         assignment: testContext.assignment,
@@ -196,7 +193,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error for a variant with a 0 weight', () => {
-      TestTrackConfig.getSplitRegistry.mockReturnValue({
+      TestTrackConfig.getSplitRegistry = mockSplitRegistry({
         element: {
           earth: 25,
           wind: 25,
@@ -292,8 +289,8 @@ describe('VaryDSL', () => {
       expect(testContext.visitor.logError).toHaveBeenCalledWith('does not configure variants wind and water');
     });
 
-    it('does not log an error when the split registry is unavailable', () => {
-      TestTrackConfig.getSplitRegistry.mockReturnValue(null);
+    it('does not log an error when the split registry is not loaded', () => {
+      TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
 
       var vary = new VaryDSL({
         assignment: testContext.assignment,

@@ -13,7 +13,7 @@ var VariantCalculator = function(options) {
 };
 
 VariantCalculator.prototype.getVariant = function() {
-  if (!TestTrackConfig.getSplitRegistry()) {
+  if (!TestTrackConfig.getSplitRegistry().isLoaded()) {
     return null;
   }
 
@@ -62,15 +62,15 @@ VariantCalculator.prototype.getVariants = function() {
 };
 
 VariantCalculator.prototype.getWeighting = function() {
-  var weighting = TestTrackConfig.getSplitRegistry()[this.splitName];
+  var split = TestTrackConfig.getSplitRegistry().getSplit(this.splitName);
 
-  if (!weighting) {
+  if (!split) {
     var message = 'Unknown split: "' + this.splitName + '"';
     this.visitor.logError(message);
     throw new Error(message);
   }
 
-  return weighting;
+  return split.getWeighting();
 };
 
 export default VariantCalculator;

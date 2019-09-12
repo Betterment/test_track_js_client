@@ -1,20 +1,18 @@
 import ABConfiguration from './abConfiguration';
+import SplitRegistry from './splitRegistry';
 import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';
+import { mockSplitRegistry } from './test-utils';
 
-jest.mock('./testTrackConfig', () => {
-  return {
-    getSplitRegistry: jest.fn()
-  };
-});
+jest.mock('./testTrackConfig');
 
 describe('ABConfiguration', () => {
   let testContext;
 
   beforeEach(() => {
     testContext = {};
-    TestTrackConfig.getSplitRegistry.mockClear();
-    TestTrackConfig.getSplitRegistry.mockReturnValue({
+
+    TestTrackConfig.getSplitRegistry = mockSplitRegistry({
       element: {
         earth: 25,
         wind: 25,
@@ -94,8 +92,8 @@ describe('ABConfiguration', () => {
       );
     });
 
-    it('does not log an error if the split registry is unavailable', () => {
-      TestTrackConfig.getSplitRegistry.mockReturnValue(null);
+    it('does not log an error if the split registry is not loaded', () => {
+      TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
 
       var abConfiguration = new ABConfiguration({
         splitName: 'element',
@@ -142,7 +140,7 @@ describe('ABConfiguration', () => {
       });
 
       it('is false when there is no split_registry', () => {
-        TestTrackConfig.getSplitRegistry.mockReturnValue(null);
+        TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
 
         var abConfiguration = new ABConfiguration({
           splitName: 'button_color',

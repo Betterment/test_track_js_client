@@ -17,8 +17,8 @@ jest.mock('./configParser', () => {
           cookieDomain: '.example.com',
           cookieName: 'custom_cookie_name',
           registry: {
-            jabba: { cgi: 50, puppet: 50 },
-            wine: { red: 50, white: 25, rose: 25 }
+            jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
+            wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
           },
           assignments: {
             jabba: 'puppet',

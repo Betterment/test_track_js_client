@@ -6,7 +6,7 @@ import { terser } from 'rollup-plugin-terser';
 export default [
   {
     input: 'src/testTrack.js',
-    external: ['crypto', 'jquery', 'jquery.cookie', 'uuid', 'base-64', 'blueimp-md5'],
+    external: ['jquery', 'jquery.cookie', 'uuid', 'base-64', 'blueimp-md5'],
     output: {
       file: 'dist/testTrack.js',
       format: 'esm'
@@ -20,18 +20,19 @@ export default [
   },
   {
     input: 'src/testTrack.js',
-    external: ['crypto', 'jquery'],
+    external: ['jquery'],
     output: {
       file: 'dist/testTrack.bundle.js',
       name: 'TestTrack',
       format: 'umd',
       globals: {
-        jquery: '$',
-        crypto: 'crypto'
+        jquery: '$'
       }
     },
     plugins: [
-      resolve(),
+      resolve({
+        browser: true
+      }),
       commonjs(),
       terser(),
       babel({

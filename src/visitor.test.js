@@ -6,20 +6,13 @@ import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
 import $ from 'jquery';
 import uuid from 'uuid';
+import { mockSplitRegistry } from './test-utils';
 
 jest.mock('uuid');
 
 jest.mock('./testTrackConfig', () => {
   return {
     getUrl: () => 'http://testtrack.dev',
-    getSplitRegistry: jest.fn().mockReturnValue({
-      element: {
-        earth: 25,
-        wind: 25,
-        fire: 25,
-        water: 25
-      }
-    }),
     getAssignments: jest.fn()
   };
 });
@@ -51,6 +44,14 @@ describe('Visitor', () => {
     testContext = {};
     testContext.visitor = existingVisitor();
     TestTrackConfig.getAssignments.mockReset();
+    TestTrackConfig.getSplitRegistry = mockSplitRegistry({
+      element: {
+        earth: 25,
+        wind: 25,
+        fire: 25,
+        water: 25
+      }
+    });
   });
 
   function existingVisitor(visitorId) {

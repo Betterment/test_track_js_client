@@ -1,21 +1,10 @@
+import SplitRegistry from './splitRegistry';
 import TestTrackConfig from './testTrackConfig';
 import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
+import { mockSplitRegistry } from './test-utils';
 
-jest.mock('./testTrackConfig', () => {
-  return {
-    getSplitRegistry: jest.fn().mockReturnValue({
-      logoSize: {
-        extraGiant: 0,
-        giant: 80,
-        huge: 1,
-        leetle: 0,
-        miniscule: 19,
-        teeny: 0
-      }
-    })
-  };
-});
+jest.mock('./testTrackConfig');
 
 describe('VariantCalculator', () => {
   let calculatorOptions;
@@ -38,6 +27,17 @@ describe('VariantCalculator', () => {
     };
 
     testContext.calculator = createCalculator();
+
+    TestTrackConfig.getSplitRegistry = mockSplitRegistry({
+      logoSize: {
+        extraGiant: 0,
+        giant: 80,
+        huge: 1,
+        leetle: 0,
+        miniscule: 19,
+        teeny: 0
+      }
+    });
   });
 
   it('requires a visitor', () => {
@@ -166,13 +166,13 @@ describe('VariantCalculator', () => {
     });
 
     it('returns null if there is no split registry', () => {
-      TestTrackConfig.getSplitRegistry.mockReturnValue(null);
+      TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
 
       expect(testContext.calculator.getVariant()).toBeNull();
     });
 
     it('throws an error with an incomplete weighting', () => {
-      TestTrackConfig.getSplitRegistry.mockReturnValue({
+      TestTrackConfig.getSplitRegistry = mockSplitRegistry({
         invalidWeighting: {
           yes: 33,
           no: 33,

@@ -71,7 +71,7 @@ VaryDSL.prototype._assignHandlerToVariant = function(variant, handler) {
 
   variant = variant.toString();
 
-  if (this._getSplit() && !this._getSplit().hasOwnProperty(variant)) {
+  if (this._getSplit() && !this._getSplit().hasVariant(variant)) {
     this._visitor.logError('configures unknown variant ' + variant);
   }
 
@@ -98,11 +98,7 @@ VaryDSL.prototype._validate = function() {
 };
 
 VaryDSL.prototype._getSplit = function() {
-  if (this._splitRegistry) {
-    return this._splitRegistry[this._assignment.getSplitName()];
-  } else {
-    return null;
-  }
+  return this._splitRegistry.getSplit(this._assignment.getSplitName());
 };
 
 VaryDSL.prototype._getVariants = function() {
@@ -112,7 +108,7 @@ VaryDSL.prototype._getVariants = function() {
 VaryDSL.prototype._getMissingVariants = function() {
   var variants = this._getVariants(),
     split = this._getSplit(),
-    splitVariants = Object.getOwnPropertyNames(split),
+    splitVariants = split.getVariants(),
     missingVariants = [];
 
   for (var i = 0; i < splitVariants.length; i++) {

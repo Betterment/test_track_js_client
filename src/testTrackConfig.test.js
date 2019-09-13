@@ -12,7 +12,7 @@ jest.mock('./configParser', () => {
           url: 'http://testtrack.dev',
           cookieDomain: '.example.com',
           cookieName: mockCookieName,
-          registry: {
+          splits: {
             jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
             wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
           },
@@ -20,7 +20,7 @@ jest.mock('./configParser', () => {
             jabba: 'puppet',
             wine: 'rose'
           },
-          experienceSamplingRate: 1
+          experienceSamplingWeight: 1
         };
       }
     };
@@ -90,9 +90,9 @@ describe('TestTrackConfig', () => {
     });
   });
 
-  describe('.getExperienceSamplingRate()', () => {
-    it('returns the provided sampling rate', () => {
-      expect(TestTrackConfig.getExperienceSamplingRate()).toEqual(1);
+  describe('.getExperienceSamplingWeight()', () => {
+    it('returns the provided sampling weight', () => {
+      expect(TestTrackConfig.getExperienceSamplingWeight()).toEqual(1);
     });
   });
 });

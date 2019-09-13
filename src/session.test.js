@@ -16,7 +16,7 @@ jest.mock('./configParser', () => {
           url: 'http://testtrack.dev',
           cookieDomain: '.example.com',
           cookieName: 'custom_cookie_name',
-          registry: {
+          splits: {
             jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
             wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
           },
@@ -273,6 +273,7 @@ describe('Session', () => {
         testContext.session.initialize();
         testContext.publicApi = testContext.session.getPublicAPI();
       });
+
       it('returns an object with a limited set of methods', () => {
         expect(testContext.publicApi).toEqual(
           expect.objectContaining({

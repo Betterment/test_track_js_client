@@ -2,6 +2,7 @@
   "name": "test_track_js_client",
   "version": "2.0.0-alpha.0",
   "description": "Javascript Client for Test Track",
+  "license": "MIT",
   "main": "dist/testTrack.bundle.js",
   "module": "dist/testTrack.js",
   "scripts": {
@@ -55,5 +56,9 @@
     "feature flagging",
     "test track"
   ],
-  "license": "MIT"
+  "release-it": {
+    "hooks": {
+      "before:init": "yarn build"
+    }
+  }
 }

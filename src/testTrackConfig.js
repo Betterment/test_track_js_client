@@ -32,12 +32,12 @@ var TestTrackConfig = {
     return getConfig().cookieName || DEFAULT_VISITOR_COOKIE_NAME;
   },
 
-  getExperienceSamplingRate: function() {
-    return getConfig().experienceSamplingRate;
+  getExperienceSamplingWeight: function() {
+    return getConfig().experienceSamplingWeight;
   },
 
   getSplitRegistry: function() {
-    var rawRegistry = getConfig().registry;
+    var rawRegistry = getConfig().splits;
 
     if (!rawRegistry) {
       return new SplitRegistry(null);

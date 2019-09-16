@@ -1,6 +1,6 @@
 {
   "name": "test_track_js_client",
-  "version": "2.0.0-alpha.0",
+  "version": "2.0.0-alpha.1",
   "description": "Javascript Client for Test Track",
   "license": "MIT",
   "main": "dist/testTrack.bundle.js",

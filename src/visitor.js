@@ -5,7 +5,7 @@ import AssignmentNotification from './assignmentNotification';
 import Identifier from './identifier';
 import MixpanelAnalytics from './mixpanelAnalytics';
 import TestTrackConfig from './testTrackConfig';
-import uuid from 'uuid';
+import uuid from 'uuid/v4';
 import VariantCalculator from './variantCalculator';
 import VaryDSL from './varyDSL';
 
@@ -60,7 +60,7 @@ Visitor.loadVisitor = function(visitorId) {
     }
   } else {
     resolve({
-      id: uuid.v4(),
+      id: uuid(),
       assignments: [],
       ttOffline: false
     });

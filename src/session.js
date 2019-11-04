@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import 'jquery.cookie';
+import Cookies from 'js-cookie';
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
 import TestTrackConfig from './testTrackConfig';
@@ -10,7 +10,7 @@ var Session = function() {
 };
 
 Session.prototype.initialize = function(options) {
-  var visitorId = $.cookie(TestTrackConfig.getCookieName());
+  var visitorId = Cookies.get(TestTrackConfig.getCookieName());
 
   this._visitorDeferred.then(function(visitor) {
     visitor.notifyUnsyncedAssignments();
@@ -89,7 +89,7 @@ Session.prototype.signUp = function(identifierType, value) {
 
 Session.prototype._setCookie = function() {
   this._visitorDeferred.then(function(visitor) {
-    $.cookie(TestTrackConfig.getCookieName(), visitor.getId(), {
+    Cookies.set(TestTrackConfig.getCookieName(), visitor.getId(), {
       expires: 365,
       path: '/',
       domain: TestTrackConfig.getCookieDomain()

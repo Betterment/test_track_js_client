@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import client from './api';
 import TestTrackConfig from './testTrackConfig';
 

@@ -3,7 +3,6 @@ import Identifier from './identifier';
 import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
 import Visitor from './visitor'; // eslint-disable-line no-unused-vars
 import client from './api';
-import { createInterface } from 'readline';
 
 jest.mock('./testTrackConfig', () => {
   return {

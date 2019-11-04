@@ -3,7 +3,6 @@ import AssignmentOverride from './assignmentOverride';
 import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
 import Visitor from './visitor';
 import client from './api';
-import $ from 'jquery';
 
 jest.mock('./testTrackConfig', () => {
   return {

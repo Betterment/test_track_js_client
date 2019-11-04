@@ -1,4 +1,4 @@
-import $ from 'jquery';
+import client from './api';
 import TestTrackConfig from './testTrackConfig';
 
 var AssignmentOverride = function(options) {
@@ -20,29 +20,31 @@ var AssignmentOverride = function(options) {
 };
 
 AssignmentOverride.prototype.persistAssignment = function() {
-  return $.ajax(TestTrackConfig.getUrl() + '/api/v1/assignment_override', {
-    method: 'POST',
-    dataType: 'json',
-    crossDomain: true,
-    headers: {
-      Authorization: 'Basic ' + btoa(this._username + ':' + this._password)
-    },
-    data: {
-      visitor_id: this._visitor.getId(),
-      split_name: this._assignment.getSplitName(),
-      variant: this._assignment.getVariant(),
-      context: this._assignment.getContext(),
-      mixpanel_result: 'success' // we don't want to track overrides
-    }
-  }).fail(
-    function(jqXHR, textStatus, errorThrown) {
-      var status = jqXHR && jqXHR.status,
-        responseText = jqXHR && jqXHR.responseText;
+  return client
+    .post(
+      TestTrackConfig.getUrl() + '/api/v1/assignment_override',
+      {
+        visitor_id: this._visitor.getId(),
+        split_name: this._assignment.getSplitName(),
+        variant: this._assignment.getVariant(),
+        context: this._assignment.getContext(),
+        mixpanel_result: 'success' // we don't want to track overrides
+      },
+      {
+        crossDomain: true,
+        headers: {
+          Authorization: 'Basic ' + btoa(this._username + ':' + this._password)
+        }
+      }
+    )
+    .catch(failure => {
       this._visitor.logError(
-        'test_track persistAssignment error: ' + [jqXHR, status, responseText, textStatus, errorThrown].join(', ')
+        `test_track persistAssignment error:
+          ${failure.response.status},
+          ${failure.response.statusText},
+          ${failure.response.data}`
       );
-    }.bind(this)
-  );
+    });
 };
 
 export default AssignmentOverride;

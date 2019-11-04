@@ -2,6 +2,7 @@ import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
 import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
 import Visitor from './visitor';
+import client from './api';
 import $ from 'jquery';
 
 jest.mock('./testTrackConfig', () => {
@@ -19,7 +20,7 @@ describe('AssignmentOverride', () => {
   let testContext;
   beforeEach(() => {
     testContext = {};
-    $.ajax = jest.fn().mockImplementation(() => $.Deferred().resolve());
+    client.post = jest.fn().mockResolvedValue(undefined);
 
     testContext.visitor = new Visitor({
       id: 'visitorId',
@@ -76,39 +77,35 @@ describe('AssignmentOverride', () => {
     it('creates an assignment on the test track server', () => {
       testContext.override.persistAssignment();
 
-      expect($.ajax).toHaveBeenCalledTimes(1);
-      expect($.ajax).toHaveBeenCalledWith('http://testtrack.dev/api/v1/assignment_override', {
-        method: 'POST',
-        dataType: 'json',
-        crossDomain: true,
-        headers: {
-          Authorization: 'Basic dGhlX3VzZXJuYW1lOnRoZV9wYXNzd29yZA==' // Base64 of 'the_username:the_password'
-        },
-        data: {
+      expect(client.post).toHaveBeenCalledTimes(1);
+      expect(client.post).toHaveBeenCalledWith(
+        'http://testtrack.dev/api/v1/assignment_override',
+        {
           visitor_id: 'visitorId',
           split_name: 'jabba',
           variant: 'cgi',
           context: 'spec',
           mixpanel_result: 'success'
+        },
+        {
+          crossDomain: true,
+          headers: {
+            Authorization: 'Basic dGhlX3VzZXJuYW1lOnRoZV9wYXNzd29yZA==' // Base64 of 'the_username:the_password'
+          }
         }
-      });
+      );
     });
 
     it('logs an error if the request fails', () => {
-      $.ajax = jest.fn().mockImplementation(function() {
-        return $.Deferred().rejectWith(null, [
-          { status: 500, responseText: 'Internal Server Error' },
-          'textStatus',
-          'errorThrown'
-        ]);
+      client.post = jest.fn().mockRejectedValue({ status: 500, statusText: 'Internal Server Error' });
+
+      // eslint-disable-next-line jest/valid-expect-in-promise
+      testContext.override.persistAssignment().then(() => {
+        expect(testContext.visitor.logError).toHaveBeenCalledTimes(1);
+        expect(testContext.visitor.logError).toHaveBeenCalledWith(
+          'test_track persistAssignment error: 500, Internal Server Error'
+        );
       });
-
-      testContext.override.persistAssignment();
-
-      expect(testContext.visitor.logError).toHaveBeenCalledTimes(1);
-      expect(testContext.visitor.logError).toHaveBeenCalledWith(
-        'test_track persistAssignment error: [object Object], 500, Internal Server Error, textStatus, errorThrown'
-      );
     });
   });
 });

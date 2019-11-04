@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import client from './api';
 import ABConfiguration from './abConfiguration';
 import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
@@ -42,15 +43,16 @@ Visitor.loadVisitor = function(visitorId) {
         ttOffline: false
       });
     } else {
-      $.ajax(TestTrackConfig.getUrl() + '/api/v1/visitors/' + visitorId, { method: 'GET', timeout: 5000 })
-        .done(function(attrs) {
+      client
+        .get(TestTrackConfig.getUrl() + '/api/v1/visitors/' + visitorId, { timeout: 5000 })
+        .then(attrs => {
           resolve({
             id: attrs['id'],
             assignments: Assignment.fromJsonArray(attrs['assignments']),
             ttOffline: false
           });
         })
-        .fail(function() {
+        .catch(function() {
           resolve({
             id: visitorId,
             assignments: [],

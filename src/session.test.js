@@ -41,7 +41,7 @@ describe('Session', () => {
   });
 
   describe('Cookie behavior', () => {
-    it('reads the visitor id from a cookie and sets it back in the cookie', done => {
+    it('reads the visitor id from a cookie and sets it back in the cookie', () => {
       var v = new visitor.default({ id: 'existing_visitor_id', assignments: [] });
       visitor.default.loadVisitor = jest.fn().mockReturnValue(
         $.Deferred()
@@ -49,10 +49,10 @@ describe('Session', () => {
           .promise()
       );
 
-      new Session()
+      return new Session()
         .getPublicAPI()
         .initialize()
-        .then(function() {
+        .then(() => {
           expect(visitor.default.loadVisitor).toHaveBeenCalledWith('existing_visitor_id');
 
           expect(Cookies.get).toHaveBeenCalledTimes(1);
@@ -64,12 +64,10 @@ describe('Session', () => {
             path: '/',
             domain: '.example.com'
           });
-
-          done();
         });
     });
 
-    it('saves the visitor id in a cookie', done => {
+    it('saves the visitor id in a cookie', () => {
       Cookies.get.mockReturnValue(null);
 
       var v = new visitor.default({ id: 'generated_visitor_id', assignments: [] });
@@ -79,10 +77,10 @@ describe('Session', () => {
           .promise()
       );
 
-      new Session()
+      return new Session()
         .getPublicAPI()
         .initialize()
-        .then(function() {
+        .then(() => {
           expect(visitor.default.loadVisitor).toHaveBeenCalledWith(null);
 
           expect(Cookies.get).toHaveBeenCalledTimes(1);
@@ -94,8 +92,6 @@ describe('Session', () => {
             path: '/',
             domain: '.example.com'
           });
-
-          done();
         });
     });
   });
@@ -132,112 +128,90 @@ describe('Session', () => {
       );
 
       testContext.session = new Session().getPublicAPI();
-      return testContext.session.initialize();
+      return testContext.session.initialize().then(() => {
+        Cookies.set.mockClear();
+      });
     });
 
     describe('#initialize()', () => {
-      it('calls notifyUnsyncedAssignments when a visitor is loaded', done => {
+      it('calls notifyUnsyncedAssignments when a visitor is loaded', () => {
         testContext.visitor.notifyUnsyncedAssignments = jest.fn();
-        new Session()
+        return new Session()
           .getPublicAPI()
           .initialize()
-          .then(
-            function() {
-              expect(testContext.visitor.notifyUnsyncedAssignments).toHaveBeenCalledTimes(1);
-
-              done();
-            }.bind(this)
-          );
+          .then(() => {
+            expect(testContext.visitor.notifyUnsyncedAssignments).toHaveBeenCalledTimes(1);
+          });
       });
 
-      it('sets the analytics lib', done => {
+      it('sets the analytics lib', () => {
         var analytics = { track: '' };
         testContext.visitor.setAnalytics = jest.fn();
 
-        new Session()
+        return new Session()
           .getPublicAPI()
           .initialize({ analytics: analytics })
-          .then(
-            function() {
-              expect(testContext.visitor.setAnalytics).toHaveBeenCalledTimes(1);
-              expect(testContext.visitor.setAnalytics).toHaveBeenCalledTimes(1);
-              expect(testContext.visitor.setAnalytics).toHaveBeenCalledWith(analytics);
-
-              done();
-            }.bind(this)
-          );
+          .then(() => {
+            expect(testContext.visitor.setAnalytics).toHaveBeenCalledTimes(1);
+            expect(testContext.visitor.setAnalytics).toHaveBeenCalledTimes(1);
+            expect(testContext.visitor.setAnalytics).toHaveBeenCalledWith(analytics);
+          });
       });
 
-      it('sets the error logger', done => {
+      it('sets the error logger', () => {
         var errorLogger = function() {};
         testContext.visitor.setErrorLogger = jest.fn();
 
-        new Session()
+        return new Session()
           .getPublicAPI()
           .initialize({ errorLogger: errorLogger })
-          .then(
-            function() {
-              expect(testContext.visitor.setErrorLogger).toHaveBeenCalledTimes(1);
-              expect(testContext.visitor.setErrorLogger).toHaveBeenCalledWith(errorLogger);
-
-              done();
-            }.bind(this)
-          );
+          .then(() => {
+            expect(testContext.visitor.setErrorLogger).toHaveBeenCalledTimes(1);
+            expect(testContext.visitor.setErrorLogger).toHaveBeenCalledWith(errorLogger);
+          });
       });
     });
 
     describe('#logIn()', () => {
-      it('updates the visitor id in the cookie', done => {
-        Cookies.set.mockClear();
-
-        testContext.session.logIn('myappdb_user_id', 444).then(
-          function() {
-            expect(testContext.visitor.linkIdentifier).toHaveBeenCalledTimes(1);
-            expect(testContext.visitor.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
-            expect(Cookies.set).toHaveBeenCalledTimes(1);
-            expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
-              expires: 365,
-              path: '/',
-              domain: '.example.com'
-            });
-            done();
-          }.bind(this)
-        );
+      it('updates the visitor id in the cookie', () => {
+        return testContext.session.logIn('myappdb_user_id', 444).then(() => {
+          expect(testContext.visitor.linkIdentifier).toHaveBeenCalledTimes(1);
+          expect(testContext.visitor.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
+          expect(Cookies.set).toHaveBeenCalledTimes(1);
+          expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
+            expires: 365,
+            path: '/',
+            domain: '.example.com'
+          });
+        });
       });
 
-      it('calls analytics.identify with the resolved visitor id', done => {
-        testContext.session.logIn('myappdb_user_id', 444).then(function() {
+      it('calls analytics.identify with the resolved visitor id', () => {
+        return testContext.session.logIn('myappdb_user_id', 444).then(() => {
           expect(testContext.visitor.analytics.identify).toHaveBeenCalledTimes(1);
           expect(testContext.visitor.analytics.identify).toHaveBeenCalledWith('other_visitor_id');
-          done();
         });
       });
     });
 
     describe('#signUp()', () => {
-      it('updates the visitor id in the cookie', done => {
-        Cookies.set.mockClear();
-
-        testContext.session.signUp('myappdb_user_id', 444).then(
-          function() {
-            expect(testContext.visitor.linkIdentifier).toHaveBeenCalledTimes(1);
-            expect(testContext.visitor.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
-            expect(Cookies.set).toHaveBeenCalledTimes(1);
-            expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
-              expires: 365,
-              path: '/',
-              domain: '.example.com'
-            });
-            done();
-          }.bind(this)
-        );
+      it('updates the visitor id in the cookie', () => {
+        return testContext.session.signUp('myappdb_user_id', 444).then(() => {
+          expect(testContext.visitor.linkIdentifier).toHaveBeenCalledTimes(1);
+          expect(testContext.visitor.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
+          expect(Cookies.set).toHaveBeenCalledTimes(1);
+          expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
+            expires: 365,
+            path: '/',
+            domain: '.example.com'
+          });
+        });
       });
 
-      it('calls analytics.alias with the resolved visitor id', done => {
-        testContext.session.signUp('myappdb_user_id', 444).then(function() {
+      it('calls analytics.alias with the resolved visitor id', () => {
+        return testContext.session.signUp('myappdb_user_id', 444).then(() => {
           expect(testContext.visitor.analytics.alias).toHaveBeenCalledTimes(1);
           expect(testContext.visitor.analytics.alias).toHaveBeenCalledWith('other_visitor_id');
-          done();
         });
       });
     });
@@ -247,10 +221,10 @@ describe('Session', () => {
         testContext.session.vary('jabba', {
           context: 'spec',
           variants: {
-            cgi: function() {
+            cgi() {
               done();
             },
-            puppet: function() {
+            puppet() {
               throw new Error('we should never get here');
             }
           },
@@ -264,7 +238,7 @@ describe('Session', () => {
         testContext.session.ab('jabba', {
           context: 'spec',
           trueVariant: 'cgi',
-          callback: function(cgi) {
+          callback(cgi) {
             expect(cgi).toBe(true);
             done();
           }
@@ -310,8 +284,9 @@ describe('Session', () => {
               };
             });
 
-            testContext.publicApi._crx.persistAssignment('split', 'variant', 'the_username', 'the_password').then(
-              function() {
+            testContext.publicApi._crx
+              .persistAssignment('split', 'variant', 'the_username', 'the_password')
+              .then(() => {
                 expect(AssignmentOverride).toHaveBeenCalledTimes(1);
                 expect(AssignmentOverride).toHaveBeenCalledWith({
                   visitor: testContext.visitor,
@@ -324,26 +299,22 @@ describe('Session', () => {
                     isUnsynced: true
                   })
                 });
-
                 done();
-              }.bind(this)
-            );
+              });
 
             persistAssignmentDeferred.resolve();
           });
         });
 
         describe('#loadInfo()', () => {
-          it('returns a promise that resolves with the split registry, assignment registry and visitor id', done => {
-            testContext.publicApi._crx.loadInfo().then(function(info) {
+          it('returns a promise that resolves with the split registry, assignment registry and visitor id', () => {
+            return testContext.publicApi._crx.loadInfo().then(info => {
               expect(info.visitorId).toEqual('dummy_visitor_id');
               expect(info.splitRegistry).toEqual({
                 jabba: { cgi: 50, puppet: 50 },
                 wine: { red: 50, white: 25, rose: 25 }
               });
               expect(info.assignmentRegistry).toEqual({ jabba: 'cgi' });
-
-              done();
             });
           });
         });

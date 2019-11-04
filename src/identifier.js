@@ -2,7 +2,7 @@ import client from './api';
 import Assignment from './assignment';
 import Visitor from './visitor';
 
-var Identifier = function(options) {
+const Identifier = function(options) {
   this.visitorId = options.visitorId;
   this.identifierType = options.identifierType;
   this.value = options.value;

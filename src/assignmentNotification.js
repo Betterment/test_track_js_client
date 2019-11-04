@@ -1,6 +1,6 @@
 import client from './api';
 
-var AssignmentNotification = function(options) {
+const AssignmentNotification = function(options) {
   options = options || {};
   this._visitor = options.visitor;
   this._assignment = options.assignment;

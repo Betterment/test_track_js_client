@@ -4,39 +4,35 @@ import AssignmentOverride from './assignmentOverride';
 import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';
 
-var Session = function() {
+const Session = function() {
   this._loaded;
-  this._visitorLoaded = new Promise(
-    function(resolve) {
-      this._loaded = resolve;
-    }.bind(this)
-  );
+  this._visitorLoaded = new Promise(resolve => {
+    this._loaded = resolve;
+  });
 };
 
 Session.prototype.initialize = function(options) {
-  var visitorId = Cookies.get(TestTrackConfig.getCookieName());
+  const visitorId = Cookies.get(TestTrackConfig.getCookieName());
 
   this._visitorLoaded.then(function(visitor) {
     visitor.notifyUnsyncedAssignments();
   });
 
-  Visitor.loadVisitor(visitorId).then(
-    function(visitor) {
-      if (options && options.analytics) {
-        visitor.setAnalytics(options.analytics);
-      }
+  Visitor.loadVisitor(visitorId).then(visitor => {
+    if (options && options.analytics) {
+      visitor.setAnalytics(options.analytics);
+    }
 
-      if (options && options.errorLogger) {
-        visitor.setErrorLogger(options.errorLogger);
-      }
+    if (options && options.errorLogger) {
+      visitor.setErrorLogger(options.errorLogger);
+    }
 
-      if (options && typeof options.onVisitorLoaded === 'function') {
-        options.onVisitorLoaded.call(null, visitor);
-      }
+    if (options && typeof options.onVisitorLoaded === 'function') {
+      options.onVisitorLoaded.call(null, visitor);
+    }
 
-      this._loaded(visitor);
-    }.bind(this)
-  );
+    this._loaded(visitor);
+  });
 
   this._setCookie();
 
@@ -56,28 +52,20 @@ Session.prototype.ab = function(splitName, options) {
 };
 
 Session.prototype.logIn = function(identifierType, value) {
-  return this._visitorLoaded.then(
-    function(visitor) {
-      return visitor.linkIdentifier(identifierType, value).then(
-        function() {
-          this._setCookie();
-          visitor.analytics.identify(visitor.getId());
-        }.bind(this)
-      );
-    }.bind(this)
+  return this._visitorLoaded.then(visitor =>
+    visitor.linkIdentifier(identifierType, value).then(() => {
+      this._setCookie();
+      visitor.analytics.identify(visitor.getId());
+    })
   );
 };
 
 Session.prototype.signUp = function(identifierType, value) {
-  return this._visitorLoaded.then(
-    function(visitor) {
-      return visitor.linkIdentifier(identifierType, value).then(
-        function() {
-          this._setCookie();
-          visitor.analytics.alias(visitor.getId());
-        }.bind(this)
-      );
-    }.bind(this)
+  return this._visitorLoaded.then(visitor =>
+    visitor.linkIdentifier(identifierType, value).then(() => {
+      this._setCookie();
+      visitor.analytics.alias(visitor.getId());
+    })
   );
 };
 
@@ -99,9 +87,9 @@ Session.prototype.getPublicAPI = function() {
     signUp: this.signUp.bind(this),
     initialize: this.initialize.bind(this),
     _crx: {
-      loadInfo: function() {
-        return this._visitorLoaded.then(function(visitor) {
-          var assignmentRegistry = {};
+      loadInfo: () =>
+        this._visitorLoaded.then(function(visitor) {
+          let assignmentRegistry = {};
           for (var splitName in visitor.getAssignmentRegistry()) {
             assignmentRegistry[splitName] = visitor.getAssignmentRegistry()[splitName].getVariant();
           }
@@ -111,26 +99,22 @@ Session.prototype.getPublicAPI = function() {
             splitRegistry: TestTrackConfig.getSplitRegistry().asV1Hash(),
             assignmentRegistry: assignmentRegistry
           };
-        });
-      }.bind(this),
+        }),
 
-      persistAssignment: function(splitName, variant, username, password) {
-        return this._visitorLoaded.then(function(visitor) {
-          var override = new AssignmentOverride({
-            visitor: visitor,
-            username: username,
-            password: password,
+      persistAssignment: (splitName, variant, username, password) =>
+        this._visitorLoaded.then(function(visitor) {
+          return new AssignmentOverride({
+            visitor,
+            username,
+            password,
             assignment: new Assignment({
-              splitName: splitName,
-              variant: variant,
+              splitName,
+              variant,
               context: 'chrome_extension',
               isUnsynced: true
             })
-          });
-
-          return override.persistAssignment();
-        });
-      }.bind(this)
+          }).persistAssignment();
+        })
     }
   };
 };

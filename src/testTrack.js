@@ -1,24 +1,24 @@
 import Session from './session';
 
-var TestTrack = new Session().getPublicAPI(),
-  notifyListener = function() {
-    window.dispatchEvent(
-      new CustomEvent('tt:lib:loaded', {
-        detail: {
-          TestTrack: TestTrack
-        }
-      })
-    );
-  },
-  loadTestTrack = function() {
-    // Add class to body of page after body is loaded to enable chrome extension support
-    document.body.classList.add('_tt');
-    try {
-      window.dispatchEvent(new CustomEvent('tt:class:added'));
-    } catch (e) {
-      // ignore
-    }
-  };
+const TestTrack = new Session().getPublicAPI();
+const notifyListener = function() {
+  window.dispatchEvent(
+    new CustomEvent('tt:lib:loaded', {
+      detail: {
+        TestTrack: TestTrack
+      }
+    })
+  );
+};
+const loadTestTrack = function() {
+  // Add class to body of page after body is loaded to enable chrome extension support
+  document.body.classList.add('_tt');
+  try {
+    window.dispatchEvent(new CustomEvent('tt:class:added'));
+  } catch (e) {
+    // ignore
+  }
+};
 
 try {
   if (document.readyState === 'loading') {

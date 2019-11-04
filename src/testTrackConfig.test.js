@@ -56,13 +56,14 @@ describe('TestTrackConfig', () => {
       });
     });
 
-  describe('when there is no configured cookie name', () => {
-    beforeEach(() => {
-      mockCookieName = undefined;
-    });
+    describe('when there is no configured cookie name', () => {
+      beforeEach(() => {
+        mockCookieName = undefined;
+      });
 
-    it('uses the default cookie name', () => {
-      expect(TestTrackConfig.getCookieName()).toBe('tt_visitor_id');
+      it('uses the default cookie name', () => {
+        expect(TestTrackConfig.getCookieName()).toBe('tt_visitor_id');
+      });
     });
   });
 

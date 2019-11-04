@@ -1,28 +1,30 @@
-var MixpanelAnalytics = function() {};
+const MixpanelAnalytics = function() {};
 
 MixpanelAnalytics.prototype.trackAssignment = function(visitorId, assignment) {
-  var assignmentProperties = {
-      TTVisitorID: visitorId,
-      SplitName: assignment.getSplitName(),
-      SplitVariant: assignment.getVariant(),
-      SplitContext: assignment.getContext()
-    },
-    resolver,
-    promise = new Promise(function(resolve) {
-      resolver = resolve;
-    });
+  const assignmentProperties = {
+    TTVisitorID: visitorId,
+    SplitName: assignment.getSplitName(),
+    SplitVariant: assignment.getVariant(),
+    SplitContext: assignment.getContext()
+  };
 
-  window.mixpanel && window.mixpanel.track('SplitAssigned', assignmentProperties, resolver);
-
-  return promise;
+  return new Promise(resolve => {
+    if (window.mixpanel) {
+      window.mixpanel.track('SplitAssigned', assignmentProperties, resolve);
+    }
+  });
 };
 
 MixpanelAnalytics.prototype.identify = function(visitorId) {
-  window.mixpanel && window.mixpanel.identify(visitorId);
+  if (window.mixpanel) {
+    window.mixpanel.identify(visitorId);
+  }
 };
 
 MixpanelAnalytics.prototype.alias = function(visitorId) {
-  window.mixpanel && window.mixpanel.alias(visitorId);
+  if (window.mixpanel) {
+    window.mixpanel.alias(visitorId);
+  }
 };
 
 export default MixpanelAnalytics;

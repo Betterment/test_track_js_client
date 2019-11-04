@@ -110,9 +110,7 @@ describe('AssignmentNotification', () => {
     });
 
     it('logs an error if the request fails', () => {
-      testContext.analyticsTrackStub.mockImplementation((visitor_id, assignment, callback) => {
-        callback(false);
-      });
+      testContext.analyticsTrackStub.mockResolvedValue(false);
       client.post = jest.fn().mockRejectedValue({
         response: {
           status: 500,

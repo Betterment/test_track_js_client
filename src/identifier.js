@@ -20,7 +20,7 @@ var Identifier = function(options) {
 Identifier.prototype.save = function() {
   return client
     .post(
-      TestTrackConfig.getUrl() + '/api/v1/identifier',
+      '/identifier',
       {
         identifier_type: this.identifierType,
         value: this.value,

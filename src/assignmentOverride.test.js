@@ -78,7 +78,7 @@ describe('AssignmentOverride', () => {
 
       expect(client.post).toHaveBeenCalledTimes(1);
       expect(client.post).toHaveBeenCalledWith(
-        'http://testtrack.dev/api/v1/assignment_override',
+        '/assignment_override',
         {
           visitor_id: 'visitorId',
           split_name: 'jabba',
@@ -95,15 +95,15 @@ describe('AssignmentOverride', () => {
       );
     });
 
-    it('logs an error if the request fails', () => {
-      client.post = jest.fn().mockRejectedValue({ status: 500, statusText: 'Internal Server Error' });
+    it('logs an error if the request fails', done => {
+      client.post = jest.fn().mockRejectedValue({ response: { status: 500, statusText: 'Internal Server Error' } });
 
-      // eslint-disable-next-line jest/valid-expect-in-promise
-      testContext.override.persistAssignment().then(() => {
+      return testContext.override.persistAssignment().then(() => {
         expect(testContext.visitor.logError).toHaveBeenCalledTimes(1);
         expect(testContext.visitor.logError).toHaveBeenCalledWith(
-          'test_track persistAssignment error: 500, Internal Server Error'
+          'test_track persistAssignment error: 500, Internal Server Error, undefined'
         );
+        done();
       });
     });
   });

@@ -35,7 +35,7 @@ AssignmentNotification.prototype.send = function() {
 AssignmentNotification.prototype._persistAssignment = function(trackResult) {
   return client
     .post(
-      TestTrackConfig.getUrl() + '/api/v1/assignment_event',
+      '/assignment_event',
       {
         visitor_id: this._visitor.getId(),
         split_name: this._assignment.getSplitName(),

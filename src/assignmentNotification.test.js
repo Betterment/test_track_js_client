@@ -83,7 +83,7 @@ describe('AssignmentNotification', () => {
       expect(client.post).toHaveBeenCalledTimes(2);
       expect(client.post).toHaveBeenNthCalledWith(
         1,
-        'http://testtrack.dev/api/v1/assignment_event',
+        '/assignment_event',
         {
           visitor_id: 'visitorId',
           split_name: 'jabba',
@@ -94,7 +94,7 @@ describe('AssignmentNotification', () => {
       );
       expect(client.post).toHaveBeenNthCalledWith(
         2,
-        'http://testtrack.dev/api/v1/assignment_event',
+        '/assignment_event',
         {
           visitor_id: 'visitorId',
           split_name: 'jabba',
@@ -115,7 +115,7 @@ describe('AssignmentNotification', () => {
       expect(client.post).toHaveBeenCalledTimes(2);
       expect(client.post).toHaveBeenNthCalledWith(
         1,
-        'http://testtrack.dev/api/v1/assignment_event',
+        '/assignment_event',
         {
           visitor_id: 'visitorId',
           split_name: 'jabba',
@@ -126,7 +126,7 @@ describe('AssignmentNotification', () => {
       );
       expect(client.post).toHaveBeenNthCalledWith(
         2,
-        'http://testtrack.dev/api/v1/assignment_event',
+        '/assignment_event',
         {
           visitor_id: 'visitorId',
           split_name: 'jabba',

@@ -76,7 +76,7 @@ describe('Identifier', () => {
       testContext.identifier.save().then(function() {
         expect(client.post).toHaveBeenCalledTimes(1);
         expect(client.post).toHaveBeenCalledWith(
-          'http://testtrack.dev/api/v1/identifier',
+          '/identifier',
           {
             identifier_type: 'myappdb_user_id',
             value: 444,

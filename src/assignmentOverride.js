@@ -22,7 +22,7 @@ var AssignmentOverride = function(options) {
 AssignmentOverride.prototype.persistAssignment = function() {
   return client
     .post(
-      TestTrackConfig.getUrl() + '/api/v1/assignment_override',
+      '/assignment_override',
       {
         visitor_id: this._visitor.getId(),
         split_name: this._assignment.getSplitName(),
@@ -37,12 +37,9 @@ AssignmentOverride.prototype.persistAssignment = function() {
         }
       }
     )
-    .catch(failure => {
+    .catch(({ response }) => {
       this._visitor.logError(
-        `test_track persistAssignment error:
-          ${failure.response.status},
-          ${failure.response.statusText},
-          ${failure.response.data}`
+        `test_track persistAssignment error: ${response.status}, ${response.statusText}, ${response.data}`
       );
     });
 };

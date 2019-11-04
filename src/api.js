@@ -1,17 +1,9 @@
 import DefaultAxios from 'axios';
-
-function getCsrfToken() {
-  const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
-  if (csrfTokenMeta) {
-    return csrfTokenMeta.content;
-  } else {
-    return null;
-  }
-}
+import TestTrackConfig from './testTrackConfig';
 
 const defaultAxios = DefaultAxios.create({
+  baseURL: `${TestTrackConfig.getUrl()}/api/v1`,
   headers: {
-    'X-CSRF-Token': getCsrfToken(),
     'X-Requested-With': 'XMLHttpRequest',
     'Content-Type': 'application/json'
   },

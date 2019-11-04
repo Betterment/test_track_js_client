@@ -44,12 +44,12 @@ AssignmentNotification.prototype._persistAssignment = function(trackResult) {
       },
       { crossDomain: true }
     )
-    .catch(failure => {
+    .catch(({ response }) => {
       this._visitor.logError(
         `test_track persistAssignment error:
-          ${failure.response.status},
-          ${failure.response.statusText},
-          ${failure.response.data}`
+          ${response.status},
+          ${response.statusText},
+          ${response.data}`
       );
     });
 };

@@ -266,7 +266,7 @@ describe('Session', () => {
               };
             });
 
-            testContext.publicApi._crx
+            return testContext.publicApi._crx
               .persistAssignment('split', 'variant', 'the_username', 'the_password')
               .then(() => {
                 expect(AssignmentOverride).toHaveBeenCalledTimes(1);
@@ -281,10 +281,7 @@ describe('Session', () => {
                     isUnsynced: true
                   })
                 });
-                done();
               });
-
-            persistAssignmentDeferred.resolve();
           });
         });
 

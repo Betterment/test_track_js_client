@@ -1,14 +1,16 @@
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
-import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
 import Visitor from './visitor';
 import client from './api';
+import MockAdapter from 'axios-mock-adapter';
 
 jest.mock('./testTrackConfig', () => {
   return {
     getUrl: () => 'http://testtrack.dev'
   };
 });
+
+const mockClient = new MockAdapter(client);
 
 describe('AssignmentOverride', () => {
   let overrideOptions;
@@ -19,7 +21,7 @@ describe('AssignmentOverride', () => {
   let testContext;
   beforeEach(() => {
     testContext = {};
-    client.post = jest.fn().mockResolvedValue(undefined);
+    mockClient.onPost('/v1/assignment_override').reply(200);
 
     testContext.visitor = new Visitor({
       id: 'visitorId',
@@ -42,6 +44,10 @@ describe('AssignmentOverride', () => {
     };
 
     testContext.override = createOverride();
+  });
+
+  afterEach(() => {
+    mockClient.reset();
   });
 
   it('requires a visitor', () => {
@@ -74,34 +80,33 @@ describe('AssignmentOverride', () => {
 
   describe('#persistAssignment()', () => {
     it('creates an assignment on the test track server', () => {
-      testContext.override.persistAssignment();
-
-      expect(client.post).toHaveBeenCalledTimes(1);
-      expect(client.post).toHaveBeenCalledWith(
-        '/v1/assignment_override',
-        {
-          visitor_id: 'visitorId',
-          split_name: 'jabba',
-          variant: 'cgi',
-          context: 'spec',
-          mixpanel_result: 'success'
-        },
-        {
-          auth: {
-            username: 'the_username',
-            password: 'the_password'
-          }
-        }
-      );
+      return testContext.override.persistAssignment().then(() => {
+        expect(mockClient.history.post.length).toBe(1);
+        expect(mockClient.history.post[0].url).toEqual(expect.stringContaining('/v1/assignment_override'));
+        expect(mockClient.history.post[0].data).toEqual(
+          JSON.stringify({
+            visitor_id: 'visitorId',
+            split_name: 'jabba',
+            variant: 'cgi',
+            context: 'spec',
+            mixpanel_result: 'success'
+          })
+        );
+        expect(mockClient.history.post[0].auth).toEqual({
+          username: 'the_username',
+          password: 'the_password'
+        });
+      });
     });
 
     it('logs an error if the request fails', () => {
-      client.post = jest.fn().mockRejectedValue({ response: { status: 500, statusText: 'Internal Server Error' } });
+      mockClient.reset();
+      mockClient.onPost().reply(500);
 
       return testContext.override.persistAssignment().then(() => {
         expect(testContext.visitor.logError).toHaveBeenCalledTimes(1);
         expect(testContext.visitor.logError).toHaveBeenCalledWith(
-          'test_track persistAssignment error: 500, Internal Server Error, undefined'
+          'test_track persistAssignment error: 500, undefined, undefined'
         );
       });
     });

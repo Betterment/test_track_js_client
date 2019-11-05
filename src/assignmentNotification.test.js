@@ -1,14 +1,16 @@
 import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
-import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
 import Visitor from './visitor';
 import client from './api';
+import MockAdapter from 'axios-mock-adapter';
 
 jest.mock('./testTrackConfig', () => {
   return {
     getUrl: () => 'http://testtrack.dev'
   };
 });
+
+const mockClient = new MockAdapter(client);
 
 describe('AssignmentNotification', () => {
   let notificationOptions;
@@ -19,7 +21,7 @@ describe('AssignmentNotification', () => {
   let testContext;
   beforeEach(() => {
     testContext = {};
-    client.post = jest.fn().mockImplementation(() => Promise.resolve());
+    mockClient.onPost().reply(200);
 
     testContext.visitor = new Visitor({
       id: 'visitorId',
@@ -45,6 +47,10 @@ describe('AssignmentNotification', () => {
     };
 
     testContext.notification = createNotification();
+  });
+
+  afterEach(() => {
+    mockClient.reset();
   });
 
   it('requires a visitor', () => {
@@ -73,19 +79,23 @@ describe('AssignmentNotification', () => {
       testContext.analyticsTrackStub.mockResolvedValue(true);
 
       return testContext.notification.send().then(() => {
-        expect(client.post).toHaveBeenCalledTimes(2);
-        expect(client.post).toHaveBeenNthCalledWith(1, '/v1/assignment_event', {
-          visitor_id: 'visitorId',
-          split_name: 'jabba',
-          context: 'spec',
-          mixpanel_result: undefined
-        });
-        expect(client.post).toHaveBeenNthCalledWith(2, '/v1/assignment_event', {
-          visitor_id: 'visitorId',
-          split_name: 'jabba',
-          context: 'spec',
-          mixpanel_result: 'success'
-        });
+        expect(mockClient.history.post.length).toBe(2);
+        expect(mockClient.history.post[0].data).toEqual(
+          JSON.stringify({
+            visitor_id: 'visitorId',
+            split_name: 'jabba',
+            context: 'spec',
+            mixpanel_result: undefined
+          })
+        );
+        expect(mockClient.history.post[1].data).toEqual(
+          JSON.stringify({
+            visitor_id: 'visitorId',
+            split_name: 'jabba',
+            context: 'spec',
+            mixpanel_result: 'success'
+          })
+        );
       });
     });
 
@@ -93,36 +103,34 @@ describe('AssignmentNotification', () => {
       testContext.analyticsTrackStub.mockResolvedValue(false);
 
       return testContext.notification.send().then(() => {
-        expect(client.post).toHaveBeenCalledTimes(2);
-        expect(client.post).toHaveBeenNthCalledWith(1, '/v1/assignment_event', {
-          visitor_id: 'visitorId',
-          split_name: 'jabba',
-          context: 'spec',
-          mixpanel_result: undefined
-        });
-        expect(client.post).toHaveBeenNthCalledWith(2, '/v1/assignment_event', {
-          visitor_id: 'visitorId',
-          split_name: 'jabba',
-          context: 'spec',
-          mixpanel_result: 'failure'
-        });
+        expect(mockClient.history.post.length).toBe(2);
+        expect(mockClient.history.post[0].data).toEqual(
+          JSON.stringify({
+            visitor_id: 'visitorId',
+            split_name: 'jabba',
+            context: 'spec',
+            mixpanel_result: undefined
+          })
+        );
+        expect(mockClient.history.post[1].data).toEqual(
+          JSON.stringify({
+            visitor_id: 'visitorId',
+            split_name: 'jabba',
+            context: 'spec',
+            mixpanel_result: 'failure'
+          })
+        );
       });
     });
 
     it('logs an error if the request fails', () => {
       testContext.analyticsTrackStub.mockResolvedValue(false);
-      client.post = jest.fn().mockRejectedValue({
-        response: {
-          status: 500,
-          statusText: 'Internal Server Error',
-          data: null
-        }
-      });
+      mockClient.onPost().reply(500, null);
 
       return testContext.notification.send().then(() => {
         expect(testContext.visitor.logError).toHaveBeenCalledTimes(2);
         expect(testContext.visitor.logError).toHaveBeenCalledWith(
-          'test_track persistAssignment error: 500, Internal Server Error, null'
+          'test_track persistAssignment error: 500, undefined, null'
         );
       });
     });

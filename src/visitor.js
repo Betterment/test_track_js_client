@@ -41,10 +41,10 @@ Visitor.loadVisitor = function(visitorId) {
     } else {
       return client
         .get('/v1/visitors/' + visitorId, { timeout: 5000 })
-        .then(attrs => {
+        .then(({ data }) => {
           return new Visitor({
-            id: attrs['id'],
-            assignments: Assignment.fromJsonArray(attrs['assignments']),
+            id: data['id'],
+            assignments: Assignment.fromJsonArray(data['assignments']),
             ttOffline: false
           });
         })

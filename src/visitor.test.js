@@ -7,6 +7,7 @@ import Visitor from './visitor';
 import client from './api';
 import uuid from 'uuid/v4';
 import { mockSplitRegistry } from './test-utils';
+import MockAdapter from 'axios-mock-adapter';
 
 jest.mock('uuid/v4');
 
@@ -38,6 +39,8 @@ jest.mock('./identifier', () => {
   });
 });
 
+const mockClient = new MockAdapter(client);
+
 describe('Visitor', () => {
   let testContext;
   beforeEach(() => {
@@ -52,6 +55,10 @@ describe('Visitor', () => {
         water: 25
       }
     });
+  });
+
+  afterEach(() => {
+    mockClient.reset();
   });
 
   function existingVisitor(visitorId) {
@@ -87,7 +94,7 @@ describe('Visitor', () => {
 
   describe('.loadVisitor()', () => {
     beforeEach(() => {
-      client.get = jest.fn().mockResolvedValue({
+      mockClient.onGet('/v1/visitors/server_visitor_id').reply(200, {
         id: 'server_visitor_id',
         assignments: [
           {
@@ -103,7 +110,7 @@ describe('Visitor', () => {
       uuid.mockReturnValue('generated_uuid');
 
       return Visitor.loadVisitor(undefined).then(function(visitor) {
-        expect(client.get).not.toHaveBeenCalled();
+        expect(mockClient.history.get.length).toBe(0);
 
         expect(visitor.getId()).toEqual('generated_uuid');
         expect(visitor.getAssignmentRegistry()).toEqual({});
@@ -126,7 +133,7 @@ describe('Visitor', () => {
       TestTrackConfig.getAssignments.mockReturnValue([jabbaAssignment, wineAssignment]);
 
       return Visitor.loadVisitor('baked_visitor_id').then(function(visitor) {
-        expect(client.get).not.toHaveBeenCalled();
+        expect(mockClient.history.get.length).toBe(0);
 
         expect(visitor.getId()).toEqual('baked_visitor_id');
         expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
@@ -139,7 +146,7 @@ describe('Visitor', () => {
     });
 
     it('it loads a visitor from the server for an existing visitor if there are no baked assignments', () => {
-      client.get = jest.fn().mockResolvedValue({
+      mockClient.onGet('/v1/visitors/puppeteer_visitor_id').reply(200, {
         id: 'puppeteer_visitor_id',
         assignments: [
           {
@@ -152,9 +159,7 @@ describe('Visitor', () => {
       });
 
       return Visitor.loadVisitor('puppeteer_visitor_id').then(function(visitor) {
-        expect(client.get).toHaveBeenCalledWith('/v1/visitors/puppeteer_visitor_id', {
-          timeout: 5000
-        });
+        expect(mockClient.history.get[0].url).toEqual(expect.stringContaining('/v1/visitors/puppeteer_visitor_id'));
 
         const jabbaAssignment = new Assignment({
           splitName: 'jabba',
@@ -170,12 +175,10 @@ describe('Visitor', () => {
     });
 
     it('it builds a visitor in offline mode if the request fails', () => {
-      client.get = jest.fn().mockRejectedValue(undefined);
+      mockClient.onGet('/v1/visitors/failed_visitor_id').timeout();
 
       return Visitor.loadVisitor('failed_visitor_id').then(function(visitor) {
-        expect(client.get).toHaveBeenCalledWith('/v1/visitors/failed_visitor_id', {
-          timeout: 5000
-        });
+        expect(mockClient.history.get[0].url).toEqual(expect.stringContaining('/v1/visitors/failed_visitor_id'));
 
         expect(visitor.getId()).toEqual('failed_visitor_id');
         expect(visitor.getAssignmentRegistry()).toEqual({});

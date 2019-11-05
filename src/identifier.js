@@ -23,10 +23,10 @@ Identifier.prototype.save = function() {
       value: this.value,
       visitor_id: this.visitorId
     })
-    .then(identifierJson => {
+    .then(({ data }) => {
       return new Visitor({
-        id: identifierJson.visitor.id,
-        assignments: Assignment.fromJsonArray(identifierJson.visitor.assignments)
+        id: data.visitor.id,
+        assignments: Assignment.fromJsonArray(data.visitor.assignments)
       });
     });
 };

@@ -1,5 +1,4 @@
-import $ from 'jquery';
-import TestTrackConfig from './testTrackConfig';
+import client from './api';
 
 var AssignmentNotification = function(options) {
   options = options || {};
@@ -19,47 +18,32 @@ AssignmentNotification.prototype.send = function() {
   // the assignment notification from the analytics write success we can
   // bring this down to 1 HTTP request
 
-  var firstPersist = this._persistAssignment();
+  const firstPersist = this._persistAssignment();
 
-  var secondPersist = $.Deferred();
-  this._visitor.analytics.trackAssignment(
-    this._visitor.getId(),
-    this._assignment,
-    function(success) {
-      var promise = this._persistAssignment(success ? 'success' : 'failure');
-      promise.always(function() {
-        if (promise.state() === 'resolved') {
-          secondPersist.resolve();
-        } else {
-          secondPersist.reject();
-        }
-      });
-    }.bind(this)
-  );
+  const secondPersist = new Promise((resolve, reject) => {
+    this._visitor.analytics.trackAssignment(this._visitor.getId(), this._assignment, success =>
+      this._persistAssignment(success ? 'success' : 'failure')
+        .then(resolve)
+        .catch(reject)
+    );
+  });
 
-  return $.when(firstPersist, secondPersist);
+  return Promise.all([firstPersist, secondPersist]);
 };
 
 AssignmentNotification.prototype._persistAssignment = function(trackResult) {
-  return $.ajax(TestTrackConfig.getUrl() + '/api/v1/assignment_event', {
-    method: 'POST',
-    dataType: 'json',
-    crossDomain: true,
-    data: {
+  return client
+    .post('/v1/assignment_event', {
       visitor_id: this._visitor.getId(),
       split_name: this._assignment.getSplitName(),
       context: this._assignment.getContext(),
       mixpanel_result: trackResult
-    }
-  }).fail(
-    function(jqXHR, textStatus, errorThrown) {
-      var status = jqXHR && jqXHR.status,
-        responseText = jqXHR && jqXHR.responseText;
+    })
+    .catch(({ response }) => {
       this._visitor.logError(
-        'test_track persistAssignment error: ' + [jqXHR, status, responseText, textStatus, errorThrown].join(', ')
+        `test_track persistAssignment error: ${response.status}, ${response.statusText}, ${response.data}`
       );
-    }.bind(this)
-  );
+    });
 };
 
 export default AssignmentNotification;

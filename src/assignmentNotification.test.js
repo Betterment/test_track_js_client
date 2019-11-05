@@ -2,7 +2,7 @@ import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
 import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
 import Visitor from './visitor';
-import $ from 'jquery';
+import client from './api';
 
 jest.mock('./testTrackConfig', () => {
   return {
@@ -19,7 +19,7 @@ describe('AssignmentNotification', () => {
   let testContext;
   beforeEach(() => {
     testContext = {};
-    $.ajax = jest.fn().mockImplementation(() => $.Deferred().resolve());
+    client.post = jest.fn().mockImplementation(() => Promise.resolve());
 
     testContext.visitor = new Visitor({
       id: 'visitorId',
@@ -80,28 +80,18 @@ describe('AssignmentNotification', () => {
 
       testContext.notification.send();
 
-      expect($.ajax).toHaveBeenCalledTimes(2);
-      expect($.ajax).toHaveBeenNthCalledWith(1, 'http://testtrack.dev/api/v1/assignment_event', {
-        method: 'POST',
-        dataType: 'json',
-        crossDomain: true,
-        data: {
-          visitor_id: 'visitorId',
-          split_name: 'jabba',
-          context: 'spec',
-          mixpanel_result: undefined
-        }
+      expect(client.post).toHaveBeenCalledTimes(2);
+      expect(client.post).toHaveBeenNthCalledWith(1, '/v1/assignment_event', {
+        visitor_id: 'visitorId',
+        split_name: 'jabba',
+        context: 'spec',
+        mixpanel_result: undefined
       });
-      expect($.ajax).toHaveBeenNthCalledWith(2, 'http://testtrack.dev/api/v1/assignment_event', {
-        method: 'POST',
-        dataType: 'json',
-        crossDomain: true,
-        data: {
-          visitor_id: 'visitorId',
-          split_name: 'jabba',
-          context: 'spec',
-          mixpanel_result: 'success'
-        }
+      expect(client.post).toHaveBeenNthCalledWith(2, '/v1/assignment_event', {
+        visitor_id: 'visitorId',
+        split_name: 'jabba',
+        context: 'spec',
+        mixpanel_result: 'success'
       });
     });
 
@@ -112,46 +102,39 @@ describe('AssignmentNotification', () => {
 
       testContext.notification.send();
 
-      expect($.ajax).toHaveBeenCalledTimes(2);
-      expect($.ajax).toHaveBeenNthCalledWith(1, 'http://testtrack.dev/api/v1/assignment_event', {
-        method: 'POST',
-        dataType: 'json',
-        crossDomain: true,
-        data: {
-          visitor_id: 'visitorId',
-          split_name: 'jabba',
-          context: 'spec',
-          mixpanel_result: undefined
-        }
+      expect(client.post).toHaveBeenCalledTimes(2);
+      expect(client.post).toHaveBeenNthCalledWith(1, '/v1/assignment_event', {
+        visitor_id: 'visitorId',
+        split_name: 'jabba',
+        context: 'spec',
+        mixpanel_result: undefined
       });
-      expect($.ajax).toHaveBeenNthCalledWith(2, 'http://testtrack.dev/api/v1/assignment_event', {
-        method: 'POST',
-        dataType: 'json',
-        crossDomain: true,
-        data: {
-          visitor_id: 'visitorId',
-          split_name: 'jabba',
-          context: 'spec',
-          mixpanel_result: 'failure'
-        }
+      expect(client.post).toHaveBeenNthCalledWith(2, '/v1/assignment_event', {
+        visitor_id: 'visitorId',
+        split_name: 'jabba',
+        context: 'spec',
+        mixpanel_result: 'failure'
       });
     });
 
     it('logs an error if the request fails', () => {
-      $.ajax = jest.fn().mockImplementation(function() {
-        return $.Deferred().rejectWith(null, [
-          { status: 500, responseText: 'Internal Server Error' },
-          'textStatus',
-          'errorThrown'
-        ]);
+      testContext.analyticsTrackStub.mockImplementation((visitor_id, assignment, callback) => {
+        callback(false);
+      });
+      client.post = jest.fn().mockRejectedValue({
+        response: {
+          status: 500,
+          statusText: 'Internal Server Error',
+          data: null
+        }
       });
 
-      testContext.notification.send();
-
-      expect(testContext.visitor.logError).toHaveBeenCalledTimes(1);
-      expect(testContext.visitor.logError).toHaveBeenCalledWith(
-        'test_track persistAssignment error: [object Object], 500, Internal Server Error, textStatus, errorThrown'
-      );
+      return testContext.notification.send().then(() => {
+        expect(testContext.visitor.logError).toHaveBeenCalledTimes(2);
+        expect(testContext.visitor.logError).toHaveBeenCalledWith(
+          'test_track persistAssignment error: 500, Internal Server Error, null'
+        );
+      });
     });
   });
 });

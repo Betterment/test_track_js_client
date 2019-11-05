@@ -43,8 +43,8 @@ Visitor.loadVisitor = function(visitorId) {
         .get('/v1/visitors/' + visitorId, { timeout: 5000 })
         .then(({ data }) => {
           return new Visitor({
-            id: data['id'],
-            assignments: Assignment.fromJsonArray(data['assignments']),
+            id: data.id,
+            assignments: Assignment.fromJsonArray(data.assignments),
             ttOffline: false
           });
         })

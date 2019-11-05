@@ -24,12 +24,12 @@ yarn add test_track_js_client
 
 You can find the latest version of the test track JS client [here](https://github.com/Betterment/test_track_js_client/releases).
 
-The test track JS client currently has the following dependencies: [`blueimp-md5`](https://github.com/blueimp/JavaScript-MD5), [`node-uuid`](https://www.npmjs.com/package/node-uuid), [`jquery`](https://jquery.com/) and [`jquery.cookie`](https://github.com/carhartl/jquery-cookie).
+The test track JS client currently has the following dependencies: [`blueimp-md5`](https://github.com/blueimp/JavaScript-MD5), [`uuid`](https://www.npmjs.com/package/uuid), [`axios`](https://www.npmjs.com/package/axios) and [`js-cookie`](https://www.npmjs.com/package/uuid).
 
 The client is distributed with two artifacts:
 
 - `testTrack.js` is an ES6 module with no bundled dependencies.
-- `testTrack.bundle.js` is a UMD-style module, bundled with `blueimp-md5`, `node-uuid`, and `jquery.cookie`. You must provide `jquery` separately.
+- `testTrack.bundle.js` is a UMD-style module, bundled with `blueimp-md5`, `uuid`, `axios`, and `js-cookie`.
 
 If you're using a fancy build pipeline ([grunt](https://gruntjs.com/), [gulp](https://gulpjs.com/), [webpack](https://webpack.js.org/)), then you are all set. If not, you have a few other [options](#alternative-setup) for loading the client into your page.
 
@@ -164,26 +164,15 @@ TestTrack.initialize({
 
 ### Simple HTML setup
 
-You can load the bundled and minified version of the client that includes all of the dependencies for you (except jQuery), like this:
+You can load the bundled and minified version of the client that includes all of the dependencies for you, like this:
 
 ```html
-<script type="text/javascript" src="path/to/deps/jquery/dist/jquery.js"></script>
 <script type="text/javascript" src="path/to/deps/test_track_js_client/dist/testTrack.bundle.js"></script>
 ```
 
 ### RequireJS setup
 
-You must provide aliases for the test track JS client's dependencies in your RequireJS config like so:
-
-```js
-require.config({
-  paths: {
-    jquery: 'path/to/deps/jquery/dist/jquery.js'
-  }
-});
-```
-
-Then you can require the test track client anywhere you need it in classic requirejs style:
+You can require the test track client anywhere you need it in classic requirejs style:
 
 ```js
 var TestTrack = require('path/to/deps/test_track_js_client/dist/testTrack');

@@ -29,48 +29,42 @@ const Visitor = function(options) {
 };
 
 Visitor.loadVisitor = function(visitorId) {
-  return new Promise(function(resolve) {
-    if (visitorId) {
-      if (TestTrackConfig.getAssignments()) {
-        resolve(
-          new Visitor({
-            id: visitorId,
-            assignments: TestTrackConfig.getAssignments(),
-            ttOffline: false
-          })
-        );
-      } else {
-        client
-          .get('/v1/visitors/' + visitorId, { timeout: 5000 })
-          .then(attrs => {
-            resolve(
-              new Visitor({
-                id: attrs['id'],
-                assignments: Assignment.fromJsonArray(attrs['assignments']),
-                ttOffline: false
-              })
-            );
-          })
-          .catch(() => {
-            resolve(
-              new Visitor({
-                id: visitorId,
-                assignments: [],
-                ttOffline: true
-              })
-            );
-          });
-      }
-    } else {
-      resolve(
+  if (visitorId) {
+    if (TestTrackConfig.getAssignments()) {
+      return Promise.resolve(
         new Visitor({
-          id: uuid(),
-          assignments: [],
+          id: visitorId,
+          assignments: TestTrackConfig.getAssignments(),
           ttOffline: false
         })
       );
+    } else {
+      return client
+        .get('/v1/visitors/' + visitorId, { timeout: 5000 })
+        .then(attrs => {
+          return new Visitor({
+            id: attrs['id'],
+            assignments: Assignment.fromJsonArray(attrs['assignments']),
+            ttOffline: false
+          });
+        })
+        .catch(() => {
+          return new Visitor({
+            id: visitorId,
+            assignments: [],
+            ttOffline: true
+          });
+        });
     }
-  });
+  } else {
+    return Promise.resolve(
+      new Visitor({
+        id: uuid(),
+        assignments: [],
+        ttOffline: false
+      })
+    );
+  }
 };
 
 Visitor.prototype.getId = function() {

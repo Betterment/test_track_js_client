@@ -138,6 +138,9 @@ describe('AssignmentNotification', () => {
     });
 
     it('logs an error if the request fails', () => {
+      testContext.analyticsTrackStub.mockImplementation((visitor_id, assignment, callback) => {
+        callback(false);
+      });
       client.post = jest.fn().mockRejectedValue({
         response: {
           status: 500,
@@ -146,11 +149,10 @@ describe('AssignmentNotification', () => {
         }
       });
 
-      // eslint-disable-next-line jest/valid-expect-in-promise
-      testContext.notification.send().then(() => {
-        expect(testContext.visitor.logError).toHaveBeenCalledTimes(1);
+      return testContext.notification.send().then(() => {
+        expect(testContext.visitor.logError).toHaveBeenCalledTimes(2);
         expect(testContext.visitor.logError).toHaveBeenCalledWith(
-          'test_track persistAssignment 500, Internal Server Error'
+          'test_track persistAssignment error: 500, Internal Server Error, null'
         );
       });
     });

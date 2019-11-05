@@ -1,5 +1,4 @@
 import client from './api';
-import TestTrackConfig from './testTrackConfig';
 
 var AssignmentOverride = function(options) {
   options = options || {};

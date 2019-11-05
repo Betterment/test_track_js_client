@@ -1,5 +1,4 @@
 import client from './api';
-import TestTrackConfig from './testTrackConfig';
 
 var AssignmentNotification = function(options) {
   options = options || {};
@@ -46,10 +45,7 @@ AssignmentNotification.prototype._persistAssignment = function(trackResult) {
     )
     .catch(({ response }) => {
       this._visitor.logError(
-        `test_track persistAssignment error:
-          ${response.status},
-          ${response.statusText},
-          ${response.data}`
+        `test_track persistAssignment error: ${response.status}, ${response.statusText}, ${response.data}`
       );
     });
 };

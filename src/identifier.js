@@ -1,6 +1,5 @@
 import client from './api';
 import Assignment from './assignment';
-import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';
 
 var Identifier = function(options) {

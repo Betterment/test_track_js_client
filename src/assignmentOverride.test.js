@@ -95,7 +95,7 @@ describe('AssignmentOverride', () => {
       );
     });
 
-    it('logs an error if the request fails', done => {
+    it('logs an error if the request fails', () => {
       client.post = jest.fn().mockRejectedValue({ response: { status: 500, statusText: 'Internal Server Error' } });
 
       return testContext.override.persistAssignment().then(() => {
@@ -103,7 +103,6 @@ describe('AssignmentOverride', () => {
         expect(testContext.visitor.logError).toHaveBeenCalledWith(
           'test_track persistAssignment error: 500, Internal Server Error, undefined'
         );
-        done();
       });
     });
   });

@@ -18,15 +18,11 @@ var Identifier = function(options) {
 
 Identifier.prototype.save = function() {
   return client
-    .post(
-      '/identifier',
-      {
-        identifier_type: this.identifierType,
-        value: this.value,
-        visitor_id: this.visitorId
-      },
-      { crossDomain: true }
-    )
+    .post('/v1/identifier', {
+      identifier_type: this.identifierType,
+      value: this.value,
+      visitor_id: this.visitorId
+    })
     .then(identifierJson => {
       return new Visitor({
         id: identifierJson.visitor.id,

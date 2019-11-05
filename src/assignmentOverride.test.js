@@ -78,7 +78,7 @@ describe('AssignmentOverride', () => {
 
       expect(client.post).toHaveBeenCalledTimes(1);
       expect(client.post).toHaveBeenCalledWith(
-        '/assignment_override',
+        '/v1/assignment_override',
         {
           visitor_id: 'visitorId',
           split_name: 'jabba',
@@ -87,9 +87,9 @@ describe('AssignmentOverride', () => {
           mixpanel_result: 'success'
         },
         {
-          crossDomain: true,
-          headers: {
-            Authorization: 'Basic dGhlX3VzZXJuYW1lOnRoZV9wYXNzd29yZA==' // Base64 of 'the_username:the_password'
+          auth: {
+            username: 'the_username',
+            password: 'the_password'
           }
         }
       );

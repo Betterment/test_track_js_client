@@ -81,28 +81,18 @@ describe('AssignmentNotification', () => {
       testContext.notification.send();
 
       expect(client.post).toHaveBeenCalledTimes(2);
-      expect(client.post).toHaveBeenNthCalledWith(
-        1,
-        '/assignment_event',
-        {
-          visitor_id: 'visitorId',
-          split_name: 'jabba',
-          context: 'spec',
-          mixpanel_result: undefined
-        },
-        { crossDomain: true }
-      );
-      expect(client.post).toHaveBeenNthCalledWith(
-        2,
-        '/assignment_event',
-        {
-          visitor_id: 'visitorId',
-          split_name: 'jabba',
-          context: 'spec',
-          mixpanel_result: 'success'
-        },
-        { crossDomain: true }
-      );
+      expect(client.post).toHaveBeenNthCalledWith(1, '/v1/assignment_event', {
+        visitor_id: 'visitorId',
+        split_name: 'jabba',
+        context: 'spec',
+        mixpanel_result: undefined
+      });
+      expect(client.post).toHaveBeenNthCalledWith(2, '/v1/assignment_event', {
+        visitor_id: 'visitorId',
+        split_name: 'jabba',
+        context: 'spec',
+        mixpanel_result: 'success'
+      });
     });
 
     it('notifies the test track server with an analytics failure', () => {
@@ -113,28 +103,18 @@ describe('AssignmentNotification', () => {
       testContext.notification.send();
 
       expect(client.post).toHaveBeenCalledTimes(2);
-      expect(client.post).toHaveBeenNthCalledWith(
-        1,
-        '/assignment_event',
-        {
-          visitor_id: 'visitorId',
-          split_name: 'jabba',
-          context: 'spec',
-          mixpanel_result: undefined
-        },
-        { crossDomain: true }
-      );
-      expect(client.post).toHaveBeenNthCalledWith(
-        2,
-        '/assignment_event',
-        {
-          visitor_id: 'visitorId',
-          split_name: 'jabba',
-          context: 'spec',
-          mixpanel_result: 'failure'
-        },
-        { crossDomain: true }
-      );
+      expect(client.post).toHaveBeenNthCalledWith(1, '/v1/assignment_event', {
+        visitor_id: 'visitorId',
+        split_name: 'jabba',
+        context: 'spec',
+        mixpanel_result: undefined
+      });
+      expect(client.post).toHaveBeenNthCalledWith(2, '/v1/assignment_event', {
+        visitor_id: 'visitorId',
+        split_name: 'jabba',
+        context: 'spec',
+        mixpanel_result: 'failure'
+      });
     });
 
     it('logs an error if the request fails', () => {

@@ -21,7 +21,7 @@ var AssignmentOverride = function(options) {
 AssignmentOverride.prototype.persistAssignment = function() {
   return client
     .post(
-      '/assignment_override',
+      '/v1/assignment_override',
       {
         visitor_id: this._visitor.getId(),
         split_name: this._assignment.getSplitName(),
@@ -30,9 +30,9 @@ AssignmentOverride.prototype.persistAssignment = function() {
         mixpanel_result: 'success' // we don't want to track overrides
       },
       {
-        crossDomain: true,
-        headers: {
-          Authorization: 'Basic ' + btoa(this._username + ':' + this._password)
+        auth: {
+          username: this._username,
+          password: this._password
         }
       }
     )

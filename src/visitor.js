@@ -44,7 +44,7 @@ Visitor.loadVisitor = function(visitorId) {
       });
     } else {
       client
-        .get('/visitors/' + visitorId, { timeout: 5000 })
+        .get('/v1/visitors/' + visitorId, { timeout: 5000 })
         .then(attrs => {
           resolve({
             id: attrs['id'],

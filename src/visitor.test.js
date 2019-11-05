@@ -158,7 +158,7 @@ describe('Visitor', () => {
 
       Visitor.loadVisitor('puppeteer_visitor_id').then(
         function(visitor) {
-          expect(client.get).toHaveBeenCalledWith('/visitors/puppeteer_visitor_id', {
+          expect(client.get).toHaveBeenCalledWith('/v1/visitors/puppeteer_visitor_id', {
             timeout: 5000
           });
 
@@ -183,7 +183,7 @@ describe('Visitor', () => {
 
       Visitor.loadVisitor('failed_visitor_id').then(
         function(visitor) {
-          expect(client.get).toHaveBeenCalledWith('/visitors/failed_visitor_id', {
+          expect(client.get).toHaveBeenCalledWith('/v1/visitors/failed_visitor_id', {
             timeout: 5000
           });
 

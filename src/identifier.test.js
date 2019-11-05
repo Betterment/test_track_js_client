@@ -75,15 +75,11 @@ describe('Identifier', () => {
     it('hits the test track server with the correct parameters', done => {
       testContext.identifier.save().then(function() {
         expect(client.post).toHaveBeenCalledTimes(1);
-        expect(client.post).toHaveBeenCalledWith(
-          '/identifier',
-          {
-            identifier_type: 'myappdb_user_id',
-            value: 444,
-            visitor_id: 'transient_visitor_id'
-          },
-          { crossDomain: true }
-        );
+        expect(client.post).toHaveBeenCalledWith('/v1/identifier', {
+          identifier_type: 'myappdb_user_id',
+          value: 444,
+          visitor_id: 'transient_visitor_id'
+        });
 
         done();
       });

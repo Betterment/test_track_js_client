@@ -2,7 +2,7 @@ import client from './api';
 import Assignment from './assignment';
 import Visitor from './visitor';
 
-var Identifier = function(options) {
+const Identifier = function(options) {
   this.visitorId = options.visitorId;
   this.identifierType = options.identifierType;
   this.value = options.value;
@@ -23,10 +23,10 @@ Identifier.prototype.save = function() {
       value: this.value,
       visitor_id: this.visitorId
     })
-    .then(identifierJson => {
+    .then(({ data }) => {
       return new Visitor({
-        id: identifierJson.visitor.id,
-        assignments: Assignment.fromJsonArray(identifierJson.visitor.assignments)
+        id: data.visitor.id,
+        assignments: Assignment.fromJsonArray(data.visitor.assignments)
       });
     });
 };

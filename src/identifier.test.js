@@ -1,8 +1,8 @@
 import Assignment from './assignment';
 import Identifier from './identifier';
-import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
-import Visitor from './visitor'; // eslint-disable-line no-unused-vars
+import Visitor from './visitor';
 import client from './api';
+import MockAdapter from 'axios-mock-adapter';
 
 jest.mock('./testTrackConfig', () => {
   return {
@@ -11,6 +11,8 @@ jest.mock('./testTrackConfig', () => {
 });
 
 jest.mock('./visitor');
+
+const mockClient = new MockAdapter(client);
 
 describe('Identifier', () => {
   let identifierOptions;
@@ -21,7 +23,7 @@ describe('Identifier', () => {
   let testContext;
   beforeEach(() => {
     testContext = {};
-    client.post = jest.fn().mockResolvedValue({
+    mockClient.onPost('/v1/identifier').reply(200, {
       visitor: {
         id: 'actual_visitor_id',
         assignments: [
@@ -50,6 +52,10 @@ describe('Identifier', () => {
     testContext.identifier = createIdentifier();
   });
 
+  afterEach(() => {
+    mockClient.reset();
+  });
+
   it('requires a visitorId', () => {
     expect(function() {
       delete identifierOptions.visitorId;
@@ -72,20 +78,21 @@ describe('Identifier', () => {
   });
 
   describe('#save()', () => {
-    it('hits the test track server with the correct parameters', done => {
-      testContext.identifier.save().then(function() {
-        expect(client.post).toHaveBeenCalledTimes(1);
-        expect(client.post).toHaveBeenCalledWith('/v1/identifier', {
-          identifier_type: 'myappdb_user_id',
-          value: 444,
-          visitor_id: 'transient_visitor_id'
-        });
-
-        done();
+    it('hits the test track server with the correct parameters', () => {
+      return testContext.identifier.save().then(function() {
+        expect(mockClient.history.post.length).toBe(1);
+        expect(mockClient.history.post[0].url).toEqual(expect.stringContaining('/v1/identifier'));
+        expect(mockClient.history.post[0].data).toEqual(
+          JSON.stringify({
+            identifier_type: 'myappdb_user_id',
+            value: 444,
+            visitor_id: 'transient_visitor_id'
+          })
+        );
       });
     });
 
-    it('responds with a Visitor instance with the attributes from the server', done => {
+    it('responds with a Visitor instance with the attributes from the server', () => {
       var jabbaAssignment = new Assignment({
           splitName: 'jabba',
           variant: 'puppet',
@@ -94,14 +101,12 @@ describe('Identifier', () => {
         }),
         wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', context: 'napa', isUnsynced: false });
 
-      testContext.identifier.save().then(function() {
+      return testContext.identifier.save().then(function() {
         expect(Visitor).toHaveBeenCalledTimes(1);
         expect(Visitor).toHaveBeenCalledWith({
           id: 'actual_visitor_id',
           assignments: [jabbaAssignment, wineAssignment]
         });
-
-        done();
       });
     });
   });

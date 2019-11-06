@@ -4,10 +4,10 @@ import Identifier from './identifier';
 import TestTrackConfig from './testTrackConfig';
 import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
-import $ from 'jquery';
 import client from './api';
 import uuid from 'uuid/v4';
 import { mockSplitRegistry } from './test-utils';
+import MockAdapter from 'axios-mock-adapter';
 
 jest.mock('uuid/v4');
 
@@ -39,6 +39,8 @@ jest.mock('./identifier', () => {
   });
 });
 
+const mockClient = new MockAdapter(client);
+
 describe('Visitor', () => {
   let testContext;
   beforeEach(() => {
@@ -53,6 +55,10 @@ describe('Visitor', () => {
         water: 25
       }
     });
+  });
+
+  afterEach(() => {
+    mockClient.reset();
   });
 
   function existingVisitor(visitorId) {
@@ -88,7 +94,7 @@ describe('Visitor', () => {
 
   describe('.loadVisitor()', () => {
     beforeEach(() => {
-      client.get = jest.fn().mockResolvedValue({
+      mockClient.onGet('/v1/visitors/server_visitor_id').reply(200, {
         id: 'server_visitor_id',
         assignments: [
           {
@@ -100,29 +106,25 @@ describe('Visitor', () => {
       });
     });
 
-    it('it does not hit the server when not passed a visitorId', done => {
+    it('it does not hit the server when not passed a visitorId', () => {
       uuid.mockReturnValue('generated_uuid');
 
-      Visitor.loadVisitor(undefined).then(
-        function(visitor) {
-          expect(client.get).not.toHaveBeenCalled();
+      return Visitor.loadVisitor(undefined).then(function(visitor) {
+        expect(mockClient.history.get.length).toBe(0);
 
-          expect(visitor.getId()).toEqual('generated_uuid');
-          expect(visitor.getAssignmentRegistry()).toEqual({});
-
-          done();
-        }.bind(this)
-      );
+        expect(visitor.getId()).toEqual('generated_uuid');
+        expect(visitor.getAssignmentRegistry()).toEqual({});
+      });
     });
 
-    it('it does not hit the server when passed a visitorId and there are baked assignments', done => {
-      var jabbaAssignment = new Assignment({
+    it('it does not hit the server when passed a visitorId and there are baked assignments', () => {
+      const jabbaAssignment = new Assignment({
         splitName: 'jabba',
         variant: 'puppet',
         isUnsynced: false
       });
 
-      var wineAssignment = new Assignment({
+      const wineAssignment = new Assignment({
         splitName: 'wine',
         variant: 'rose',
         isUnsynced: false
@@ -130,21 +132,21 @@ describe('Visitor', () => {
 
       TestTrackConfig.getAssignments.mockReturnValue([jabbaAssignment, wineAssignment]);
 
-      Visitor.loadVisitor('baked_visitor_id').then(
-        function(visitor) {
-          expect(client.get).not.toHaveBeenCalled();
+      return Visitor.loadVisitor('baked_visitor_id').then(function(visitor) {
+        expect(mockClient.history.get.length).toBe(0);
 
-          expect(visitor.getId()).toEqual('baked_visitor_id');
-          expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
-          expect(visitor._getUnsyncedAssignments()).toEqual([]);
+        expect(visitor.getId()).toEqual('baked_visitor_id');
+        expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
+        expect(visitor._getUnsyncedAssignments()).toEqual([]);
 
-          done();
-        }.bind(this)
-      );
+        expect(visitor.getId()).toEqual('baked_visitor_id');
+        expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
+        expect(visitor._getUnsyncedAssignments()).toEqual([]);
+      });
     });
 
-    it('it loads a visitor from the server for an existing visitor if there are no baked assignments', done => {
-      client.get = jest.fn().mockResolvedValue({
+    it('it loads a visitor from the server for an existing visitor if there are no baked assignments', () => {
+      mockClient.onGet('/v1/visitors/puppeteer_visitor_id').reply(200, {
         id: 'puppeteer_visitor_id',
         assignments: [
           {
@@ -156,44 +158,32 @@ describe('Visitor', () => {
         ]
       });
 
-      Visitor.loadVisitor('puppeteer_visitor_id').then(
-        function(visitor) {
-          expect(client.get).toHaveBeenCalledWith('/v1/visitors/puppeteer_visitor_id', {
-            timeout: 5000
-          });
+      return Visitor.loadVisitor('puppeteer_visitor_id').then(function(visitor) {
+        expect(mockClient.history.get[0].url).toEqual(expect.stringContaining('/v1/visitors/puppeteer_visitor_id'));
 
-          var jabbaAssignment = new Assignment({
-            splitName: 'jabba',
-            variant: 'puppet',
-            context: 'mos_eisley',
-            isUnsynced: false
-          });
+        const jabbaAssignment = new Assignment({
+          splitName: 'jabba',
+          variant: 'puppet',
+          context: 'mos_eisley',
+          isUnsynced: false
+        });
 
-          expect(visitor.getId()).toBe('puppeteer_visitor_id');
-          expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment });
-          expect(visitor._getUnsyncedAssignments()).toEqual([]);
-
-          done();
-        }.bind(this)
-      );
+        expect(visitor.getId()).toBe('puppeteer_visitor_id');
+        expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment });
+        expect(visitor._getUnsyncedAssignments()).toEqual([]);
+      });
     });
 
-    it('it builds a visitor in offline mode if the request fails', done => {
-      client.get = jest.fn().mockRejectedValue(undefined);
+    it('it builds a visitor in offline mode if the request fails', () => {
+      mockClient.onGet('/v1/visitors/failed_visitor_id').timeout();
 
-      Visitor.loadVisitor('failed_visitor_id').then(
-        function(visitor) {
-          expect(client.get).toHaveBeenCalledWith('/v1/visitors/failed_visitor_id', {
-            timeout: 5000
-          });
+      return Visitor.loadVisitor('failed_visitor_id').then(function(visitor) {
+        expect(mockClient.history.get[0].url).toEqual(expect.stringContaining('/v1/visitors/failed_visitor_id'));
 
-          expect(visitor.getId()).toEqual('failed_visitor_id');
-          expect(visitor.getAssignmentRegistry()).toEqual({});
-          expect(visitor._ttOffline).toEqual(true);
-
-          done();
-        }.bind(this)
-      );
+        expect(visitor.getId()).toEqual('failed_visitor_id');
+        expect(visitor.getAssignmentRegistry()).toEqual({});
+        expect(visitor._ttOffline).toEqual(true);
+      });
     });
   });
 
@@ -210,7 +200,7 @@ describe('Visitor', () => {
           },
           defaultVariant: 'cgi'
         });
-      }.bind(this);
+      };
 
       testContext.vary_wine_split = function(visitor) {
         visitor.vary('wine', {
@@ -221,61 +211,53 @@ describe('Visitor', () => {
           },
           defaultVariant: 'white'
         });
-      }.bind(this);
+      };
     });
 
     it('throws an error if a variants object is not provided', () => {
-      expect(
-        function() {
-          testContext.visitor.vary('wine', {
-            context: 'spec',
-            defaultVariant: 'white'
-          });
-        }.bind(this)
-      ).toThrow('must provide variants object to `vary` for wine');
+      expect(() => {
+        testContext.visitor.vary('wine', {
+          context: 'spec',
+          defaultVariant: 'white'
+        });
+      }).toThrow('must provide variants object to `vary` for wine');
     });
 
     it('throws an error if a context is not provided', () => {
-      expect(
-        function() {
-          testContext.visitor.vary('wine', {
-            defaultVariant: 'white',
-            variants: {
-              white: function() {},
-              red: function() {}
-            }
-          });
-        }.bind(this)
-      ).toThrow('must provide context to `vary` for wine');
+      expect(() => {
+        testContext.visitor.vary('wine', {
+          defaultVariant: 'white',
+          variants: {
+            white: function() {},
+            red: function() {}
+          }
+        });
+      }).toThrow('must provide context to `vary` for wine');
     });
 
     it('throws an error if a defaultVariant is not provided', () => {
-      expect(
-        function() {
-          testContext.visitor.vary('wine', {
-            context: 'spec',
-            variants: {
-              white: function() {},
-              red: function() {}
-            }
-          });
-        }.bind(this)
-      ).toThrow('must provide defaultVariant to `vary` for wine');
+      expect(() => {
+        testContext.visitor.vary('wine', {
+          context: 'spec',
+          variants: {
+            white: function() {},
+            red: function() {}
+          }
+        });
+      }).toThrow('must provide defaultVariant to `vary` for wine');
     });
 
     it('throws an error if the defaultVariant is not represented in the variants object', () => {
-      expect(
-        function() {
-          testContext.visitor.vary('wine', {
-            context: 'spec',
-            variants: {
-              white: function() {},
-              red: function() {}
-            },
-            defaultVariant: 'rose'
-          });
-        }.bind(this)
-      ).toThrow('defaultVariant: rose must be represented in variants object');
+      expect(() => {
+        testContext.visitor.vary('wine', {
+          context: 'spec',
+          variants: {
+            white: function() {},
+            red: function() {}
+          },
+          defaultVariant: 'rose'
+        });
+      }).toThrow('defaultVariant: rose must be represented in variants object');
     });
 
     describe('New Assignment', () => {
@@ -466,7 +448,7 @@ describe('Visitor', () => {
             },
             defaultVariant: false
           });
-        }.bind(this);
+        };
       });
 
       it('chooses the correct handler when given a true boolean', () => {
@@ -491,7 +473,7 @@ describe('Visitor', () => {
 
   describe('#ab()', () => {
     it('leverages vary to configure the split', () => {
-      var handler = jest.fn();
+      const handler = jest.fn();
 
       testContext.visitor.ab('jabba', {
         context: 'spec',
@@ -603,9 +585,7 @@ describe('Visitor', () => {
           assignments: [testContext.jabbaCGIAssignment, testContext.blueButtonAssignment]
         });
 
-        return $.Deferred()
-          .resolve(testContext.actualVisitor)
-          .promise();
+        return Promise.resolve(testContext.actualVisitor);
       });
     });
 
@@ -621,60 +601,48 @@ describe('Visitor', () => {
       expect(mockSave).toHaveBeenCalledTimes(1);
     });
 
-    it('overrides assignments that exist in the other visitor', done => {
-      var jabbaPuppetAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: true }),
-        wineAssignment = new Assignment({ splitName: 'wine', variant: 'white', isUnsynced: true });
+    it('overrides assignments that exist in the other visitor', () => {
+      const jabbaPuppetAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: true });
+      const wineAssignment = new Assignment({ splitName: 'wine', variant: 'white', isUnsynced: true });
 
       testContext.visitor._assignments = [jabbaPuppetAssignment, wineAssignment];
 
-      testContext.visitor.linkIdentifier('myappdb_user_id', 444).then(
-        function() {
-          expect(testContext.visitor.getAssignmentRegistry()).toEqual({
-            jabba: testContext.jabbaCGIAssignment,
-            wine: wineAssignment,
-            blue_button: testContext.blueButtonAssignment
-          });
-          done();
-        }.bind(this)
-      );
+      return testContext.visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
+        expect(testContext.visitor.getAssignmentRegistry()).toEqual({
+          jabba: testContext.jabbaCGIAssignment,
+          wine: wineAssignment,
+          blue_button: testContext.blueButtonAssignment
+        });
+      });
     });
 
-    it('changes visitor id', done => {
-      testContext.visitor.linkIdentifier('myappdb_user_id', 444).then(
-        function() {
-          expect(testContext.visitor.getId()).toBe('actual_visitor_id');
-          done();
-        }.bind(this)
-      );
+    it('changes visitor id', () => {
+      return testContext.visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
+        expect(testContext.visitor.getId()).toBe('actual_visitor_id');
+      });
     });
 
-    it('notifies any unsynced splits', done => {
-      testContext.visitor.linkIdentifier('myappdb_user_id', 444).then(
-        function() {
-          expect(AssignmentNotification).toHaveBeenCalledTimes(1);
-          expect(AssignmentNotification).toHaveBeenCalledWith({
-            visitor: testContext.visitor,
-            assignment: testContext.blueButtonAssignment
-          });
-          expect(mockSend).toHaveBeenCalledTimes(1);
-
-          done();
-        }.bind(this)
-      );
+    it('notifies any unsynced splits', () => {
+      return testContext.visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
+        expect(AssignmentNotification).toHaveBeenCalledTimes(1);
+        expect(AssignmentNotification).toHaveBeenCalledWith({
+          visitor: testContext.visitor,
+          assignment: testContext.blueButtonAssignment
+        });
+        expect(mockSend).toHaveBeenCalledTimes(1);
+      });
     });
   });
 
   describe('#setErrorLogger()', () => {
     it('throws an error if not provided with a function', () => {
-      expect(
-        function() {
-          testContext.visitor.setErrorLogger('teapot');
-        }.bind(this)
-      ).toThrow('must provide function for errorLogger');
+      expect(() => {
+        testContext.visitor.setErrorLogger('teapot');
+      }).toThrow('must provide function for errorLogger');
     });
 
     it('sets the error logger on the visitor', () => {
-      var errorLogger = function() {};
+      const errorLogger = function() {};
 
       testContext.visitor.setErrorLogger(errorLogger);
 
@@ -703,7 +671,7 @@ describe('Visitor', () => {
     });
 
     it('does a console.error if the error logger was never set', () => {
-      var consoleSpy = jest.spyOn(window.console, 'error');
+      const consoleSpy = jest.spyOn(window.console, 'error');
       testContext.visitor.logError('something bad happened');
 
       expect(consoleSpy).toHaveBeenCalledTimes(1);
@@ -714,15 +682,13 @@ describe('Visitor', () => {
 
   describe('#setAnalytics()', () => {
     it('throws an error if not provided with an object', () => {
-      expect(
-        function() {
-          testContext.visitor.setAnalytics('teapot');
-        }.bind(this)
-      ).toThrow('must provide object for setAnalytics');
+      expect(() => {
+        testContext.visitor.setAnalytics('teapot');
+      }).toThrow('must provide object for setAnalytics');
     });
 
     it('sets the analytics object on the visitor', () => {
-      var analytics = {};
+      const analytics = {};
 
       testContext.visitor.setAnalytics(analytics);
 
@@ -732,10 +698,10 @@ describe('Visitor', () => {
 
   describe('#notifyUnsyncedAssignments', () => {
     it('notifies any unsynced assignments', () => {
-      var wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', isUnsynced: false }),
-        blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: true, isUnsynced: true });
+      const wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', isUnsynced: false });
+      const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: true, isUnsynced: true });
 
-      var visitor = new Visitor({
+      const visitor = new Visitor({
         id: 'unsynced_visitor_id',
         assignments: [wineAssignment, blueButtonAssignment]
       });

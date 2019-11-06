@@ -1,6 +1,6 @@
 import client from './api';
 
-var AssignmentNotification = function(options) {
+const AssignmentNotification = function(options) {
   options = options || {};
   this._visitor = options.visitor;
   this._assignment = options.assignment;
@@ -20,11 +20,9 @@ AssignmentNotification.prototype.send = function() {
 
   const firstPersist = this._persistAssignment();
 
-  const secondPersist = new Promise((resolve, reject) => {
+  const secondPersist = new Promise(resolve => {
     this._visitor.analytics.trackAssignment(this._visitor.getId(), this._assignment, success =>
-      this._persistAssignment(success ? 'success' : 'failure')
-        .then(resolve)
-        .catch(reject)
+      this._persistAssignment(success ? 'success' : 'failure').then(resolve)
     );
   });
 

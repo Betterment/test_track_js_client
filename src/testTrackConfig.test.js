@@ -55,15 +55,15 @@ describe('TestTrackConfig', () => {
         expect(TestTrackConfig.getCookieName()).toBe('custom_cookie_name');
       });
     });
-  });
 
-  describe('when there is no configured cookie name', () => {
-    beforeEach(() => {
-      mockCookieName = undefined;
-    });
+    describe('when there is no configured cookie name', () => {
+      beforeEach(() => {
+        mockCookieName = undefined;
+      });
 
-    it('uses the default cookie name', () => {
-      expect(TestTrackConfig.getCookieName()).toBe('tt_visitor_id');
+      it('uses the default cookie name', () => {
+        expect(TestTrackConfig.getCookieName()).toBe('tt_visitor_id');
+      });
     });
   });
 

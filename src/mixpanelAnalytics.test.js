@@ -19,9 +19,7 @@ describe('MixpanelAnalytics', () => {
   });
 
   describe('#trackAssignment()', () => {
-    it('calls window.mixpanel.track()', () => {
-      var callback = function() {};
-
+    it('calls window.mixpanel.track()', done => {
       var assignment = new Assignment({
         splitName: 'jabba',
         variant: 'cgi',
@@ -29,19 +27,23 @@ describe('MixpanelAnalytics', () => {
         isUnsynced: false
       });
 
-      testContext.mixpanelAnalytics.trackAssignment('visitor_id', assignment, callback);
+      testContext.mixpanelAnalytics.trackAssignment('visitor_id', assignment, () => {
+        expect(window.mixpanel.track).toHaveBeenCalled();
+        expect(window.mixpanel.track).toHaveBeenCalledWith(
+          'SplitAssigned',
+          {
+            TTVisitorID: 'visitor_id',
+            SplitName: 'jabba',
+            SplitVariant: 'cgi',
+            SplitContext: 'spec'
+          },
+          expect.any(Function)
+        );
+        done();
+      });
 
-      expect(window.mixpanel.track).toHaveBeenCalled();
-      expect(window.mixpanel.track).toHaveBeenCalledWith(
-        'SplitAssigned',
-        {
-          TTVisitorID: 'visitor_id',
-          SplitName: 'jabba',
-          SplitVariant: 'cgi',
-          SplitContext: 'spec'
-        },
-        callback
-      );
+      // call success
+      window.mixpanel.track.mock.calls[0][2](true);
     });
   });
 

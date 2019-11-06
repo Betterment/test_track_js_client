@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import client from './api';
 import ABConfiguration from './abConfiguration';
 import Assignment from './assignment';
@@ -10,7 +9,7 @@ import uuid from 'uuid/v4';
 import VariantCalculator from './variantCalculator';
 import VaryDSL from './varyDSL';
 
-var Visitor = function(options) {
+const Visitor = function(options) {
   options = options || {};
   this._id = options.id;
   this._assignments = options.assignments;
@@ -30,30 +29,27 @@ var Visitor = function(options) {
 };
 
 Visitor.loadVisitor = function(visitorId) {
-  var deferred = $.Deferred(),
-    resolve = function(attrs) {
-      deferred.resolve(new Visitor(attrs));
-    };
-
   if (visitorId) {
     if (TestTrackConfig.getAssignments()) {
-      resolve({
-        id: visitorId,
-        assignments: TestTrackConfig.getAssignments(),
-        ttOffline: false
-      });
+      return Promise.resolve(
+        new Visitor({
+          id: visitorId,
+          assignments: TestTrackConfig.getAssignments(),
+          ttOffline: false
+        })
+      );
     } else {
-      client
+      return client
         .get('/v1/visitors/' + visitorId, { timeout: 5000 })
-        .then(attrs => {
-          resolve({
-            id: attrs['id'],
-            assignments: Assignment.fromJsonArray(attrs['assignments']),
+        .then(({ data }) => {
+          return new Visitor({
+            id: data.id,
+            assignments: Assignment.fromJsonArray(data.assignments),
             ttOffline: false
           });
         })
-        .catch(function() {
-          resolve({
+        .catch(() => {
+          return new Visitor({
             id: visitorId,
             assignments: [],
             ttOffline: true
@@ -61,14 +57,14 @@ Visitor.loadVisitor = function(visitorId) {
         });
     }
   } else {
-    resolve({
-      id: uuid(),
-      assignments: [],
-      ttOffline: false
-    });
+    return Promise.resolve(
+      new Visitor({
+        id: uuid(),
+        assignments: [],
+        ttOffline: false
+      })
+    );
   }
-
-  return deferred.promise();
 };
 
 Visitor.prototype.getId = function() {
@@ -77,12 +73,12 @@ Visitor.prototype.getId = function() {
 
 Visitor.prototype.getAssignmentRegistry = function() {
   if (!this._assignmentRegistry) {
-    var obj = {};
-    for (var i = 0; i < this._assignments.length; i++) {
-      var assignment = this._assignments[i];
-      obj[assignment.getSplitName()] = assignment;
-    }
-    this._assignmentRegistry = obj;
+    this._assignmentRegistry = this._assignments.reduce((registry, assignment) => {
+      return {
+        ...registry,
+        [assignment.getSplitName()]: assignment
+      };
+    }, {});
   }
 
   return this._assignmentRegistry;
@@ -97,19 +93,18 @@ Visitor.prototype.vary = function(splitName, options) {
     throw new Error('must provide defaultVariant to `vary` for ' + splitName);
   }
 
-  var defaultVariant = options.defaultVariant.toString(),
-    variants = options.variants,
-    context = options.context;
+  const defaultVariant = options.defaultVariant.toString();
+  const { variants, context } = options;
 
   if (!variants.hasOwnProperty(defaultVariant)) {
     throw new Error('defaultVariant: ' + defaultVariant + ' must be represented in variants object');
   }
 
-  var assignment = this._getAssignmentFor(splitName, context),
-    vary = new VaryDSL({
-      assignment: assignment,
-      visitor: this
-    });
+  const assignment = this._getAssignmentFor(splitName, context);
+  const vary = new VaryDSL({
+    assignment,
+    visitor: this
+  });
 
   for (var variant in variants) {
     if (variants.hasOwnProperty(variant)) {
@@ -133,13 +128,13 @@ Visitor.prototype.vary = function(splitName, options) {
 };
 
 Visitor.prototype.ab = function(splitName, options) {
-  var abConfiguration = new ABConfiguration({
-      splitName: splitName,
-      trueVariant: options.trueVariant,
-      visitor: this
-    }),
-    variants = abConfiguration.getVariants(),
-    variantConfiguration = {};
+  const abConfiguration = new ABConfiguration({
+    splitName,
+    trueVariant: options.trueVariant,
+    visitor: this
+  });
+  const variants = abConfiguration.getVariants();
+  const variantConfiguration = {};
 
   variantConfiguration[variants.true] = function() {
     options.callback(true);
@@ -169,22 +164,16 @@ Visitor.prototype.logError = function(errorMessage) {
 };
 
 Visitor.prototype.linkIdentifier = function(identifierType, value) {
-  var deferred = $.Deferred(),
-    identifier = new Identifier({
-      visitorId: this.getId(),
-      identifierType: identifierType,
-      value: value
-    });
+  const identifier = new Identifier({
+    identifierType,
+    value,
+    visitorId: this.getId()
+  });
 
-  identifier.save().then(
-    function(otherVisitor) {
-      this._merge(otherVisitor);
-      this.notifyUnsyncedAssignments();
-      deferred.resolve();
-    }.bind(this)
-  );
-
-  return deferred.promise();
+  return identifier.save().then(otherVisitor => {
+    this._merge(otherVisitor);
+    this.notifyUnsyncedAssignments();
+  });
 };
 
 Visitor.prototype.setAnalytics = function(analytics) {
@@ -196,40 +185,29 @@ Visitor.prototype.setAnalytics = function(analytics) {
 };
 
 Visitor.prototype.notifyUnsyncedAssignments = function() {
-  var unsyncedAssignments = this._getUnsyncedAssignments();
-
-  for (var i = 0; i < unsyncedAssignments.length; i++) {
-    this._notify(unsyncedAssignments[i]);
-  }
+  this._getUnsyncedAssignments().forEach(this._notify.bind(this));
 };
 
 // private
 
 Visitor.prototype._getUnsyncedAssignments = function() {
-  var arr = [],
-    assignmentRegistry = this.getAssignmentRegistry();
-
-  Object.keys(assignmentRegistry).forEach(function(assignmentName) {
-    var assignment = assignmentRegistry[assignmentName];
+  const registry = this.getAssignmentRegistry();
+  return Object.keys(registry).reduce((result, assignmentName) => {
+    const assignment = registry[assignmentName];
     if (assignment.isUnsynced()) {
-      arr.push(assignment);
+      result.push(assignment);
     }
-  });
-
-  return arr;
+    return result;
+  }, []);
 };
 
 Visitor.prototype._merge = function(otherVisitor) {
-  var assignmentRegistry = this.getAssignmentRegistry(),
-    otherAssignmentRegistry = otherVisitor.getAssignmentRegistry();
+  const assignmentRegistry = this.getAssignmentRegistry();
+  const otherAssignmentRegistry = otherVisitor.getAssignmentRegistry();
 
   this._id = otherVisitor.getId();
 
-  for (var splitName in otherAssignmentRegistry) {
-    if (otherAssignmentRegistry.hasOwnProperty(splitName)) {
-      assignmentRegistry[splitName] = otherAssignmentRegistry[splitName];
-    }
-  }
+  Object.assign(assignmentRegistry, otherAssignmentRegistry);
 };
 
 Visitor.prototype._getAssignmentFor = function(splitName, context) {
@@ -237,7 +215,7 @@ Visitor.prototype._getAssignmentFor = function(splitName, context) {
 };
 
 Visitor.prototype._generateAssignmentFor = function(splitName, context) {
-  var variant = new VariantCalculator({
+  const variant = new VariantCalculator({
     visitor: this,
     splitName: splitName
   }).getVariant();
@@ -246,7 +224,7 @@ Visitor.prototype._generateAssignmentFor = function(splitName, context) {
     this._ttOffline = true;
   }
 
-  var assignment = new Assignment({
+  const assignment = new Assignment({
     splitName: splitName,
     variant: variant,
     context: context,
@@ -267,9 +245,9 @@ Visitor.prototype._notify = function(assignment) {
       return;
     }
 
-    var notification = new AssignmentNotification({
+    const notification = new AssignmentNotification({
       visitor: this,
-      assignment: assignment
+      assignment
     });
 
     notification.send();

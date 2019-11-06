@@ -1,6 +1,6 @@
 import client from './api';
 
-var AssignmentOverride = function(options) {
+const AssignmentOverride = function(options) {
   options = options || {};
   this._visitor = options.visitor;
   this._assignment = options.assignment;

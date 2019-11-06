@@ -5,20 +5,15 @@ import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';
 
 const Session = function() {
-  this._loaded;
-  this._visitorLoaded = new Promise(resolve => {
-    this._loaded = resolve;
+  this._visitorLoaded = new Promise((_, reject) => {
+    reject(new Error('initialize() must be called first'));
   });
 };
 
 Session.prototype.initialize = function(options) {
   const visitorId = Cookies.get(TestTrackConfig.getCookieName());
 
-  this._visitorLoaded.then(function(visitor) {
-    visitor.notifyUnsyncedAssignments();
-  });
-
-  Visitor.loadVisitor(visitorId).then(visitor => {
+  this._visitorLoaded = Visitor.loadVisitor(visitorId).then(visitor => {
     if (options && options.analytics) {
       visitor.setAnalytics(options.analytics);
     }
@@ -31,7 +26,9 @@ Session.prototype.initialize = function(options) {
       options.onVisitorLoaded.call(null, visitor);
     }
 
-    this._loaded(visitor);
+    visitor.notifyUnsyncedAssignments();
+
+    return visitor;
   });
 
   this._setCookie();
@@ -40,13 +37,13 @@ Session.prototype.initialize = function(options) {
 };
 
 Session.prototype.vary = function(splitName, options) {
-  this._visitorLoaded.then(function(visitor) {
+  return this._visitorLoaded.then(function(visitor) {
     visitor.vary(splitName, options);
   });
 };
 
 Session.prototype.ab = function(splitName, options) {
-  this._visitorLoaded.then(function(visitor) {
+  return this._visitorLoaded.then(function(visitor) {
     visitor.ab(splitName, options);
   });
 };
@@ -70,7 +67,7 @@ Session.prototype.signUp = function(identifierType, value) {
 };
 
 Session.prototype._setCookie = function() {
-  this._visitorLoaded.then(function(visitor) {
+  return this._visitorLoaded.then(function(visitor) {
     Cookies.set(TestTrackConfig.getCookieName(), visitor.getId(), {
       expires: 365,
       path: '/',

@@ -1,6 +1,6 @@
 const MixpanelAnalytics = function() {};
 
-MixpanelAnalytics.prototype.trackAssignment = function(visitorId, assignment) {
+MixpanelAnalytics.prototype.trackAssignment = function(visitorId, assignment, callback) {
   const assignmentProperties = {
     TTVisitorID: visitorId,
     SplitName: assignment.getSplitName(),
@@ -8,11 +8,9 @@ MixpanelAnalytics.prototype.trackAssignment = function(visitorId, assignment) {
     SplitContext: assignment.getContext()
   };
 
-  return new Promise(resolve => {
-    if (window.mixpanel) {
-      window.mixpanel.track('SplitAssigned', assignmentProperties, resolve);
-    }
-  });
+  if (window.mixpanel) {
+    window.mixpanel.track('SplitAssigned', assignmentProperties, callback);
+  }
 };
 
 MixpanelAnalytics.prototype.identify = function(visitorId) {

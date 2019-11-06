@@ -40,9 +40,9 @@ describe('Session', () => {
   });
 
   describe('initialize', () => {
-    it('an error is rejects when initialize not called before other API methods', () => {
+    it('results in an rejected error when initialize is not called before other API methods', () => {
       const session = new Session().getPublicAPI();
-      return expect(session.logIn()).rejects.toThrow('initialize() must be called first');
+      return expect(session.logIn()).rejects.toThrow();
     });
   });
 

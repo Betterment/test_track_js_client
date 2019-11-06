@@ -12,6 +12,8 @@ jest.mock('./testTrackConfig', () => {
 
 const mockClient = new MockAdapter(client);
 
+const track = success => (_, __, callback) => callback(success);
+
 describe('AssignmentNotification', () => {
   let notificationOptions;
   function createNotification() {
@@ -28,7 +30,7 @@ describe('AssignmentNotification', () => {
       assignments: []
     });
 
-    testContext.analyticsTrackStub = jest.fn().mockResolvedValue(true);
+    testContext.analyticsTrackStub = jest.fn().mockImplementation(track(true));
     testContext.visitor.setAnalytics({
       trackAssignment: testContext.analyticsTrackStub
     });
@@ -72,11 +74,15 @@ describe('AssignmentNotification', () => {
       testContext.notification.send();
 
       expect(testContext.analyticsTrackStub).toHaveBeenCalledTimes(1);
-      expect(testContext.analyticsTrackStub).toHaveBeenCalledWith('visitorId', testContext.assignment);
+      expect(testContext.analyticsTrackStub).toHaveBeenCalledWith(
+        'visitorId',
+        testContext.assignment,
+        expect.any(Function)
+      );
     });
 
     it('notifies the test track server with an analytics success', () => {
-      testContext.analyticsTrackStub.mockResolvedValue(true);
+      testContext.analyticsTrackStub.mockImplementation(track(true));
 
       return testContext.notification.send().then(() => {
         expect(mockClient.history.post.length).toBe(2);
@@ -100,7 +106,7 @@ describe('AssignmentNotification', () => {
     });
 
     it('notifies the test track server with an analytics failure', () => {
-      testContext.analyticsTrackStub.mockResolvedValue(false);
+      testContext.analyticsTrackStub.mockImplementation(track(false));
 
       return testContext.notification.send().then(() => {
         expect(mockClient.history.post.length).toBe(2);
@@ -124,7 +130,7 @@ describe('AssignmentNotification', () => {
     });
 
     it('logs an error if the request fails', () => {
-      testContext.analyticsTrackStub.mockResolvedValue(false);
+      testContext.analyticsTrackStub.mockImplementation(track(false));
       mockClient.onPost().reply(500, null);
 
       return testContext.notification.send().then(() => {

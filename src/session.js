@@ -5,9 +5,7 @@ import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';
 
 const Session = function() {
-  this._visitorLoaded = new Promise((_, reject) => {
-    reject(new Error('initialize() must be called first'));
-  });
+  this._visitorLoaded = Promise.resolve(null);
 };
 
 Session.prototype.initialize = function(options) {

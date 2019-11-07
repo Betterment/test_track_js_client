@@ -22,6 +22,9 @@ describe('ABConfiguration', () => {
       button_color: {
         red: 50,
         blue: 50
+      },
+      new_feature: {
+        true: 100
       }
     });
 
@@ -114,7 +117,17 @@ describe('ABConfiguration', () => {
           visitor: testContext.visitor
         });
 
-        expect(abConfiguration.getVariants().true).toBe(true);
+        expect(abConfiguration.getVariants().true).toBe('true');
+      });
+
+      it('is true if only one variant in the split', () => {
+        var abConfiguration = new ABConfiguration({
+          splitName: 'new_feature',
+          trueVariant: null,
+          visitor: testContext.visitor
+        });
+
+        expect(abConfiguration.getVariants().true).toBe('true');
       });
 
       it('is whatever was passed in during instantiation', () => {
@@ -148,7 +161,7 @@ describe('ABConfiguration', () => {
           visitor: testContext.visitor
         });
 
-        expect(abConfiguration.getVariants().false).toBe(false);
+        expect(abConfiguration.getVariants().false).toBe('false');
       });
 
       it('is always the same if the split has more than two variants', () => {
@@ -159,6 +172,16 @@ describe('ABConfiguration', () => {
         });
 
         expect(abConfiguration.getVariants().false).toBe('fire');
+      });
+
+      it('is false if only one variant in the split', () => {
+        var abConfiguration = new ABConfiguration({
+          splitName: 'new_feature',
+          trueVariant: null,
+          visitor: testContext.visitor
+        });
+
+        expect(abConfiguration.getVariants().false).toBe('false');
       });
     });
   });

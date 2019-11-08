@@ -34,9 +34,6 @@ AssignmentOverride.prototype.persistAssignment = function() {
         auth: {
           username: this._username,
           password: this._password
-        },
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
         }
       }
     )

@@ -1,3 +1,4 @@
+import qs from 'qs';
 import client from './api';
 import Assignment from './assignment';
 import Visitor from './visitor';
@@ -18,11 +19,14 @@ const Identifier = function(options) {
 
 Identifier.prototype.save = function() {
   return client
-    .post('/v1/identifier', {
-      identifier_type: this.identifierType,
-      value: this.value,
-      visitor_id: this.visitorId
-    })
+    .post(
+      '/v1/identifier',
+      qs.stringify({
+        identifier_type: this.identifierType,
+        value: this.value,
+        visitor_id: this.visitorId
+      })
+    )
     .then(({ data }) => {
       return new Visitor({
         id: data.visitor.id,

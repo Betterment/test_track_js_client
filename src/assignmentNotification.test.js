@@ -3,6 +3,7 @@ import AssignmentNotification from './assignmentNotification';
 import Visitor from './visitor';
 import client from './api';
 import MockAdapter from 'axios-mock-adapter';
+import qs from 'qs';
 
 jest.mock('./testTrackConfig', () => {
   return {
@@ -87,7 +88,7 @@ describe('AssignmentNotification', () => {
       return testContext.notification.send().then(() => {
         expect(mockClient.history.post.length).toBe(2);
         expect(mockClient.history.post[0].data).toEqual(
-          JSON.stringify({
+          qs.stringify({
             visitor_id: 'visitorId',
             split_name: 'jabba',
             context: 'spec',
@@ -95,7 +96,7 @@ describe('AssignmentNotification', () => {
           })
         );
         expect(mockClient.history.post[1].data).toEqual(
-          JSON.stringify({
+          qs.stringify({
             visitor_id: 'visitorId',
             split_name: 'jabba',
             context: 'spec',
@@ -111,7 +112,7 @@ describe('AssignmentNotification', () => {
       return testContext.notification.send().then(() => {
         expect(mockClient.history.post.length).toBe(2);
         expect(mockClient.history.post[0].data).toEqual(
-          JSON.stringify({
+          qs.stringify({
             visitor_id: 'visitorId',
             split_name: 'jabba',
             context: 'spec',
@@ -119,7 +120,7 @@ describe('AssignmentNotification', () => {
           })
         );
         expect(mockClient.history.post[1].data).toEqual(
-          JSON.stringify({
+          qs.stringify({
             visitor_id: 'visitorId',
             split_name: 'jabba',
             context: 'spec',

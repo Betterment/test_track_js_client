@@ -30,12 +30,12 @@ ABConfiguration.prototype.getVariants = function() {
 // private
 
 ABConfiguration.prototype._getTrueVariant = function() {
-  return this._trueVariant || true;
+  return this._trueVariant || 'true';
 };
 
 ABConfiguration.prototype._getFalseVariant = function() {
   var nonTrueVariants = this._getNonTrueVariants();
-  return nonTrueVariants ? nonTrueVariants.sort()[0] : false;
+  return Array.isArray(nonTrueVariants) && nonTrueVariants.length !== 0 ? nonTrueVariants.sort()[0] : 'false';
 };
 
 ABConfiguration.prototype._getNonTrueVariants = function() {

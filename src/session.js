@@ -4,8 +4,12 @@ import AssignmentOverride from './assignmentOverride';
 import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';
 
+let loaded = null;
+
 const Session = function() {
-  this._visitorLoaded = Promise.resolve(null);
+  this._visitorLoaded = new Promise(resolve => {
+    loaded = resolve;
+  });
 };
 
 Session.prototype.initialize = function(options) {
@@ -26,6 +30,7 @@ Session.prototype.initialize = function(options) {
 
     visitor.notifyUnsyncedAssignments();
 
+    loaded(visitor);
     return visitor;
   });
 

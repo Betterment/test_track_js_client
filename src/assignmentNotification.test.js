@@ -3,7 +3,6 @@ import AssignmentNotification from './assignmentNotification';
 import Visitor from './visitor';
 import client from './api';
 import MockAdapter from 'axios-mock-adapter';
-import qs from 'qs';
 
 jest.mock('./testTrackConfig', () => {
   return {
@@ -87,21 +86,9 @@ describe('AssignmentNotification', () => {
 
       return testContext.notification.send().then(() => {
         expect(mockClient.history.post.length).toBe(2);
-        expect(mockClient.history.post[0].data).toEqual(
-          qs.stringify({
-            visitor_id: 'visitorId',
-            split_name: 'jabba',
-            context: 'spec',
-            mixpanel_result: undefined
-          })
-        );
+        expect(mockClient.history.post[0].data).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
         expect(mockClient.history.post[1].data).toEqual(
-          qs.stringify({
-            visitor_id: 'visitorId',
-            split_name: 'jabba',
-            context: 'spec',
-            mixpanel_result: 'success'
-          })
+          'visitor_id=visitorId&split_name=jabba&context=spec&mixpanel_result=success'
         );
       });
     });
@@ -111,21 +98,9 @@ describe('AssignmentNotification', () => {
 
       return testContext.notification.send().then(() => {
         expect(mockClient.history.post.length).toBe(2);
-        expect(mockClient.history.post[0].data).toEqual(
-          qs.stringify({
-            visitor_id: 'visitorId',
-            split_name: 'jabba',
-            context: 'spec',
-            mixpanel_result: undefined
-          })
-        );
+        expect(mockClient.history.post[0].data).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
         expect(mockClient.history.post[1].data).toEqual(
-          qs.stringify({
-            visitor_id: 'visitorId',
-            split_name: 'jabba',
-            context: 'spec',
-            mixpanel_result: 'failure'
-          })
+          'visitor_id=visitorId&split_name=jabba&context=spec&mixpanel_result=failure'
         );
       });
     });

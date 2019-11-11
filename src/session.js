@@ -15,7 +15,7 @@ const Session = function() {
 Session.prototype.initialize = function(options) {
   const visitorId = Cookies.get(TestTrackConfig.getCookieName());
 
-  this._visitorLoaded = Visitor.loadVisitor(visitorId).then(visitor => {
+  Visitor.loadVisitor(visitorId).then(visitor => {
     if (options && options.analytics) {
       visitor.setAnalytics(options.analytics);
     }
@@ -31,7 +31,6 @@ Session.prototype.initialize = function(options) {
     visitor.notifyUnsyncedAssignments();
 
     loaded(visitor);
-    return visitor;
   });
 
   this._setCookie();

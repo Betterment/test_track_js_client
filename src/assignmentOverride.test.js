@@ -3,7 +3,6 @@ import AssignmentOverride from './assignmentOverride';
 import Visitor from './visitor';
 import client from './api';
 import MockAdapter from 'axios-mock-adapter';
-import qs from 'qs';
 
 jest.mock('./testTrackConfig', () => {
   return {
@@ -85,13 +84,7 @@ describe('AssignmentOverride', () => {
         expect(mockClient.history.post.length).toBe(1);
         expect(mockClient.history.post[0].url).toEqual(expect.stringContaining('/v1/assignment_override'));
         expect(mockClient.history.post[0].data).toEqual(
-          qs.stringify({
-            visitor_id: 'visitorId',
-            split_name: 'jabba',
-            variant: 'cgi',
-            context: 'spec',
-            mixpanel_result: 'success'
-          })
+          'visitor_id=visitorId&split_name=jabba&variant=cgi&context=spec&mixpanel_result=success'
         );
         expect(mockClient.history.post[0].auth).toEqual({
           username: 'the_username',

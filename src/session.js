@@ -4,14 +4,18 @@ import AssignmentOverride from './assignmentOverride';
 import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';
 
+let loaded = null;
+
 const Session = function() {
-  this._visitorLoaded = Promise.resolve(null);
+  this._visitorLoaded = new Promise(resolve => {
+    loaded = resolve;
+  });
 };
 
 Session.prototype.initialize = function(options) {
   const visitorId = Cookies.get(TestTrackConfig.getCookieName());
 
-  this._visitorLoaded = Visitor.loadVisitor(visitorId).then(visitor => {
+  Visitor.loadVisitor(visitorId).then(visitor => {
     if (options && options.analytics) {
       visitor.setAnalytics(options.analytics);
     }
@@ -26,7 +30,7 @@ Session.prototype.initialize = function(options) {
 
     visitor.notifyUnsyncedAssignments();
 
-    return visitor;
+    loaded(visitor);
   });
 
   this._setCookie();

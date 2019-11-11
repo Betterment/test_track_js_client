@@ -39,13 +39,6 @@ describe('Session', () => {
     Cookies.get.mockReturnValue('existing_visitor_id');
   });
 
-  describe('initialize', () => {
-    it('results in an rejected error when initialize is not called before other API methods', () => {
-      const session = new Session().getPublicAPI();
-      return expect(session.logIn()).rejects.toThrow();
-    });
-  });
-
   describe('Cookie behavior', () => {
     it('reads the visitor id from a cookie and sets it back in the cookie', () => {
       var v = new visitor.default({ id: 'existing_visitor_id', assignments: [] });

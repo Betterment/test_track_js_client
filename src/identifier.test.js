@@ -83,11 +83,7 @@ describe('Identifier', () => {
         expect(mockClient.history.post.length).toBe(1);
         expect(mockClient.history.post[0].url).toEqual(expect.stringContaining('/v1/identifier'));
         expect(mockClient.history.post[0].data).toEqual(
-          JSON.stringify({
-            identifier_type: 'myappdb_user_id',
-            value: 444,
-            visitor_id: 'transient_visitor_id'
-          })
+          'identifier_type=myappdb_user_id&value=444&visitor_id=transient_visitor_id'
         );
       });
     });

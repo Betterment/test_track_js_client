@@ -86,21 +86,9 @@ describe('AssignmentNotification', () => {
 
       return testContext.notification.send().then(() => {
         expect(mockClient.history.post.length).toBe(2);
-        expect(mockClient.history.post[0].data).toEqual(
-          JSON.stringify({
-            visitor_id: 'visitorId',
-            split_name: 'jabba',
-            context: 'spec',
-            mixpanel_result: undefined
-          })
-        );
+        expect(mockClient.history.post[0].data).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
         expect(mockClient.history.post[1].data).toEqual(
-          JSON.stringify({
-            visitor_id: 'visitorId',
-            split_name: 'jabba',
-            context: 'spec',
-            mixpanel_result: 'success'
-          })
+          'visitor_id=visitorId&split_name=jabba&context=spec&mixpanel_result=success'
         );
       });
     });
@@ -110,21 +98,9 @@ describe('AssignmentNotification', () => {
 
       return testContext.notification.send().then(() => {
         expect(mockClient.history.post.length).toBe(2);
-        expect(mockClient.history.post[0].data).toEqual(
-          JSON.stringify({
-            visitor_id: 'visitorId',
-            split_name: 'jabba',
-            context: 'spec',
-            mixpanel_result: undefined
-          })
-        );
+        expect(mockClient.history.post[0].data).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
         expect(mockClient.history.post[1].data).toEqual(
-          JSON.stringify({
-            visitor_id: 'visitorId',
-            split_name: 'jabba',
-            context: 'spec',
-            mixpanel_result: 'failure'
-          })
+          'visitor_id=visitorId&split_name=jabba&context=spec&mixpanel_result=failure'
         );
       });
     });

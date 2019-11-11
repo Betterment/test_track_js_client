@@ -1,3 +1,4 @@
+import qs from 'qs';
 import client from './api';
 
 const AssignmentNotification = function(options) {
@@ -31,12 +32,15 @@ AssignmentNotification.prototype.send = function() {
 
 AssignmentNotification.prototype._persistAssignment = function(trackResult) {
   return client
-    .post('/v1/assignment_event', {
-      visitor_id: this._visitor.getId(),
-      split_name: this._assignment.getSplitName(),
-      context: this._assignment.getContext(),
-      mixpanel_result: trackResult
-    })
+    .post(
+      '/v1/assignment_event',
+      qs.stringify({
+        visitor_id: this._visitor.getId(),
+        split_name: this._assignment.getSplitName(),
+        context: this._assignment.getContext(),
+        mixpanel_result: trackResult
+      })
+    )
     .catch(({ response }) => {
       this._visitor.logError(
         `test_track persistAssignment error: ${response.status}, ${response.statusText}, ${response.data}`

@@ -1,3 +1,4 @@
+import qs from 'qs';
 import client from './api';
 
 const AssignmentOverride = function(options) {
@@ -22,13 +23,13 @@ AssignmentOverride.prototype.persistAssignment = function() {
   return client
     .post(
       '/v1/assignment_override',
-      {
+      qs.stringify({
         visitor_id: this._visitor.getId(),
         split_name: this._assignment.getSplitName(),
         variant: this._assignment.getVariant(),
         context: this._assignment.getContext(),
         mixpanel_result: 'success' // we don't want to track overrides
-      },
+      }),
       {
         auth: {
           username: this._username,

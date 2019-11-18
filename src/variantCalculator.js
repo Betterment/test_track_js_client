@@ -1,76 +1,78 @@
 import md5 from 'blueimp-md5';
 import TestTrackConfig from './testTrackConfig';
 
-var VariantCalculator = function(options) {
-  this.visitor = options.visitor;
-  this.splitName = options.splitName;
+class VariantCalculator {
+  constructor(options) {
+    this.visitor = options.visitor;
+    this.splitName = options.splitName;
 
-  if (!this.visitor) {
-    throw new Error('must provide visitor');
-  } else if (!this.splitName) {
-    throw new Error('must provide splitName');
-  }
-};
-
-VariantCalculator.prototype.getVariant = function() {
-  if (!TestTrackConfig.getSplitRegistry().isLoaded()) {
-    return null;
-  }
-
-  var bucketCeiling = 0,
-    assignmentBucket = this.getAssignmentBucket(),
-    weighting = this.getWeighting(),
-    sortedVariants = this.getSortedVariants();
-
-  for (var i = 0; i < sortedVariants.length; i++) {
-    var variant = sortedVariants[i];
-
-    bucketCeiling += weighting[variant];
-    if (bucketCeiling > assignmentBucket) {
-      return variant;
+    if (!this.visitor) {
+      throw new Error('must provide visitor');
+    } else if (!this.splitName) {
+      throw new Error('must provide splitName');
     }
   }
 
-  throw new Error(
-    'Assignment bucket out of range. ' +
-      assignmentBucket +
-      ' unmatched in ' +
-      this.splitName +
-      ': ' +
-      JSON.stringify(weighting)
-  );
-};
+  getVariant() {
+    if (!TestTrackConfig.getSplitRegistry().isLoaded()) {
+      return null;
+    }
 
-VariantCalculator.prototype.getSplitVisitorHash = function() {
-  return md5(this.splitName + this.visitor.getId());
-};
+    let bucketCeiling = 0;
+    const assignmentBucket = this.getAssignmentBucket();
+    const weighting = this.getWeighting();
+    const sortedVariants = this.getSortedVariants();
 
-VariantCalculator.prototype.getHashFixnum = function() {
-  return parseInt(this.getSplitVisitorHash().substr(0, 8), 16);
-};
+    for (let i = 0; i < sortedVariants.length; i++) {
+      const variant = sortedVariants[i];
 
-VariantCalculator.prototype.getAssignmentBucket = function() {
-  return this.getHashFixnum() % 100;
-};
+      bucketCeiling += weighting[variant];
+      if (bucketCeiling > assignmentBucket) {
+        return variant;
+      }
+    }
 
-VariantCalculator.prototype.getSortedVariants = function() {
-  return this.getVariants().sort();
-};
-
-VariantCalculator.prototype.getVariants = function() {
-  return Object.getOwnPropertyNames(this.getWeighting());
-};
-
-VariantCalculator.prototype.getWeighting = function() {
-  var split = TestTrackConfig.getSplitRegistry().getSplit(this.splitName);
-
-  if (!split) {
-    var message = 'Unknown split: "' + this.splitName + '"';
-    this.visitor.logError(message);
-    throw new Error(message);
+    throw new Error(
+      'Assignment bucket out of range. ' +
+        assignmentBucket +
+        ' unmatched in ' +
+        this.splitName +
+        ': ' +
+        JSON.stringify(weighting)
+    );
   }
 
-  return split.getWeighting();
-};
+  getSplitVisitorHash() {
+    return md5(this.splitName + this.visitor.getId());
+  }
+
+  getHashFixnum() {
+    return parseInt(this.getSplitVisitorHash().substr(0, 8), 16);
+  }
+
+  getAssignmentBucket() {
+    return this.getHashFixnum() % 100;
+  }
+
+  getSortedVariants() {
+    return this.getVariants().sort();
+  }
+
+  getVariants() {
+    return Object.getOwnPropertyNames(this.getWeighting());
+  }
+
+  getWeighting() {
+    const split = TestTrackConfig.getSplitRegistry().getSplit(this.splitName);
+
+    if (!split) {
+      const message = 'Unknown split: "' + this.splitName + '"';
+      this.visitor.logError(message);
+      throw new Error(message);
+    }
+
+    return split.getWeighting();
+  }
+}
 
 export default VariantCalculator;

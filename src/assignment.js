@@ -1,60 +1,58 @@
-var Assignment = function(options) {
-  if (!options.splitName) {
-    throw new Error('must provide splitName');
-  } else if (!options.hasOwnProperty('variant')) {
-    throw new Error('must provide variant');
-  } else if (!options.hasOwnProperty('isUnsynced')) {
-    throw new Error('must provide isUnsynced');
-  }
-
-  this._splitName = options.splitName;
-  this._variant = options.variant;
-  this._context = options.context;
-  this._isUnsynced = options.isUnsynced;
-};
-
-Assignment.fromJsonArray = function(assignmentsJson) {
-  var assignments = [];
-  for (var i = 0; i < assignmentsJson.length; i++) {
-    assignments.push(
-      new Assignment({
-        splitName: assignmentsJson[i].split_name,
-        variant: assignmentsJson[i].variant,
-        context: assignmentsJson[i].context,
-        isUnsynced: assignmentsJson[i].unsynced
-      })
+class Assignment {
+  static fromJsonArray(assignmentsJson) {
+    return assignmentsJson.map(
+      ({ split_name, variant, context, unsynced }) =>
+        new Assignment({
+          context,
+          variant,
+          splitName: split_name,
+          isUnsynced: unsynced
+        })
     );
   }
 
-  return assignments;
-};
+  constructor(options) {
+    if (!options.splitName) {
+      throw new Error('must provide splitName');
+    } else if (!options.hasOwnProperty('variant')) {
+      throw new Error('must provide variant');
+    } else if (!options.hasOwnProperty('isUnsynced')) {
+      throw new Error('must provide isUnsynced');
+    }
 
-Assignment.prototype.getSplitName = function() {
-  return this._splitName;
-};
+    this._splitName = options.splitName;
+    this._variant = options.variant;
+    this._context = options.context;
+    this._isUnsynced = options.isUnsynced;
+  }
 
-Assignment.prototype.getVariant = function() {
-  return this._variant;
-};
+  getSplitName() {
+    return this._splitName;
+  }
 
-Assignment.prototype.setVariant = function(variant) {
-  this._variant = variant;
-};
+  getVariant() {
+    return this._variant;
+  }
 
-Assignment.prototype.getContext = function() {
-  return this._context;
-};
+  setVariant(variant) {
+    this._variant = variant;
+  }
 
-Assignment.prototype.setContext = function(context) {
-  this._context = context;
-};
+  getContext() {
+    return this._context;
+  }
 
-Assignment.prototype.isUnsynced = function() {
-  return this._isUnsynced;
-};
+  setContext(context) {
+    this._context = context;
+  }
 
-Assignment.prototype.setUnsynced = function(unsynced) {
-  this._isUnsynced = unsynced;
-};
+  isUnsynced() {
+    return this._isUnsynced;
+  }
+
+  setUnsynced(unsynced) {
+    this._isUnsynced = unsynced;
+  }
+}
 
 export default Assignment;

@@ -3,19 +3,20 @@ import ConfigParser from './configParser';
 import Split from './split';
 import SplitRegistry from './splitRegistry';
 
-var DEFAULT_VISITOR_COOKIE_NAME = 'tt_visitor_id',
-  config,
-  assignments,
-  registry,
-  getConfig = function() {
-    if (!config) {
-      var parser = new ConfigParser();
-      config = parser.getConfig();
-    }
-    return config;
-  };
+const DEFAULT_VISITOR_COOKIE_NAME = 'tt_visitor_id';
+let config;
+let assignments;
+let registry;
 
-var TestTrackConfig = {
+const getConfig = function() {
+  if (!config) {
+    const parser = new ConfigParser();
+    config = parser.getConfig();
+  }
+  return config;
+};
+
+const TestTrackConfig = {
   _clear: function() {
     config = null;
   },
@@ -37,15 +38,15 @@ var TestTrackConfig = {
   },
 
   getSplitRegistry: function() {
-    var rawRegistry = getConfig().splits;
+    const rawRegistry = getConfig().splits;
 
     if (!rawRegistry) {
       return new SplitRegistry(null);
     }
 
     if (!registry) {
-      var splits = Object.keys(rawRegistry).map(function(splitName) {
-        var rawSplit = rawRegistry[splitName];
+      const splits = Object.keys(rawRegistry).map(function(splitName) {
+        const rawSplit = rawRegistry[splitName];
         return new Split(splitName, rawSplit['feature_gate'], rawSplit['weights']);
       });
 
@@ -56,7 +57,7 @@ var TestTrackConfig = {
   },
 
   getAssignments: function() {
-    var rawAssignments = getConfig().assignments;
+    const rawAssignments = getConfig().assignments;
 
     if (!rawAssignments) {
       return null;
@@ -64,10 +65,10 @@ var TestTrackConfig = {
 
     if (!assignments) {
       assignments = [];
-      for (var splitName in rawAssignments) {
+      for (let splitName in rawAssignments) {
         assignments.push(
           new Assignment({
-            splitName: splitName,
+            splitName,
             variant: rawAssignments[splitName],
             isUnsynced: false
           })

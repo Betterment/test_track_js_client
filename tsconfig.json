@@ -1,5 +1,5 @@
 {
-  "include": ["src", "types"],
+  "include": ["src/*.ts", "types"],
   "compilerOptions": {
     "allowJs": true,
     "target": "es5",
@@ -7,9 +7,12 @@
     "lib": ["dom", "esnext"],
     "importHelpers": true,
     "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "dist",
     "sourceMap": true,
-    "rootDir": "./",
+    "rootDir": "src",
     "strict": true,
+    "pretty": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,

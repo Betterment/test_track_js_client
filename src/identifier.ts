@@ -1,10 +1,29 @@
 import qs from 'qs';
 import client from './api';
-import Assignment from './assignment';
+import Assignment, { AssignmentData } from './assignment';
 import Visitor from './visitor';
 
+export type IdentifierOptions = {
+  visitorId: string;
+  identifierType: string;
+  value: number;
+};
+
+type IdentifierResponse = {
+  data: {
+    visitor: {
+      id: string;
+      assignments: AssignmentData[];
+    };
+  };
+};
+
 class Identifier {
-  constructor(options) {
+  visitorId: string;
+  identifierType: string;
+  value: number;
+
+  constructor(options: IdentifierOptions) {
     this.visitorId = options.visitorId;
     this.identifierType = options.identifierType;
     this.value = options.value;
@@ -28,7 +47,7 @@ class Identifier {
           visitor_id: this.visitorId
         })
       )
-      .then(({ data }) => {
+      .then(({ data }: IdentifierResponse) => {
         return new Visitor({
           id: data.visitor.id,
           assignments: Assignment.fromJsonArray(data.visitor.assignments)

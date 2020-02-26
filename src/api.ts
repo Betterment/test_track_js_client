@@ -6,6 +6,7 @@ const defaultAxios = DefaultAxios.create({
   headers: {
     'Content-Type': 'application/x-www-form-urlencoded'
   },
+  // @ts-ignore Remove once https://github.com/axios/axios/issues/2369 is resolved
   crossDomain: true
 });
 

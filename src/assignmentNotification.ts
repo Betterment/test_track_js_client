@@ -1,10 +1,20 @@
 import qs from 'qs';
 import client from './api';
+import Visitor from './visitor';
+import Assignment from './assignment';
+
+export type AssignmentNotificationOptions = {
+  visitor: Visitor;
+  assignment: Assignment;
+};
 
 class AssignmentNotification {
-  constructor(options = {}) {
-    this._visitor = options.visitor;
-    this._assignment = options.assignment;
+  private _visitor: Visitor;
+  private _assignment: Assignment;
+
+  constructor({ visitor, assignment }: AssignmentNotificationOptions) {
+    this._visitor = visitor;
+    this._assignment = assignment;
 
     if (!this._visitor) {
       throw new Error('must provide visitor');
@@ -22,7 +32,7 @@ class AssignmentNotification {
     const firstPersist = this._persistAssignment();
 
     const secondPersist = new Promise(resolve => {
-      this._visitor.analytics.trackAssignment(this._visitor.getId(), this._assignment, success =>
+      this._visitor.analytics.trackAssignment(this._visitor.getId(), this._assignment, (success: boolean) =>
         this._persistAssignment(success ? 'success' : 'failure').then(resolve)
       );
     });
@@ -30,7 +40,7 @@ class AssignmentNotification {
     return Promise.all([firstPersist, secondPersist]);
   }
 
-  _persistAssignment(trackResult) {
+  _persistAssignment(trackResult?: 'success' | 'failure') {
     return client
       .post(
         '/v1/assignment_event',

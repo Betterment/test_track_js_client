@@ -1,10 +1,22 @@
+import Split, { Weighting } from './split';
+
+export type V1Hash = {
+  [splitName: string]: Weighting;
+};
+
 class SplitRegistry {
-  constructor(splitArray) {
-    this._splitArray = splitArray;
+  private _splitArray: Split[];
+  private _loaded: boolean;
+  private _splits?: {
+    [splitName: string]: Split;
+  };
+
+  constructor(splitArray: Split[] | null) {
+    this._splitArray = splitArray || [];
     this._loaded = splitArray !== null;
   }
 
-  getSplit(splitName) {
+  getSplit(splitName: string) {
     return this.getSplits()[splitName];
   }
 
@@ -13,9 +25,9 @@ class SplitRegistry {
   }
 
   asV1Hash() {
-    const v1Hash = {};
+    const v1Hash: V1Hash = {};
     for (let splitName in this.getSplits()) {
-      const split = this._splits[splitName];
+      const split = this.getSplits()[splitName];
       v1Hash[splitName] = split.getWeighting();
     }
 

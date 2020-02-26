@@ -1,5 +1,13 @@
+export type Weighting = {
+  [variant: string]: number;
+};
+
 class Split {
-  constructor(name, isFeatureGate, weighting) {
+  private _name: string;
+  private _isFeatureGate: boolean;
+  private _weighting: Weighting;
+
+  constructor(name: string, isFeatureGate: boolean, weighting: Weighting) {
     this._name = name;
     this._isFeatureGate = isFeatureGate;
     this._weighting = weighting;
@@ -21,7 +29,7 @@ class Split {
     return this._weighting;
   }
 
-  hasVariant(variant) {
+  hasVariant(variant: string) {
     return variant in this._weighting;
   }
 }

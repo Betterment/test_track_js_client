@@ -1,7 +1,28 @@
 import TestTrackConfig from './testTrackConfig';
+import Assignment from './assignment';
+import Visitor from './visitor';
+import SplitRegistry from './splitRegistry';
+
+export type VaryDSLOptions = {
+  assignment: Assignment;
+  visitor: Visitor;
+};
+
+type Handler = () => void;
+
+type WhenArg = string | Handler;
 
 class VaryDSL {
-  constructor(options) {
+  private _assignment: Assignment;
+  private _visitor: Visitor;
+  private _splitRegistry: SplitRegistry;
+  private _variantHandlers: {
+    [variant: string]: () => void;
+  };
+  private _defaultVariant?: string;
+  private _defaulted?: boolean;
+
+  constructor(options: VaryDSLOptions) {
     if (!options.assignment) {
       throw new Error('must provide assignment');
     } else if (!options.visitor) {
@@ -15,17 +36,21 @@ class VaryDSL {
     this._variantHandlers = {};
   }
 
-  when(...args) {
-    const handler = typeof args[args.length - 1] === 'function' ? args.pop() : null;
+  when(...args: WhenArg[]) {
+    const handler = typeof args[args.length - 1] === 'function' ? (args.pop() as Handler) : null;
 
     if (args.length === 0) {
       throw new Error('must provide at least one variant');
     }
 
-    args.forEach(variant => this._assignHandlerToVariant(variant, handler));
+    args.forEach(variant => {
+      if (typeof variant === 'string') {
+        this._assignHandlerToVariant(variant, handler);
+      }
+    });
   }
 
-  default(variant, handler) {
+  default(variant: string, handler: () => void) {
     if (this._defaultVariant) {
       throw new Error('must provide exactly one `default`');
     }
@@ -36,11 +61,18 @@ class VaryDSL {
   run() {
     this._validate();
 
-    let chosenHandler;
-    if (this._variantHandlers[this._assignment.getVariant()]) {
-      chosenHandler = this._variantHandlers[this._assignment.getVariant()];
+    const defaultVariant = this.getDefaultVariant();
+
+    if (typeof defaultVariant === 'undefined') {
+      throw new Error('must provide exactly one `default`');
+    }
+
+    let chosenHandler = this._variantHandlers[defaultVariant];
+    const assignedVariant = this._assignment.getVariant();
+
+    if (assignedVariant) {
+      chosenHandler = this._variantHandlers[assignedVariant];
     } else {
-      chosenHandler = this._variantHandlers[this.getDefaultVariant()];
       this._defaulted = true;
     }
 
@@ -55,7 +87,7 @@ class VaryDSL {
     return this._defaultVariant;
   }
 
-  _assignHandlerToVariant(variant, handler) {
+  _assignHandlerToVariant(variant: string, handler: Handler | null) {
     if (typeof handler !== 'function') {
       throw new Error('must provide handler for ' + variant);
     }

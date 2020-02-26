@@ -1,5 +1,19 @@
+export type AssignmentData = {
+  split_name: string;
+  variant: string;
+  context?: string;
+  unsynced: boolean;
+};
+
+export type AssignmentOptions = {
+  splitName: string;
+  variant: string | null;
+  context?: string;
+  isUnsynced: boolean;
+};
+
 class Assignment {
-  static fromJsonArray(assignmentsJson) {
+  static fromJsonArray(assignmentsJson: AssignmentData[]) {
     return assignmentsJson.map(
       ({ split_name, variant, context, unsynced }) =>
         new Assignment({
@@ -11,7 +25,12 @@ class Assignment {
     );
   }
 
-  constructor(options) {
+  private _splitName: string;
+  private _variant: string | null;
+  private _context?: string;
+  private _isUnsynced: boolean;
+
+  constructor(options: AssignmentOptions) {
     if (!options.splitName) {
       throw new Error('must provide splitName');
     } else if (!options.hasOwnProperty('variant')) {
@@ -34,7 +53,7 @@ class Assignment {
     return this._variant;
   }
 
-  setVariant(variant) {
+  setVariant(variant: string) {
     this._variant = variant;
   }
 
@@ -42,7 +61,7 @@ class Assignment {
     return this._context;
   }
 
-  setContext(context) {
+  setContext(context: string) {
     this._context = context;
   }
 
@@ -50,7 +69,7 @@ class Assignment {
     return this._isUnsynced;
   }
 
-  setUnsynced(unsynced) {
+  setUnsynced(unsynced: boolean) {
     this._isUnsynced = unsynced;
   }
 }

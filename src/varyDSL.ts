@@ -70,7 +70,7 @@ class VaryDSL {
     let chosenHandler = this._variantHandlers[defaultVariant];
     const assignedVariant = this._assignment.getVariant();
 
-    if (assignedVariant) {
+    if (assignedVariant && this._variantHandlers[assignedVariant]) {
       chosenHandler = this._variantHandlers[assignedVariant];
     } else {
       this._defaulted = true;

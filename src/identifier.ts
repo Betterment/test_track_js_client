@@ -3,10 +3,10 @@ import client from './api';
 import Assignment, { AssignmentData } from './assignment';
 import Visitor from './visitor';
 
-export type IdentifierOptions = {
+type IdentifierOptions = {
   visitorId: string;
   identifierType: string;
-  value: number;
+  value: string | number;
 };
 
 type IdentifierResponse = {
@@ -21,7 +21,7 @@ type IdentifierResponse = {
 class Identifier {
   visitorId: string;
   identifierType: string;
-  value: number;
+  value: string | number;
 
   constructor(options: IdentifierOptions) {
     this.visitorId = options.visitorId;

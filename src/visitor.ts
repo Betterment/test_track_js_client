@@ -8,7 +8,23 @@ import TestTrackConfig from './testTrackConfig';
 import uuid from 'uuid/v4';
 import VariantCalculator from './variantCalculator';
 import VaryDSL from './varyDSL';
-import { VaryOptions, AbOptions } from './session';
+
+type Variants = {
+  [key: string]: () => void;
+};
+
+export type VaryOptions = {
+  variants: Variants;
+  context: string;
+  defaultVariant: boolean | string;
+};
+
+export type AbOptions = {
+  callback: (assignment: boolean | string) => void;
+  context: string;
+  trueVariant: boolean | string;
+  visitor: Visitor;
+};
 
 export type VisitorOptions = {
   id: string;

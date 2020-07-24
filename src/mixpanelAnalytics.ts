@@ -17,7 +17,13 @@ declare global {
   }
 }
 
-class MixpanelAnalytics {
+export interface AnalyticsProvider {
+  trackAssignment(visitorId: string, assignment: Assignment, callback: (value: boolean) => void): void;
+  identify(visitorId: string): void;
+  alias(visitorId: string): void;
+}
+
+class MixpanelAnalytics implements AnalyticsProvider {
   trackAssignment(visitorId: string, assignment: Assignment, callback: (value: boolean) => void) {
     const assignmentProperties = {
       TTVisitorID: visitorId,

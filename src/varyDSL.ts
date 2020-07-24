@@ -50,7 +50,7 @@ class VaryDSL {
     });
   }
 
-  default(variant: string, handler: () => void) {
+  default(variant: string, handler: Handler) {
     if (this._defaultVariant) {
       throw new Error('must provide exactly one `default`');
     }

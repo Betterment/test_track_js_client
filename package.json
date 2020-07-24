@@ -8,6 +8,7 @@
   "typings": "dist/testTrack.d.ts",
   "scripts": {
     "build": "rollup -c",
+    "compile": "tsc --outDir /tmp",
     "lint": "eslint \"src/**/*.js\"",
     "prettier:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "prettier:write": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",

@@ -2,32 +2,15 @@ import Cookies from 'js-cookie';
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
 import TestTrackConfig from './testTrackConfig';
-import Visitor from './visitor';
-import MixPanelAnalytics from './mixpanelAnalytics';
+import Visitor, { VaryOptions, AbOptions } from './visitor';
+import { AnalyticsProvider } from './mixpanelAnalytics';
 
 let loaded: null | ((value?: Visitor | PromiseLike<Visitor>) => void) = null;
 
-export type Variants = {
-  [key: string]: () => void;
-};
-
-export type VaryOptions = {
-  variants: Variants;
-  context: string;
-  defaultVariant: boolean | string;
-};
-
-export type AbOptions = {
-  callback: (assignment: boolean | string) => void;
-  context: string;
-  trueVariant: boolean | string;
-  visitor: Visitor;
-};
-
 type SessionOptions = {
-  analytics?: MixPanelAnalytics;
+  analytics?: AnalyticsProvider;
   errorLogger?: (errorMessage: string) => void;
-  onVisitorLoaded?: Function;
+  onVisitorLoaded?: (visitor: Visitor) => void;
 };
 
 export type Registry = {

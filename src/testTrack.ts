@@ -1,5 +1,5 @@
 import Session from './session';
-export { AnalyticsProvider } from './mixpanelAnalytics';
+export { AnalyticsProvider } from './analyticsProvider';
 
 const TestTrack = new Session().getPublicAPI();
 const notifyListener = function() {

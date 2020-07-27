@@ -1,37 +1,16 @@
+import _omit from 'lodash/omit';
 import babel from 'rollup-plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
 import typescript from '@rollup/plugin-typescript';
+import tsConfig from './tsconfig.json';
 
 const customTSConfig = {
+  ..._omit(tsConfig.compilerOptions, ['declaration', 'emitDeclarationOnly', 'declarationDir']),
   tsconfig: false,
   include: ['src/*.ts', 'types'],
-  noEmit: true,
-  allowJs: true,
-  target: 'es5',
-  module: 'esnext',
-  lib: ['dom', 'esnext'],
-  importHelpers: true,
-  rootDir: 'src',
-  strict: true,
-  pretty: true,
-  noImplicitAny: true,
-  strictNullChecks: true,
-  strictFunctionTypes: true,
-  strictPropertyInitialization: true,
-  noImplicitThis: true,
-  alwaysStrict: true,
-  noUnusedLocals: true,
-  noUnusedParameters: true,
-  noImplicitReturns: true,
-  noFallthroughCasesInSwitch: true,
-  moduleResolution: 'node',
-  baseUrl: './',
-  paths: {
-    '*': ['src/*', 'node_modules/*']
-  },
-  esModuleInterop: true
+  noEmit: true
 };
 
 export default [

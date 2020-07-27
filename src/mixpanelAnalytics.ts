@@ -1,4 +1,5 @@
 import Assignment from './assignment';
+import { AnalyticsProvider } from 'analyticsProvider';
 
 type EventProperties = {
   TTVisitorID: string;
@@ -15,12 +16,6 @@ declare global {
       alias(id: string): void;
     };
   }
-}
-
-export interface AnalyticsProvider {
-  trackAssignment(visitorId: string, assignment: Assignment, callback: (value: boolean) => void): void;
-  identify(visitorId: string): void;
-  alias(visitorId: string): void;
 }
 
 class MixpanelAnalytics implements AnalyticsProvider {

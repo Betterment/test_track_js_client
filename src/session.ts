@@ -3,7 +3,7 @@ import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
 import TestTrackConfig from './testTrackConfig';
 import Visitor, { VaryOptions, AbOptions } from './visitor';
-import { AnalyticsProvider } from './mixpanelAnalytics';
+import { AnalyticsProvider } from './analyticsProvider';
 
 let loaded: null | ((value?: Visitor | PromiseLike<Visitor>) => void) = null;
 

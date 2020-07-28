@@ -16,7 +16,7 @@ const customTSConfig = {
 export default [
   {
     input: 'src/testTrack.ts',
-    external: ['js-cookie', 'uuid/v4', 'base-64', 'blueimp-md5', 'axios'],
+    external: ['js-cookie', 'uuid/v4', 'abab', 'blueimp-md5', 'axios'],
     output: {
       dir: 'dist',
       format: 'esm'

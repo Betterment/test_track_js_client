@@ -18,6 +18,16 @@ describe('ConfigParser', () => {
       });
     });
 
+    describe('window.TT is not decodable', () => {
+      beforeEach(() => {
+        window.TT = 'someNonesense';
+      });
+
+      it('raises an error', () => {
+        expect(testContext.configParser.getConfig).toThrow('Unable to parse configuration');
+      });
+    });
+
     describe('atob is not available', () => {
       beforeEach(() => {
         testContext.originalAtob = window.atob;

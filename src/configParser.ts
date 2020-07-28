@@ -1,4 +1,4 @@
-import base64 from 'base-64';
+import { atob } from 'abab';
 
 declare global {
   interface Window {
@@ -26,11 +26,9 @@ export type Config = {
 
 class ConfigParser {
   getConfig(): Config {
-    if (typeof window.atob === 'function') {
-      return JSON.parse(window.atob(window.TT));
-    } else {
-      return JSON.parse(base64.decode(window.TT));
-    }
+    const decodedConfig = atob(window.TT);
+    if (decodedConfig) return JSON.parse(decodedConfig);
+    throw new Error('Unable to parse configuration');
   }
 }
 

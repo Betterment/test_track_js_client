@@ -1,8 +1,22 @@
 import qs from 'qs';
 import client from './api';
+import Assignment from './assignment';
+import Visitor from './visitor';
+
+export type AssignmentOverrideOptions = {
+  visitor: Visitor;
+  assignment: Assignment;
+  username: string;
+  password: string;
+};
 
 class AssignmentOverride {
-  constructor(options = {}) {
+  private _visitor: Visitor;
+  private _assignment: Assignment;
+  private _username: string;
+  private _password: string;
+
+  constructor(options: AssignmentOverrideOptions) {
     this._visitor = options.visitor;
     this._assignment = options.assignment;
     this._username = options.username;

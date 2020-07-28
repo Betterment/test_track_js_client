@@ -2,16 +2,29 @@ import Cookies from 'js-cookie';
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
 import TestTrackConfig from './testTrackConfig';
-import Visitor from './visitor';
+import Visitor, { VaryOptions, AbOptions } from './visitor';
+import { AnalyticsProvider } from './analyticsProvider';
 
-let loaded = null;
+let loaded: null | ((value?: Visitor | PromiseLike<Visitor>) => void) = null;
+
+type SessionOptions = {
+  analytics?: AnalyticsProvider;
+  errorLogger?: (errorMessage: string) => void;
+  onVisitorLoaded?: (visitor: Visitor) => void;
+};
+
+export type Registry = {
+  [key: string]: boolean | string | null;
+};
 
 class Session {
+  private _visitorLoaded: PromiseLike<Visitor>;
+
   constructor() {
     this._visitorLoaded = new Promise(resolve => (loaded = resolve));
   }
 
-  initialize(options) {
+  initialize(options: SessionOptions) {
     const visitorId = Cookies.get(TestTrackConfig.getCookieName());
 
     Visitor.loadVisitor(visitorId).then(visitor => {
@@ -29,7 +42,9 @@ class Session {
 
       visitor.notifyUnsyncedAssignments();
 
-      loaded(visitor);
+      if (loaded) {
+        loaded(visitor);
+      }
     });
 
     this._setCookie();
@@ -37,19 +52,19 @@ class Session {
     return this._visitorLoaded;
   }
 
-  vary(splitName, options) {
+  vary(splitName: string, options: VaryOptions) {
     return this._visitorLoaded.then(function(visitor) {
       visitor.vary(splitName, options);
     });
   }
 
-  ab(splitName, options) {
+  ab(splitName: string, options: AbOptions) {
     return this._visitorLoaded.then(function(visitor) {
       visitor.ab(splitName, options);
     });
   }
 
-  logIn(identifierType, value) {
+  logIn(identifierType: string, value: number) {
     return this._visitorLoaded.then(visitor =>
       visitor.linkIdentifier(identifierType, value).then(() => {
         this._setCookie();
@@ -58,7 +73,7 @@ class Session {
     );
   }
 
-  signUp(identifierType, value) {
+  signUp(identifierType: string, value: number) {
     return this._visitorLoaded.then(visitor =>
       visitor.linkIdentifier(identifierType, value).then(() => {
         this._setCookie();
@@ -87,7 +102,7 @@ class Session {
       _crx: {
         loadInfo: () =>
           this._visitorLoaded.then(function(visitor) {
-            let assignmentRegistry = {};
+            const assignmentRegistry: Registry = {};
             for (var splitName in visitor.getAssignmentRegistry()) {
               assignmentRegistry[splitName] = visitor.getAssignmentRegistry()[splitName].getVariant();
             }
@@ -99,7 +114,7 @@ class Session {
             };
           }),
 
-        persistAssignment: (splitName, variant, username, password) =>
+        persistAssignment: (splitName: string, variant: string, username: string, password: string) =>
           this._visitorLoaded.then(function(visitor) {
             return new AssignmentOverride({
               visitor,

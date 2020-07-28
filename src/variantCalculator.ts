@@ -1,8 +1,17 @@
 import md5 from 'blueimp-md5';
 import TestTrackConfig from './testTrackConfig';
+import Visitor from './visitor';
+
+export type VariantCalculatorOptions = {
+  splitName: string;
+  visitor: Visitor;
+};
 
 class VariantCalculator {
-  constructor(options) {
+  visitor: Visitor;
+  splitName: string;
+
+  constructor(options: VariantCalculatorOptions) {
     this.visitor = options.visitor;
     this.splitName = options.splitName;
 

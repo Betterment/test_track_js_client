@@ -1,7 +1,20 @@
 import TestTrackConfig from './testTrackConfig';
+import Visitor from './visitor';
+import SplitRegistry from './splitRegistry';
+
+export type ABConfigurationOptions = {
+  splitName: string;
+  trueVariant: string | boolean;
+  visitor: Visitor;
+};
 
 class ABConfiguration {
-  constructor(options) {
+  private _splitName: string;
+  private _trueVariant: string | boolean;
+  private _visitor: Visitor;
+  private _splitRegistry: SplitRegistry;
+
+  constructor(options: ABConfigurationOptions) {
     if (!options.splitName) {
       throw new Error('must provide splitName');
     } else if (!options.hasOwnProperty('trueVariant')) {
@@ -42,7 +55,7 @@ class ABConfiguration {
 
     if (splitVariants) {
       const trueVariant = this._getTrueVariant();
-      const trueVariantIndex = splitVariants.indexOf(trueVariant);
+      const trueVariantIndex = splitVariants.indexOf(trueVariant.toString());
 
       if (trueVariantIndex !== -1) {
         splitVariants.splice(trueVariantIndex, 1); // remove the true variant

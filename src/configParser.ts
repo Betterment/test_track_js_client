@@ -24,20 +24,11 @@ export type Config = {
   url: string;
 };
 
-const fallbackConfig: Config = {
-  assignments: {},
-  cookieDomain: '',
-  cookieName: '',
-  experienceSamplingWeight: 0,
-  splits: {},
-  url: ''
-};
-
 class ConfigParser {
   getConfig(): Config {
     const decodedConfig = atob(window.TT);
     if (decodedConfig) return JSON.parse(decodedConfig);
-    return fallbackConfig;
+    throw new Error('Unable to parse configuration');
   }
 }
 

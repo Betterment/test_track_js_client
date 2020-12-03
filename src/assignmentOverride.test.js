@@ -93,14 +93,26 @@ describe('AssignmentOverride', () => {
       });
     });
 
-    it('logs an error if the request fails', () => {
+    it('logs an error on an error response', () => {
       mockClient.reset();
       mockClient.onPost().reply(500);
 
       return testContext.override.persistAssignment().then(() => {
         expect(testContext.visitor.logError).toHaveBeenCalledTimes(1);
         expect(testContext.visitor.logError).toHaveBeenCalledWith(
-          'test_track persistAssignment error: 500, undefined, undefined'
+          'test_track persistAssignment response error: 500, undefined, undefined'
+        );
+      });
+    });
+
+    it('logs an error on a network error', () => {
+      mockClient.reset();
+      mockClient.onPost().networkError();
+
+      return testContext.override.persistAssignment().then(() => {
+        expect(testContext.visitor.logError).toHaveBeenCalledTimes(1);
+        expect(testContext.visitor.logError).toHaveBeenCalledWith(
+          'test_track persistAssignment other error: Error: Network Error'
         );
       });
     });

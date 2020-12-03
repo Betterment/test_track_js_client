@@ -105,14 +105,27 @@ describe('AssignmentNotification', () => {
       });
     });
 
-    it('logs an error if the request fails', () => {
+    it('logs an error on an error response', () => {
       testContext.analyticsTrackStub.mockImplementation(track(false));
+      mockClient.reset();
       mockClient.onPost().reply(500, null);
 
       return testContext.notification.send().then(() => {
         expect(testContext.visitor.logError).toHaveBeenCalledTimes(2);
         expect(testContext.visitor.logError).toHaveBeenCalledWith(
-          'test_track persistAssignment error: 500, undefined, null'
+          'test_track persistAssignment response error: 500, undefined, null'
+        );
+      });
+    });
+
+    it('logs an error on an failed request', () => {
+      mockClient.reset();
+      mockClient.onPost().networkError();
+
+      return testContext.notification.send().then(() => {
+        expect(testContext.visitor.logError).toHaveBeenCalledTimes(2);
+        expect(testContext.visitor.logError).toHaveBeenCalledWith(
+          'test_track persistAssignment other error: Error: Network Error'
         );
       });
     });

@@ -1,6 +1,6 @@
 dist: xenial
 language: node_js
-node_js: '8.15.1'
+node_js: '16.14.2'
 cache: yarn
 
 addons:

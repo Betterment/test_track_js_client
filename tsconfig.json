@@ -24,6 +24,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
+    "skipLibCheck": true,
     "baseUrl": "./",
     "paths": {
       "*": ["src/*", "node_modules/*"]

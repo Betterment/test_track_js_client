@@ -30,6 +30,7 @@
     "@rollup/plugin-typescript": "^5.0.2",
     "@types/blueimp-md5": "^2.7.0",
     "@types/js-cookie": "^2.2.4",
+    "@types/node": "^16.18.38",
     "@types/qs": "^6.9.0",
     "@types/uuid": "^3.4.6",
     "axios-mock-adapter": "^1.17.0",

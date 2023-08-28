@@ -1,13 +1,15 @@
-import _omit from 'lodash/omit';
-import babel from 'rollup-plugin-babel';
+import omit from 'lodash.omit';
+import babel from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
-import tsConfig from './tsconfig.json';
+import { readFileSync } from 'fs';
+
+const tsConfig = JSON.parse(readFileSync('tsconfig.json', { encoding: 'utf8' }));
 
 const customTSConfig = {
-  ..._omit(tsConfig.compilerOptions, ['declaration', 'emitDeclarationOnly', 'declarationDir']),
+  ...omit(tsConfig.compilerOptions, ['declaration', 'emitDeclarationOnly', 'declarationDir']),
   tsconfig: false,
   include: ['src/*.ts', 'types'],
   noEmit: true

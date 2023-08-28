@@ -202,6 +202,7 @@ describe('Session', () => {
     });
 
     describe('#vary()', () => {
+      // eslint-disable-next-line jest/no-done-callback, jest/expect-expect
       it('calls the correct vary function for the given split', done => {
         testContext.session.vary('jabba', {
           context: 'spec',
@@ -219,6 +220,7 @@ describe('Session', () => {
     });
 
     describe('#ab()', () => {
+      // eslint-disable-next-line jest/no-done-callback
       it('passes true or false into the callback', done => {
         testContext.session.ab('jabba', {
           context: 'spec',

@@ -5,11 +5,11 @@ import TestTrackConfig from './testTrackConfig';
 import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
 import client from './api';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import { mockSplitRegistry } from './test-utils';
 import MockAdapter from 'axios-mock-adapter';
 
-jest.mock('uuid/v4');
+jest.mock('uuid');
 
 jest.mock('./testTrackConfig', () => {
   return {
@@ -106,7 +106,7 @@ describe('Visitor', () => {
       });
     });
 
-    it('it does not hit the server when not passed a visitorId', () => {
+    it('does not hit the server when not passed a visitorId', () => {
       uuid.mockReturnValue('generated_uuid');
 
       return Visitor.loadVisitor(undefined).then(function(visitor) {
@@ -117,7 +117,7 @@ describe('Visitor', () => {
       });
     });
 
-    it('it does not hit the server when passed a visitorId and there are baked assignments', () => {
+    it('does not hit the server when passed a visitorId and there are baked assignments', () => {
       const jabbaAssignment = new Assignment({
         splitName: 'jabba',
         variant: 'puppet',
@@ -145,7 +145,7 @@ describe('Visitor', () => {
       });
     });
 
-    it('it loads a visitor from the server for an existing visitor if there are no baked assignments', () => {
+    it('loads a visitor from the server for an existing visitor if there are no baked assignments', () => {
       mockClient.onGet('/v1/visitors/puppeteer_visitor_id').reply(200, {
         id: 'puppeteer_visitor_id',
         assignments: [
@@ -174,7 +174,7 @@ describe('Visitor', () => {
       });
     });
 
-    it('it builds a visitor in offline mode if the request fails', () => {
+    it('builds a visitor in offline mode if the request fails', () => {
       mockClient.onGet('/v1/visitors/failed_visitor_id').timeout();
 
       return Visitor.loadVisitor('failed_visitor_id').then(function(visitor) {
@@ -486,6 +486,7 @@ describe('Visitor', () => {
     });
 
     describe('with an explicit trueVariant', () => {
+      // eslint-disable-next-line jest/no-done-callback
       it('returns true when assigned to the trueVariant', done => {
         testContext.visitor._assignments = [
           new Assignment({
@@ -505,6 +506,7 @@ describe('Visitor', () => {
         });
       });
 
+      // eslint-disable-next-line jest/no-done-callback
       it('returns false when not assigned to the trueVariant', done => {
         testContext.visitor._assignments = [
           new Assignment({
@@ -526,6 +528,7 @@ describe('Visitor', () => {
     });
 
     describe('with an implicit trueVariant', () => {
+      // eslint-disable-next-line jest/no-done-callback
       it('returns true when variant is true', done => {
         testContext.visitor._assignments = [
           new Assignment({
@@ -544,6 +547,7 @@ describe('Visitor', () => {
         });
       });
 
+      // eslint-disable-next-line jest/no-done-callback
       it('returns false when variant is false', done => {
         testContext.visitor._assignments = [
           new Assignment({
@@ -562,6 +566,7 @@ describe('Visitor', () => {
         });
       });
 
+      // eslint-disable-next-line jest/no-done-callback
       it('returns false when split variants are not true and false', done => {
         testContext.visitor.ab('jabba', {
           context: 'spec',

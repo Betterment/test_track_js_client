@@ -19,6 +19,7 @@ describe('MixpanelAnalytics', () => {
   });
 
   describe('#trackAssignment()', () => {
+    // eslint-disable-next-line jest/no-done-callback
     it('calls window.mixpanel.track()', done => {
       var assignment = new Assignment({
         splitName: 'jabba',

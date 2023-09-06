@@ -2,8 +2,6 @@ import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
 import Cookies from 'js-cookie';
 import Session from './session';
-import TestTrackConfig from './testTrackConfig'; // eslint-disable-line no-unused-vars
-import VaryDSL from './varyDSL'; // eslint-disable-line no-unused-vars
 import * as visitor from './visitor';
 
 jest.mock('./assignmentOverride');
@@ -202,32 +200,32 @@ describe('Session', () => {
     });
 
     describe('#vary()', () => {
-      // eslint-disable-next-line jest/no-done-callback, jest/expect-expect
-      it('calls the correct vary function for the given split', done => {
+      it('calls the correct vary function for the given split', () => {
+        const mockCgi = jest.fn();
+        const mockPuppet = jest.fn();
+
         testContext.session.vary('jabba', {
           context: 'spec',
           variants: {
-            cgi() {
-              done();
-            },
-            puppet() {
-              throw new Error('we should never get here');
-            }
+            cgi: mockCgi,
+            puppet: mockPuppet
           },
-          defaultVariant: 'puppet'
+          defaultVariant: 'puppet',
+          callback() {
+            expect(mockCgi).toHaveBeenCalled();
+            expect(mockPuppet).not.toHaveBeenCalled();
+          }
         });
       });
     });
 
     describe('#ab()', () => {
-      // eslint-disable-next-line jest/no-done-callback
-      it('passes true or false into the callback', done => {
+      it('passes true or false into the callback', () => {
         testContext.session.ab('jabba', {
           context: 'spec',
           trueVariant: 'cgi',
           callback(cgi) {
             expect(cgi).toBe(true);
-            done();
           }
         });
       });

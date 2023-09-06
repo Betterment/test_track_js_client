@@ -486,8 +486,7 @@ describe('Visitor', () => {
     });
 
     describe('with an explicit trueVariant', () => {
-      // eslint-disable-next-line jest/no-done-callback
-      it('returns true when assigned to the trueVariant', done => {
+      it('returns true when assigned to the trueVariant', () => {
         testContext.visitor._assignments = [
           new Assignment({
             splitName: 'jabba',
@@ -501,13 +500,11 @@ describe('Visitor', () => {
           trueVariant: 'puppet',
           callback: function(isPuppet) {
             expect(isPuppet).toBe(true);
-            done();
           }
         });
       });
 
-      // eslint-disable-next-line jest/no-done-callback
-      it('returns false when not assigned to the trueVariant', done => {
+      it('returns false when not assigned to the trueVariant', () => {
         testContext.visitor._assignments = [
           new Assignment({
             splitName: 'jabba',
@@ -521,15 +518,13 @@ describe('Visitor', () => {
           trueVariant: 'puppet',
           callback: function(isPuppet) {
             expect(isPuppet).toBe(false);
-            done();
           }
         });
       });
     });
 
     describe('with an implicit trueVariant', () => {
-      // eslint-disable-next-line jest/no-done-callback
-      it('returns true when variant is true', done => {
+      it('returns true when variant is true', () => {
         testContext.visitor._assignments = [
           new Assignment({
             splitName: 'blue_button',
@@ -542,13 +537,11 @@ describe('Visitor', () => {
           context: 'spec',
           callback: function(isBlue) {
             expect(isBlue).toBe(true);
-            done();
           }
         });
       });
 
-      // eslint-disable-next-line jest/no-done-callback
-      it('returns false when variant is false', done => {
+      it('returns false when variant is false', () => {
         testContext.visitor._assignments = [
           new Assignment({
             splitName: 'blue_button',
@@ -561,18 +554,15 @@ describe('Visitor', () => {
           context: 'spec',
           callback: function(isBlue) {
             expect(isBlue).toBe(false);
-            done();
           }
         });
       });
 
-      // eslint-disable-next-line jest/no-done-callback
-      it('returns false when split variants are not true and false', done => {
+      it('returns false when split variants are not true and false', () => {
         testContext.visitor.ab('jabba', {
           context: 'spec',
           callback: function(isTrue) {
             expect(isTrue).toBe(false);
-            done();
           }
         });
       });

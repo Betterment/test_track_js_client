@@ -5,11 +5,11 @@ import TestTrackConfig from './testTrackConfig';
 import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
 import client from './api';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import { mockSplitRegistry } from './test-utils';
 import MockAdapter from 'axios-mock-adapter';
 
-jest.mock('uuid/v4');
+jest.mock('uuid');
 
 jest.mock('./testTrackConfig', () => {
   return {
@@ -106,7 +106,7 @@ describe('Visitor', () => {
       });
     });
 
-    it('it does not hit the server when not passed a visitorId', () => {
+    it('does not hit the server when not passed a visitorId', () => {
       uuid.mockReturnValue('generated_uuid');
 
       return Visitor.loadVisitor(undefined).then(function(visitor) {
@@ -117,7 +117,7 @@ describe('Visitor', () => {
       });
     });
 
-    it('it does not hit the server when passed a visitorId and there are baked assignments', () => {
+    it('does not hit the server when passed a visitorId and there are baked assignments', () => {
       const jabbaAssignment = new Assignment({
         splitName: 'jabba',
         variant: 'puppet',
@@ -145,7 +145,7 @@ describe('Visitor', () => {
       });
     });
 
-    it('it loads a visitor from the server for an existing visitor if there are no baked assignments', () => {
+    it('loads a visitor from the server for an existing visitor if there are no baked assignments', () => {
       mockClient.onGet('/v1/visitors/puppeteer_visitor_id').reply(200, {
         id: 'puppeteer_visitor_id',
         assignments: [
@@ -174,7 +174,7 @@ describe('Visitor', () => {
       });
     });
 
-    it('it builds a visitor in offline mode if the request fails', () => {
+    it('builds a visitor in offline mode if the request fails', () => {
       mockClient.onGet('/v1/visitors/failed_visitor_id').timeout();
 
       return Visitor.loadVisitor('failed_visitor_id').then(function(visitor) {
@@ -486,7 +486,7 @@ describe('Visitor', () => {
     });
 
     describe('with an explicit trueVariant', () => {
-      it('returns true when assigned to the trueVariant', done => {
+      it('returns true when assigned to the trueVariant', () => {
         testContext.visitor._assignments = [
           new Assignment({
             splitName: 'jabba',
@@ -500,12 +500,11 @@ describe('Visitor', () => {
           trueVariant: 'puppet',
           callback: function(isPuppet) {
             expect(isPuppet).toBe(true);
-            done();
           }
         });
       });
 
-      it('returns false when not assigned to the trueVariant', done => {
+      it('returns false when not assigned to the trueVariant', () => {
         testContext.visitor._assignments = [
           new Assignment({
             splitName: 'jabba',
@@ -519,14 +518,13 @@ describe('Visitor', () => {
           trueVariant: 'puppet',
           callback: function(isPuppet) {
             expect(isPuppet).toBe(false);
-            done();
           }
         });
       });
     });
 
     describe('with an implicit trueVariant', () => {
-      it('returns true when variant is true', done => {
+      it('returns true when variant is true', () => {
         testContext.visitor._assignments = [
           new Assignment({
             splitName: 'blue_button',
@@ -539,12 +537,11 @@ describe('Visitor', () => {
           context: 'spec',
           callback: function(isBlue) {
             expect(isBlue).toBe(true);
-            done();
           }
         });
       });
 
-      it('returns false when variant is false', done => {
+      it('returns false when variant is false', () => {
         testContext.visitor._assignments = [
           new Assignment({
             splitName: 'blue_button',
@@ -557,17 +554,15 @@ describe('Visitor', () => {
           context: 'spec',
           callback: function(isBlue) {
             expect(isBlue).toBe(false);
-            done();
           }
         });
       });
 
-      it('returns false when split variants are not true and false', done => {
+      it('returns false when split variants are not true and false', () => {
         testContext.visitor.ab('jabba', {
           context: 'spec',
           callback: function(isTrue) {
             expect(isTrue).toBe(false);
-            done();
           }
         });
       });

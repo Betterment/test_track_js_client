@@ -19,7 +19,7 @@ describe('MixpanelAnalytics', () => {
   });
 
   describe('#trackAssignment()', () => {
-    it('calls window.mixpanel.track()', done => {
+    it('calls window.mixpanel.track()', () => {
       var assignment = new Assignment({
         splitName: 'jabba',
         variant: 'cgi',
@@ -39,7 +39,6 @@ describe('MixpanelAnalytics', () => {
           },
           expect.any(Function)
         );
-        done();
       });
 
       // call success

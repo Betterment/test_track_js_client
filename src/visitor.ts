@@ -5,7 +5,7 @@ import AssignmentNotification from './assignmentNotification';
 import Identifier from './identifier';
 import MixpanelAnalytics from './mixpanelAnalytics';
 import TestTrackConfig from './testTrackConfig';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import VariantCalculator from './variantCalculator';
 import VaryDSL from './varyDSL';
 

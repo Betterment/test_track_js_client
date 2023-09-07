@@ -5,7 +5,7 @@ import TestTrackConfig from './testTrackConfig';
 import Visitor, { VaryOptions, AbOptions } from './visitor';
 import { AnalyticsProvider } from './analyticsProvider';
 
-let loaded: null | ((value?: Visitor | PromiseLike<Visitor>) => void) = null;
+let loaded: null | ((value: Visitor | PromiseLike<Visitor>) => void) = null;
 
 type SessionOptions = {
   analytics?: AnalyticsProvider;

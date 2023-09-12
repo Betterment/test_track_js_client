@@ -1,19 +1,8 @@
-import omit from 'lodash.omit';
 import babel from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
-import { readFileSync } from 'fs';
-
-const tsConfig = JSON.parse(readFileSync('tsconfig.json', { encoding: 'utf8' }));
-
-const customTSConfig = {
-  ...omit(tsConfig.compilerOptions, ['declaration', 'emitDeclarationOnly', 'declarationDir']),
-  tsconfig: false,
-  include: ['src/*.ts', 'types'],
-  noEmit: true
-};
 
 export default [
   {
@@ -40,14 +29,14 @@ export default [
     },
     plugins: [
       resolve({
-        browser: true
+        browser: true,
       }),
-      typescript(customTSConfig),
+      typescript({ noEmitOnError: false }),
       commonjs(),
       terser(),
       babel({
         exclude: 'node_modules/**'
       })
     ]
-  }
+  },
 ];

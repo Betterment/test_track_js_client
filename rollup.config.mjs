@@ -6,12 +6,12 @@ import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
 import { readFileSync } from 'fs';
 
+
 const tsConfig = JSON.parse(readFileSync('tsconfig.json', { encoding: 'utf8' }));
 
 const customTSConfig = {
   ...omit(tsConfig.compilerOptions, ['declaration', 'emitDeclarationOnly', 'declarationDir']),
   tsconfig: false,
-  include: ['src/*.ts', 'types'],
   noEmit: true
 };
 
@@ -40,7 +40,7 @@ export default [
     },
     plugins: [
       resolve({
-        browser: true
+        browser: true,
       }),
       typescript(customTSConfig),
       commonjs(),
@@ -49,5 +49,5 @@ export default [
         exclude: 'node_modules/**'
       })
     ]
-  }
+  },
 ];

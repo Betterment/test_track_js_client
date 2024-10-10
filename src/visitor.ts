@@ -22,7 +22,7 @@ export type VaryOptions = {
 export type AbOptions = {
   callback: (assignment: boolean | string) => void;
   context: string;
-  trueVariant: boolean | string;
+  trueVariant?: string;
 };
 
 export type VisitorOptions = {

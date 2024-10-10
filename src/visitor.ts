@@ -16,7 +16,7 @@ type Variants = {
 export type VaryOptions = {
   variants: Variants;
   context: string;
-  defaultVariant: string;
+  defaultVariant: boolean | string;
 };
 
 export type AbOptions = {
@@ -124,7 +124,7 @@ class Visitor {
       throw new Error('must provide variants object to `vary` for ' + splitName);
     } else if (!options.context) {
       throw new Error('must provide context to `vary` for ' + splitName);
-    } else if (!options.defaultVariant) {
+    } else if (!options.defaultVariant && options.defaultVariant !== false) {
       throw new Error('must provide defaultVariant to `vary` for ' + splitName);
     }
 

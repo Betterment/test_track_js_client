@@ -23,7 +23,6 @@ export type AbOptions = {
   callback: (assignment: boolean | string) => void;
   context: string;
   trueVariant: boolean | string;
-  visitor: Visitor;
 };
 
 export type VisitorOptions = {

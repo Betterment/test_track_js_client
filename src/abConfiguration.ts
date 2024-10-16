@@ -4,13 +4,13 @@ import SplitRegistry from './splitRegistry';
 
 export type ABConfigurationOptions = {
   splitName: string;
-  trueVariant: string | boolean;
+  trueVariant?: string;
   visitor: Visitor;
 };
 
 class ABConfiguration {
   private _splitName: string;
-  private _trueVariant: string | boolean;
+  private _trueVariant?: string;
   private _visitor: Visitor;
   private _splitRegistry: SplitRegistry;
 

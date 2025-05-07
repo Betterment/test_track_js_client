@@ -72,7 +72,7 @@
   ],
   "release-it": {
     "hooks": {
-      "before:init": "yarn build"
+      "before:init": "pnpm build"
     }
   }
 }

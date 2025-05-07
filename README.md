@@ -12,14 +12,14 @@ If you're looking to do server-side assignment and you're using Rails, then chec
 
 ## Installation
 
-You can add the test track js client to your application via npm or yarn.
+You can add the test track js client to your application via npm, yarn or pnpm.
 
 ```
 npm install test_track_js_client --save
 ```
 
 ```
-yarn add test_track_js_client
+pnpm add test_track_js_client
 ```
 
 You can find the latest version of the test track JS client [here](https://github.com/Betterment/test_track_js_client/releases).
@@ -199,6 +199,6 @@ Before diving in, [check our issue tracker](https://github.com/Betterment/test_t
 
 ### Running tests
 
-1. run `yarn install` to download dependencies
-1. run `yarn test` to run the tests
-1. run `yarn build` to build the distributables
+1. run `pnpm install` to download dependencies
+1. run `pnpm test` to run the tests
+1. run `pnpm build` to build the distributables

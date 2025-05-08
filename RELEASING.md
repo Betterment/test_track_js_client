@@ -12,7 +12,7 @@ $ npm run release
 > test_track_js_client@2.1.0 release
 > release-it
 
-✔ yarn build
+✔ pnpm build
 
 🚀 Let's release test_track_js_client (currently at 2.1.0)
 

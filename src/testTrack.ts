@@ -16,7 +16,7 @@ const loadTestTrack = function() {
   document.body.classList.add('_tt');
   try {
     window.dispatchEvent(new CustomEvent('tt:class:added'));
-  } catch (e) {
+  } catch (e) {// eslint-disable-line @typescript-eslint/no-unused-vars
     // ignore
   }
 };
@@ -33,7 +33,7 @@ try {
   // in the case where there is not yet code listening for 'tt:lib:loaded', listen for 'tt:listener:ready' and then trigger 'tt:lib:loaded'
   notifyListener();
   window.addEventListener('tt:listener:ready', notifyListener);
-} catch (e) {
+} catch (e) {// eslint-disable-line @typescript-eslint/no-unused-vars
   // ignore
 }
 

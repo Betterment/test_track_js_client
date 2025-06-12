@@ -129,7 +129,7 @@ describe('VariantCalculator', () => {
 
       try {
         calculator.getVariant();
-      } catch (e) {
+      } catch (e) {// eslint-disable-line @typescript-eslint/no-unused-vars
         // ignore
       }
 

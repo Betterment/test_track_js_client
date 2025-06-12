@@ -141,7 +141,7 @@ class Visitor {
       visitor: this
     });
 
-    for (let variant in variants) {
+    for (const variant in variants) {
       if (variants.hasOwnProperty(variant)) {
         if (variant === defaultVariant) {
           vary.default(variant, variants[variant]);

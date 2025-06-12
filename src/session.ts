@@ -103,7 +103,7 @@ class Session {
         loadInfo: () =>
           this._visitorLoaded.then(function(visitor) {
             const assignmentRegistry: Registry = {};
-            for (var splitName in visitor.getAssignmentRegistry()) {
+            for (const splitName in visitor.getAssignmentRegistry()) {
               assignmentRegistry[splitName] = visitor.getAssignmentRegistry()[splitName].getVariant();
             }
 

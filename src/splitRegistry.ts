@@ -26,7 +26,7 @@ class SplitRegistry {
 
   asV1Hash() {
     const v1Hash: V1Hash = {};
-    for (let splitName in this.getSplits()) {
+    for (const splitName in this.getSplits()) {
       const split = this.getSplits()[splitName];
       v1Hash[splitName] = split.getWeighting();
     }

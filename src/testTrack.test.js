@@ -1,6 +1,4 @@
 import TestTrack from './testTrack';
-/* eslint-disable-next-line no-unused-vars */
-import ConfigParser from './configParser';
 
 jest.mock('./configParser', () => {
   return jest.fn().mockImplementation(() => {

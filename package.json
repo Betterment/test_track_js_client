@@ -6,7 +6,6 @@
   "main": "dist/testTrack.bundle.js",
   "module": "dist/testTrack.js",
   "typings": "dist/testTrack.d.ts",
-  "type": "module",
   "scripts": {
     "build": "rollup -c",
     "compile": "tsc --outDir /tmp",

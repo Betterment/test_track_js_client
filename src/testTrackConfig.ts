@@ -65,7 +65,7 @@ const TestTrackConfig = {
 
     if (!assignments) {
       assignments = [];
-      for (let splitName in rawAssignments) {
+      for (const splitName in rawAssignments) {
         assignments.push(
           new Assignment({
             splitName,

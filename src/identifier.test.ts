@@ -4,13 +4,15 @@ import Visitor from './visitor';
 import client from './api';
 import MockAdapter from 'axios-mock-adapter';
 
-jest.mock('./testTrackConfig', () => {
+vi.mock('./testTrackConfig', () => {
   return {
-    getUrl: () => 'http://testtrack.dev'
+    default: {
+      getUrl: () => 'http://testtrack.dev'
+    }
   };
 });
 
-jest.mock('./visitor');
+vi.mock('./visitor');
 
 const mockClient = new MockAdapter(client);
 

@@ -4,7 +4,7 @@ import VariantCalculator, { VariantCalculatorOptions } from './variantCalculator
 import Visitor from './visitor';
 import { mockSplitRegistry } from './test-utils';
 
-jest.mock('./testTrackConfig');
+vi.mock('./testTrackConfig');
 
 describe('VariantCalculator', () => {
   let visitor: Visitor;
@@ -20,7 +20,7 @@ describe('VariantCalculator', () => {
       id: '00000000-0000-0000-0000-000000000000',
       assignments: []
     });
-    visitor.logError = jest.fn();
+    visitor.logError = vi.fn();
 
     calculatorOptions = {
       visitor: visitor,
@@ -62,39 +62,39 @@ describe('VariantCalculator', () => {
 
   describe('#getHashFixnum()', () => {
     it('converts 00000000deadbeef into 0', () => {
-      calculator.getSplitVisitorHash = jest.fn().mockReturnValue('00000000deadbeef');
+      calculator.getSplitVisitorHash = vi.fn().mockReturnValue('00000000deadbeef');
       expect(calculator.getHashFixnum()).toBe(0);
     });
 
     it('converts 0000000fdeadbeef into 15', () => {
-      calculator.getSplitVisitorHash = jest.fn().mockReturnValue('0000000fdeadbeef');
+      calculator.getSplitVisitorHash = vi.fn().mockReturnValue('0000000fdeadbeef');
       expect(calculator.getHashFixnum()).toBe(15);
     });
 
     it('converts ffffffffdeadbeef into 4294967295', () => {
-      calculator.getSplitVisitorHash = jest.fn().mockReturnValue('ffffffffdeadbeef');
+      calculator.getSplitVisitorHash = vi.fn().mockReturnValue('ffffffffdeadbeef');
       expect(calculator.getHashFixnum()).toBe(4294967295);
     });
   });
 
   describe('#getAssignmentBucket()', () => {
     it('puts 0 in bucket 0', () => {
-      calculator.getHashFixnum = jest.fn().mockReturnValue(0);
+      calculator.getHashFixnum = vi.fn().mockReturnValue(0);
       expect(calculator.getAssignmentBucket()).toBe(0);
     });
 
     it('puts 99 in bucket 99', () => {
-      calculator.getHashFixnum = jest.fn().mockReturnValue(99);
+      calculator.getHashFixnum = vi.fn().mockReturnValue(99);
       expect(calculator.getAssignmentBucket()).toBe(99);
     });
 
     it('puts 100 in bucket 0', () => {
-      calculator.getHashFixnum = jest.fn().mockReturnValue(100);
+      calculator.getHashFixnum = vi.fn().mockReturnValue(100);
       expect(calculator.getAssignmentBucket()).toBe(0);
     });
 
     it('puts 4294967295 in bucket 95', () => {
-      calculator.getHashFixnum = jest.fn().mockReturnValue(4294967295);
+      calculator.getHashFixnum = vi.fn().mockReturnValue(4294967295);
       expect(calculator.getAssignmentBucket()).toBe(95);
     });
   });
@@ -142,22 +142,22 @@ describe('VariantCalculator', () => {
 
   describe('#getVariant()', () => {
     it('returns the first variant with non-zero weight from bucket 0', () => {
-      calculator.getAssignmentBucket = jest.fn().mockReturnValue(0);
+      calculator.getAssignmentBucket = vi.fn().mockReturnValue(0);
       expect(calculator.getVariant()).toBe('giant');
     });
 
     it('returns the last variant with non-zero weight from bucket 99', () => {
-      calculator.getAssignmentBucket = jest.fn().mockReturnValue(99);
+      calculator.getAssignmentBucket = vi.fn().mockReturnValue(99);
       expect(calculator.getVariant()).toBe('miniscule');
     });
 
     it('returns the correct 1%-wide variant', () => {
-      calculator.getAssignmentBucket = jest.fn().mockReturnValue(80);
+      calculator.getAssignmentBucket = vi.fn().mockReturnValue(80);
       expect(calculator.getVariant()).toBe('huge');
     });
 
     it('returns null if there is no split registry', () => {
-      jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      vi.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       expect(calculator.getVariant()).toBeNull();
     });
@@ -173,7 +173,7 @@ describe('VariantCalculator', () => {
 
       calculatorOptions.splitName = 'invalidWeighting';
       const localCalculator = createCalculator();
-      localCalculator.getAssignmentBucket = jest.fn().mockReturnValue(99);
+      localCalculator.getAssignmentBucket = vi.fn().mockReturnValue(99);
 
       expect(() => localCalculator.getVariant()).toThrow(
         'Assignment bucket out of range. 99 unmatched in invalidWeighting: {"yes":33,"no":33,"maybe":33}'

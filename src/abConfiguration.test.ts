@@ -4,7 +4,7 @@ import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';
 import { mockSplitRegistry } from './test-utils';
 
-jest.mock('./testTrackConfig');
+vi.mock('./testTrackConfig');
 
 describe('ABConfiguration', () => {
   let visitor: Visitor;
@@ -30,7 +30,7 @@ describe('ABConfiguration', () => {
       id: 'visitor_id',
       assignments: []
     });
-    visitor.logError = jest.fn();
+    visitor.logError = vi.fn();
   });
 
   it('requires a splitName', () => {
@@ -87,7 +87,7 @@ describe('ABConfiguration', () => {
     });
 
     it('does not log an error if the split registry is not loaded', () => {
-      jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      vi.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       const abConfiguration = new ABConfiguration({
         splitName: 'element',
@@ -146,7 +146,7 @@ describe('ABConfiguration', () => {
       });
 
       it('is false when there is no split_registry', () => {
-        jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+        vi.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
         const abConfiguration = new ABConfiguration({
           splitName: 'button_color',

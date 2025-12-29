@@ -4,9 +4,11 @@ import Visitor from './visitor';
 import client from './api';
 import MockAdapter from 'axios-mock-adapter';
 
-jest.mock('./testTrackConfig', () => {
+vi.mock('./testTrackConfig', () => {
   return {
-    getUrl: () => 'http://testtrack.dev'
+    default: {
+      getUrl: () => 'http://testtrack.dev'
+    }
   };
 });
 
@@ -14,7 +16,7 @@ const mockClient = new MockAdapter(client);
 
 function createVisitor() {
   const visitor = new Visitor({ id: 'visitorId', assignments: [] });
-  visitor.logError = jest.fn();
+  visitor.logError = vi.fn();
   return visitor;
 }
 

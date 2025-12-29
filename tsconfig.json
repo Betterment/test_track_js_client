@@ -5,6 +5,7 @@
     "target": "es5",
     "module": "esnext",
     "lib": ["dom", "esnext"],
+    "types": ["vitest/globals"],
     "importHelpers": true,
     "declaration": true,
     "emitDeclarationOnly": true,

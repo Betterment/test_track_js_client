@@ -6,9 +6,9 @@ describe('MixpanelAnalytics', () => {
 
   beforeEach(() => {
     window.mixpanel = {
-      track: jest.fn(),
-      alias: jest.fn(),
-      identify: jest.fn()
+      track: vi.fn(),
+      alias: vi.fn(),
+      identify: vi.fn()
     };
 
     mixpanelAnalytics = new MixpanelAnalytics();
@@ -43,7 +43,7 @@ describe('MixpanelAnalytics', () => {
       });
 
       // call success
-      jest.mocked(window.mixpanel.track).mock.calls[0][2](true);
+      vi.mocked(window.mixpanel.track).mock.calls[0][2](true);
     });
   });
 

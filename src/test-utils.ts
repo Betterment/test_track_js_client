@@ -1,8 +1,9 @@
+import { Mock } from 'vitest';
 import SplitRegistry from './splitRegistry';
 import Split, { Weighting } from './split';
 
-function mockSplitRegistry(v1RegistryHash: Record<string, Weighting>) {
-  const mock = jest.fn();
+function mockSplitRegistry(v1RegistryHash: Record<string, Weighting>): Mock<() => SplitRegistry> {
+  const mock = vi.fn();
   const splits: Split[] = [];
 
   for (const splitName in v1RegistryHash) {

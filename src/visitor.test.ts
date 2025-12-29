@@ -1,3 +1,4 @@
+import { Mock } from 'vitest';
 import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
 import Identifier from './identifier';
@@ -10,34 +11,42 @@ import { v4 as uuid } from 'uuid';
 import { mockSplitRegistry } from './test-utils';
 import MockAdapter from 'axios-mock-adapter';
 
-jest.mock('uuid');
+vi.mock('uuid');
 
-jest.mock('./testTrackConfig', () => {
+vi.mock('./testTrackConfig', () => {
   return {
-    getUrl: () => 'http://testtrack.dev',
-    getAssignments: jest.fn()
+    default: {
+      getUrl: () => 'http://testtrack.dev',
+      getAssignments: vi.fn()
+    }
   };
 });
 
-const mockGetVariant = jest.fn();
-jest.mock('./variantCalculator', () => {
-  return jest.fn(() => {
+const mockGetVariant = vi.fn();
+vi.mock('./variantCalculator', () => {
+  const MockVariantCalculator = vi.fn(function() {
     return { getVariant: mockGetVariant };
   });
+
+  return { default: MockVariantCalculator };
 });
 
-const mockSend = jest.fn();
-jest.mock('./assignmentNotification', () => {
-  return jest.fn(() => {
+const mockSend = vi.fn();
+vi.mock('./assignmentNotification', () => {
+  const MockAssignmentNotification = vi.fn(function() {
     return { send: mockSend };
   });
+
+  return { default: MockAssignmentNotification };
 });
 
-const mockSave = jest.fn();
-jest.mock('./identifier', () => {
-  return jest.fn(() => {
+const mockSave = vi.fn();
+vi.mock('./identifier', () => {
+  const MockIdentifier = vi.fn(function() {
     return { save: mockSave };
   });
+
+  return { default: MockIdentifier };
 });
 
 const mockClient = new MockAdapter(client);
@@ -57,7 +66,7 @@ describe('Visitor', () => {
       ]
     });
 
-    jest.mocked(TestTrackConfig.getAssignments).mockReset();
+    vi.mocked(TestTrackConfig.getAssignments).mockReset();
     TestTrackConfig.getSplitRegistry = mockSplitRegistry({
       element: {
         earth: 25,
@@ -107,7 +116,7 @@ describe('Visitor', () => {
     });
 
     it('does not hit the server when not passed a visitorId', async () => {
-      jest.mocked(uuid).mockReturnValue('generated_uuid');
+      vi.mocked(uuid).mockReturnValue('generated_uuid');
 
       const visitor = await Visitor.loadVisitor(undefined);
       expect(mockClient.history.get.length).toBe(0);
@@ -128,7 +137,7 @@ describe('Visitor', () => {
         isUnsynced: false
       });
 
-      jest.mocked(TestTrackConfig.getAssignments).mockReturnValue([jabbaAssignment, wineAssignment]);
+      vi.mocked(TestTrackConfig.getAssignments).mockReturnValue([jabbaAssignment, wineAssignment]);
 
       const visitor = await Visitor.loadVisitor('baked_visitor_id');
       expect(mockClient.history.get.length).toBe(0);
@@ -319,7 +328,7 @@ describe('Visitor', () => {
       });
 
       it('logs an error if the AssignmentNotification throws an error', () => {
-        visitor.logError = jest.fn();
+        visitor.logError = vi.fn();
 
         mockSend.mockImplementation(() => {
           throw new Error('something bad happened');
@@ -430,13 +439,13 @@ describe('Visitor', () => {
     });
 
     describe('Boolean split', () => {
-      let trueHandler: jest.Mock;
-      let falseHandler: jest.Mock;
+      let trueHandler: Mock;
+      let falseHandler: Mock;
       let vary_blue_button_split: () => void;
 
       beforeEach(() => {
-        trueHandler = jest.fn();
-        falseHandler = jest.fn();
+        trueHandler = vi.fn();
+        falseHandler = vi.fn();
 
         vary_blue_button_split = function() {
           visitor.vary('blue_button', {
@@ -472,7 +481,7 @@ describe('Visitor', () => {
 
   describe('#ab()', () => {
     it('leverages vary to configure the split', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
 
       visitor.ab('jabba', {
         context: 'spec',
@@ -654,10 +663,10 @@ describe('Visitor', () => {
   });
 
   describe('#logError()', () => {
-    let errorLogger: jest.Mock;
+    let errorLogger: Mock;
 
     beforeEach(() => {
-      errorLogger = jest.fn();
+      errorLogger = vi.fn();
     });
 
     it('calls the error logger with the error message', () => {
@@ -676,7 +685,7 @@ describe('Visitor', () => {
     });
 
     it('does a console.error if the error logger was never set', () => {
-      const consoleSpy = jest.spyOn(window.console, 'error');
+      const consoleSpy = vi.spyOn(window.console, 'error');
       visitor.logError('something bad happened');
 
       expect(consoleSpy).toHaveBeenCalledTimes(1);

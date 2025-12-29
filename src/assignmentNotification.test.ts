@@ -4,9 +4,11 @@ import Visitor from './visitor';
 import client from './api';
 import MockAdapter from 'axios-mock-adapter';
 
-jest.mock('./testTrackConfig', () => {
+vi.mock('./testTrackConfig', () => {
   return {
-    getUrl: () => 'http://testtrack.dev'
+    default: {
+      getUrl: () => 'http://testtrack.dev'
+    }
   };
 });
 
@@ -16,11 +18,11 @@ function createVisitor(options: { trackSuccess: boolean }) {
   const visitor = new Visitor({ id: 'visitorId', assignments: [] });
 
   visitor.setAnalytics({
-    identify: jest.fn(),
-    alias: jest.fn(),
-    trackAssignment: jest.fn().mockImplementation((_visitorId, _assignment, callback) => callback(options.trackSuccess))
+    identify: vi.fn(),
+    alias: vi.fn(),
+    trackAssignment: vi.fn().mockImplementation((_visitorId, _assignment, callback) => callback(options.trackSuccess))
   });
-  visitor.logError = jest.fn();
+  visitor.logError = vi.fn();
 
   return visitor;
 }

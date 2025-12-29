@@ -1,3 +1,4 @@
+import { Mock } from 'vitest';
 import Assignment from './assignment';
 import SplitRegistry from './splitRegistry';
 import TestTrackConfig from './testTrackConfig';
@@ -5,7 +6,7 @@ import VaryDSL from './varyDSL';
 import Visitor from './visitor';
 import { mockSplitRegistry } from './test-utils';
 
-jest.mock('./testTrackConfig');
+vi.mock('./testTrackConfig');
 
 function createAssignment() {
   return new Assignment({ splitName: 'element', variant: 'earth', isUnsynced: true });
@@ -14,7 +15,7 @@ function createAssignment() {
 function createVisitor() {
   const assignment = createAssignment();
   const visitor = new Visitor({ id: 'visitor_id', assignments: [assignment] });
-  visitor.logError = jest.fn();
+  visitor.logError = vi.fn();
   return visitor;
 }
 
@@ -78,7 +79,7 @@ describe('VaryDSL', () => {
       const assignment = createAssignment();
       const visitor = createVisitor();
       const vary = new VaryDSL({ assignment, visitor });
-      const handler = function() {};
+      const handler = () => {};
 
       vary.when('earth', 'wind', 'leeloo_multipass', handler);
 
@@ -93,13 +94,13 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
-      jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      vi.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       const assignment = createAssignment();
       const visitor = createVisitor();
       const vary = new VaryDSL({ assignment, visitor });
 
-      vary.when('earth', 'wind', 'leeloo_multipass', jest.fn());
+      vary.when('earth', 'wind', 'leeloo_multipass', () => {});
 
       expect(visitor.logError).not.toHaveBeenCalled();
     });
@@ -190,7 +191,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
-      jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      vi.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       const assignment = createAssignment();
       const visitor = createVisitor();
@@ -223,12 +224,12 @@ describe('VaryDSL', () => {
   });
 
   describe('#run()', () => {
-    let whenHandler: jest.Mock;
-    let defaultHandler: jest.Mock;
+    let whenHandler: Mock;
+    let defaultHandler: Mock;
 
     beforeEach(() => {
-      whenHandler = jest.fn();
-      defaultHandler = jest.fn();
+      whenHandler = vi.fn();
+      defaultHandler = vi.fn();
     });
 
     it('throws an error if `default` was never called', () => {
@@ -309,7 +310,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
-      jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      vi.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       const assignment = createAssignment();
       const visitor = createVisitor();

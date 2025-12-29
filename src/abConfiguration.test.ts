@@ -36,6 +36,7 @@ describe('ABConfiguration', () => {
   it('requires a splitName', () => {
     expect(
       function() {
+        // @ts-expect-error Testing missing required property
         new ABConfiguration({
           trueVariant: 'red',
           visitor: visitor
@@ -58,6 +59,7 @@ describe('ABConfiguration', () => {
   it('requires a visitor', () => {
     expect(
       function() {
+        // @ts-expect-error Testing missing required property
         new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red'
@@ -71,6 +73,7 @@ describe('ABConfiguration', () => {
       function() {
         new ABConfiguration({
           splitName: 'button_color',
+          // @ts-expect-error Testing null value
           trueVariant: null,
           visitor: visitor
         });
@@ -88,9 +91,7 @@ describe('ABConfiguration', () => {
 
       abConfiguration.getVariants();
 
-      expect(visitor.logError).toHaveBeenCalledWith(
-        'A/B for element configures split with more than 2 variants'
-      );
+      expect(visitor.logError).toHaveBeenCalledWith('A/B for element configures split with more than 2 variants');
     });
 
     it('does not log an error if the split registry is not loaded', () => {
@@ -111,6 +112,7 @@ describe('ABConfiguration', () => {
       it('is true if null was passed in during instantiation', () => {
         var abConfiguration = new ABConfiguration({
           splitName: 'button_color',
+          // @ts-expect-error Testing null value
           trueVariant: null,
           visitor: visitor
         });
@@ -119,8 +121,9 @@ describe('ABConfiguration', () => {
       });
 
       it('is true if only one variant in the split', () => {
-        var abConfiguration = new ABConfiguration({
+        const abConfiguration = new ABConfiguration({
           splitName: 'new_feature',
+          // @ts-expect-error Testing null value
           trueVariant: null,
           visitor: visitor
         });
@@ -175,6 +178,7 @@ describe('ABConfiguration', () => {
       it('is false if only one variant in the split', () => {
         var abConfiguration = new ABConfiguration({
           splitName: 'new_feature',
+          // @ts-expect-error Testing null value
           trueVariant: null,
           visitor: visitor
         });

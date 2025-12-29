@@ -1,6 +1,7 @@
 import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
 import Identifier from './identifier';
+import MixpanelAnalytics from './mixpanelAnalytics';
 import TestTrackConfig from './testTrackConfig';
 import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
@@ -219,6 +220,7 @@ describe('Visitor', () => {
 
     it('throws an error if a variants object is not provided', () => {
       expect(() => {
+        // @ts-expect-error Testing missing required property
         visitor.vary('wine', {
           context: 'spec',
           defaultVariant: 'white'
@@ -228,6 +230,7 @@ describe('Visitor', () => {
 
     it('throws an error if a context is not provided', () => {
       expect(() => {
+        // @ts-expect-error Testing missing required property
         visitor.vary('wine', {
           defaultVariant: 'white',
           variants: {
@@ -240,6 +243,7 @@ describe('Visitor', () => {
 
     it('throws an error if a defaultVariant is not provided', () => {
       expect(() => {
+        // @ts-expect-error Testing missing required property
         visitor.vary('wine', {
           context: 'spec',
           variants: {
@@ -585,6 +589,7 @@ describe('Visitor', () => {
 
     beforeEach(() => {
       jabbaCGIAssignment = new Assignment({ splitName: 'jabba', variant: 'cgi', isUnsynced: false });
+      // @ts-expect-error Testing with boolean variant
       blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: true, isUnsynced: true });
 
       mockSave.mockImplementation(() => {
@@ -646,6 +651,7 @@ describe('Visitor', () => {
   describe('#setErrorLogger()', () => {
     it('throws an error if not provided with a function', () => {
       expect(() => {
+        // @ts-expect-error Testing with wrong argument type
         visitor.setErrorLogger('teapot');
       }).toThrow('must provide function for errorLogger');
     });
@@ -695,12 +701,13 @@ describe('Visitor', () => {
   describe('#setAnalytics()', () => {
     it('throws an error if not provided with an object', () => {
       expect(() => {
+        // @ts-expect-error Testing with wrong argument type
         visitor.setAnalytics('teapot');
       }).toThrow('must provide object for setAnalytics');
     });
 
     it('sets the analytics object on the visitor', () => {
-      const analytics = {};
+      const analytics = new MixpanelAnalytics();
 
       visitor.setAnalytics(analytics);
 

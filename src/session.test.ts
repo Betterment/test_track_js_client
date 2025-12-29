@@ -32,6 +32,7 @@ jest.mock('js-cookie');
 
 describe('Session', () => {
   beforeEach(() => {
+    // @ts-expect-error Cookies.get returns different types in practice
     jest.mocked(Cookies.get).mockReturnValue('existing_visitor_id');
   });
 
@@ -40,25 +41,29 @@ describe('Session', () => {
       var v = new visitor.default({ id: 'existing_visitor_id', assignments: [] });
       visitor.default.loadVisitor = jest.fn().mockResolvedValue(v);
 
-      return new Session()
-        .getPublicAPI()
-        .initialize()
-        .then(() => {
-          expect(visitor.default.loadVisitor).toHaveBeenCalledWith('existing_visitor_id');
+      return (
+        new Session()
+          .getPublicAPI()
+          // @ts-expect-error Testing without arguments
+          .initialize()
+          .then(() => {
+            expect(visitor.default.loadVisitor).toHaveBeenCalledWith('existing_visitor_id');
 
-          expect(Cookies.get).toHaveBeenCalledTimes(1);
-          expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
+            expect(Cookies.get).toHaveBeenCalledTimes(1);
+            expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
 
-          expect(Cookies.set).toHaveBeenCalledTimes(1);
-          expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'existing_visitor_id', {
-            expires: 365,
-            path: '/',
-            domain: '.example.com'
-          });
-        });
+            expect(Cookies.set).toHaveBeenCalledTimes(1);
+            expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'existing_visitor_id', {
+              expires: 365,
+              path: '/',
+              domain: '.example.com'
+            });
+          })
+      );
     });
 
     it('saves the visitor id in a cookie', () => {
+      // @ts-expect-error Cookies.get returns different types depending on arguments
       jest.mocked(Cookies.get).mockReturnValue(null);
 
       var v = new visitor.default({ id: 'generated_visitor_id', assignments: [] });
@@ -66,7 +71,7 @@ describe('Session', () => {
 
       return new Session()
         .getPublicAPI()
-        .initialize()
+        .initialize({})
         .then(() => {
           expect(visitor.default.loadVisitor).toHaveBeenCalledWith(null);
 
@@ -121,12 +126,15 @@ describe('Session', () => {
     describe('#initialize()', () => {
       it('calls notifyUnsyncedAssignments when a visitor is loaded', () => {
         visitorInstance.notifyUnsyncedAssignments = jest.fn();
-        return new Session()
-          .getPublicAPI()
-          .initialize()
-          .then(() => {
-            expect(visitorInstance.notifyUnsyncedAssignments).toHaveBeenCalledTimes(1);
-          });
+        return (
+          new Session()
+            .getPublicAPI()
+            // @ts-expect-error Testing without arguments
+            .initialize()
+            .then(() => {
+              expect(visitorInstance.notifyUnsyncedAssignments).toHaveBeenCalledTimes(1);
+            })
+        );
       });
 
       it('sets the analytics lib', () => {
@@ -264,28 +272,28 @@ describe('Session', () => {
       describe('_crx', () => {
         describe('#persistAssignment()', () => {
           it('creates an AssignmentOverride and persists it', () => {
+            // @ts-expect-error Testing with mock implementation
             jest.mocked(AssignmentOverride).mockImplementation(() => {
               return {
+                // @ts-expect-error Testing without arguments
                 persistAssignment: jest.fn().mockResolvedValue()
               };
             });
 
-            return publicApi._crx
-              .persistAssignment('split', 'variant', 'the_username', 'the_password')
-              .then(() => {
-                expect(AssignmentOverride).toHaveBeenCalledTimes(1);
-                expect(AssignmentOverride).toHaveBeenCalledWith({
-                  visitor: visitorInstance,
-                  username: 'the_username',
-                  password: 'the_password',
-                  assignment: new Assignment({
-                    splitName: 'split',
-                    variant: 'variant',
-                    context: 'chrome_extension',
-                    isUnsynced: true
-                  })
-                });
+            return publicApi._crx.persistAssignment('split', 'variant', 'the_username', 'the_password').then(() => {
+              expect(AssignmentOverride).toHaveBeenCalledTimes(1);
+              expect(AssignmentOverride).toHaveBeenCalledWith({
+                visitor: visitorInstance,
+                username: 'the_username',
+                password: 'the_password',
+                assignment: new Assignment({
+                  splitName: 'split',
+                  variant: 'variant',
+                  context: 'chrome_extension',
+                  isUnsynced: true
+                })
               });
+            });
           });
         });
 

@@ -1,5 +1,6 @@
 import Assignment from './assignment';
-import AssignmentNotification from './assignmentNotification';
+import { AnalyticsProvider } from './analyticsProvider';
+import AssignmentNotification, { AssignmentNotificationOptions } from './assignmentNotification';
 import Visitor from './visitor';
 import client from './api';
 import MockAdapter from 'axios-mock-adapter';
@@ -12,14 +13,14 @@ jest.mock('./testTrackConfig', () => {
 
 const mockClient = new MockAdapter(client);
 
-const track = success => (_, __, callback) => callback(success);
+const track = (success: boolean): AnalyticsProvider['trackAssignment'] => (_, __, callback) => callback(success);
 
 describe('AssignmentNotification', () => {
   let visitor: Visitor;
   let analyticsTrackStub: jest.Mock;
   let assignment: Assignment;
   let notification: AssignmentNotification;
-  let notificationOptions;
+  let notificationOptions: AssignmentNotificationOptions;
 
   function createNotification() {
     return new AssignmentNotification(notificationOptions);
@@ -35,7 +36,9 @@ describe('AssignmentNotification', () => {
 
     analyticsTrackStub = jest.fn().mockImplementation(track(true));
     visitor.setAnalytics({
-      trackAssignment: analyticsTrackStub
+      trackAssignment: analyticsTrackStub,
+      identify: jest.fn(),
+      alias: jest.fn()
     });
     visitor.logError = jest.fn();
 
@@ -77,11 +80,7 @@ describe('AssignmentNotification', () => {
       notification.send();
 
       expect(analyticsTrackStub).toHaveBeenCalledTimes(1);
-      expect(analyticsTrackStub).toHaveBeenCalledWith(
-        'visitorId',
-        assignment,
-        expect.any(Function)
-      );
+      expect(analyticsTrackStub).toHaveBeenCalledWith('visitorId', assignment, expect.any(Function));
     });
 
     it('notifies the test track server with an analytics success', () => {
@@ -127,9 +126,7 @@ describe('AssignmentNotification', () => {
 
       return notification.send().then(() => {
         expect(visitor.logError).toHaveBeenCalledTimes(2);
-        expect(visitor.logError).toHaveBeenCalledWith(
-          'test_track persistAssignment other error: Error: Network Error'
-        );
+        expect(visitor.logError).toHaveBeenCalledWith('test_track persistAssignment other error: Error: Network Error');
       });
     });
   });

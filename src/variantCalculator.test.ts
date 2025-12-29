@@ -1,6 +1,6 @@
 import SplitRegistry from './splitRegistry';
 import TestTrackConfig from './testTrackConfig';
-import VariantCalculator from './variantCalculator';
+import VariantCalculator, { VariantCalculatorOptions } from './variantCalculator';
 import Visitor from './visitor';
 import { mockSplitRegistry } from './test-utils';
 
@@ -9,7 +9,7 @@ jest.mock('./testTrackConfig');
 describe('VariantCalculator', () => {
   let visitor: Visitor;
   let calculator: VariantCalculator;
-  let calculatorOptions;
+  let calculatorOptions: VariantCalculatorOptions;
 
   function createCalculator() {
     return new VariantCalculator(calculatorOptions);
@@ -103,14 +103,7 @@ describe('VariantCalculator', () => {
 
   describe('#getSortedVariants()', () => {
     it('sorts variants alphabetically', () => {
-      expect(calculator.getSortedVariants()).toEqual([
-        'extraGiant',
-        'giant',
-        'huge',
-        'leetle',
-        'miniscule',
-        'teeny'
-      ]);
+      expect(calculator.getSortedVariants()).toEqual(['extraGiant', 'giant', 'huge', 'leetle', 'miniscule', 'teeny']);
     });
   });
 

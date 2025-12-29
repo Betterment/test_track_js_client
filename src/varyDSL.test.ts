@@ -43,6 +43,7 @@ describe('VaryDSL', () => {
   it('requires an assignment', () => {
     expect(
       function() {
+        // @ts-expect-error Testing missing required property
         new VaryDSL({
           visitor: visitor
         });
@@ -53,6 +54,7 @@ describe('VaryDSL', () => {
   it('requires a visitor', () => {
     expect(
       function() {
+        // @ts-expect-error Testing missing required property
         new VaryDSL({
           assignment: assignment
         });
@@ -142,6 +144,7 @@ describe('VaryDSL', () => {
     it('throws an error if handler is not provided', () => {
       expect(
         function() {
+          // @ts-expect-error Testing missing required argument
           vary.default('earth');
         }.bind(this)
       ).toThrow('must provide handler for earth');

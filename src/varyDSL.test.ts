@@ -41,42 +41,34 @@ describe('VaryDSL', () => {
   });
 
   it('requires an assignment', () => {
-    expect(
-      function() {
-        // @ts-expect-error Testing missing required property
-        new VaryDSL({
-          visitor: visitor
-        });
-      }.bind(this)
-    ).toThrow('must provide assignment');
+    expect(() => {
+      // @ts-expect-error Testing missing required property
+      new VaryDSL({
+        visitor: visitor
+      });
+    }).toThrow('must provide assignment');
   });
 
   it('requires a visitor', () => {
-    expect(
-      function() {
-        // @ts-expect-error Testing missing required property
-        new VaryDSL({
-          assignment: assignment
-        });
-      }.bind(this)
-    ).toThrow('must provide visitor');
+    expect(() => {
+      // @ts-expect-error Testing missing required property
+      new VaryDSL({
+        assignment: assignment
+      });
+    }).toThrow('must provide visitor');
   });
 
   describe('#when()', () => {
     it('throws an error if no variants are provided', () => {
-      expect(
-        function() {
-          vary.when(function() {});
-        }.bind(this)
-      ).toThrow('must provide at least one variant');
+      expect(() => {
+        vary.when(function() {});
+      }).toThrow('must provide at least one variant');
     });
 
     it('throws an error if handler is not provided', () => {
-      expect(
-        function() {
-          vary.when('earth');
-        }.bind(this)
-      ).toThrow('must provide handler for earth');
+      expect(() => {
+        vary.when('earth');
+      }).toThrow('must provide handler for earth');
     });
 
     it('supports multiple variants', () => {
@@ -142,22 +134,18 @@ describe('VaryDSL', () => {
 
   describe('#default()', () => {
     it('throws an error if handler is not provided', () => {
-      expect(
-        function() {
-          // @ts-expect-error Testing missing required argument
-          vary.default('earth');
-        }.bind(this)
-      ).toThrow('must provide handler for earth');
+      expect(() => {
+        // @ts-expect-error Testing missing required argument
+        vary.default('earth');
+      }).toThrow('must provide handler for earth');
     });
 
     it('throws an error if default is called more than once', () => {
-      expect(
-        function() {
-          vary.default('fire', function() {});
+      expect(() => {
+        vary.default('fire', function() {});
 
-          vary.default('water', function() {});
-        }.bind(this)
-      ).toThrow('must provide exactly one `default`');
+        vary.default('water', function() {});
+      }).toThrow('must provide exactly one `default`');
     });
 
     it('sets the default variant', () => {
@@ -233,21 +221,17 @@ describe('VaryDSL', () => {
     });
 
     it('throws an error if `default` was never called', () => {
-      expect(
-        function() {
-          vary.run();
-        }.bind(this)
-      ).toThrow('must provide exactly one `default`');
+      expect(() => {
+        vary.run();
+      }).toThrow('must provide exactly one `default`');
     });
 
     it('throws an error if `when` was never called', () => {
-      expect(
-        function() {
-          vary.default('water', function() {});
+      expect(() => {
+        vary.default('water', function() {});
 
-          vary.run();
-        }.bind(this)
-      ).toThrow('must provide at least one `when`');
+        vary.run();
+      }).toThrow('must provide at least one `when`');
     });
 
     it('runs the handler of the assigned variant', () => {

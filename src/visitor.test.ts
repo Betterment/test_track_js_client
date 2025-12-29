@@ -74,7 +74,7 @@ describe('Visitor', () => {
 
   describe('instantiation', () => {
     it('requires an id', () => {
-      expect(function() {
+      expect(() => {
         // @ts-expect-error id is required
         new Visitor({
           assignments: []
@@ -83,7 +83,7 @@ describe('Visitor', () => {
     });
 
     it('requires assignments', () => {
-      expect(function() {
+      expect(() => {
         // @ts-expect-error assignments are required
         new Visitor({
           id: 'visitor_id'

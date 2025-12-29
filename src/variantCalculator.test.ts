@@ -42,19 +42,15 @@ describe('VariantCalculator', () => {
   });
 
   it('requires a visitor', () => {
-    expect(function() {
-      // @ts-expect-error Testing deletion of required property
-      delete calculatorOptions.visitor;
-      createCalculator();
-    }).toThrow('must provide visitor');
+    // @ts-expect-error Testing deletion of required property
+    delete calculatorOptions.visitor;
+    expect(() => createCalculator()).toThrow('must provide visitor');
   });
 
   it('requires a splitName', () => {
-    expect(function() {
-      // @ts-expect-error Testing deletion of required property
-      delete calculatorOptions.splitName;
-      createCalculator();
-    }).toThrow('must provide splitName');
+    // @ts-expect-error Testing deletion of required property
+    delete calculatorOptions.splitName;
+    expect(() => createCalculator()).toThrow('must provide splitName');
   });
 
   describe('#getSplitVisitorHash()', () => {
@@ -114,9 +110,7 @@ describe('VariantCalculator', () => {
       calculatorOptions.splitName = 'nonExistentSplit';
       const localCalculator = createCalculator();
 
-      expect(function() {
-        localCalculator.getVariant();
-      }).toThrow('Unknown split: "nonExistentSplit"');
+      expect(() => localCalculator.getVariant()).toThrow('Unknown split: "nonExistentSplit"');
     });
 
     it('logs an error when given an unknown splitName', () => {
@@ -181,9 +175,9 @@ describe('VariantCalculator', () => {
       const localCalculator = createCalculator();
       localCalculator.getAssignmentBucket = jest.fn().mockReturnValue(99);
 
-      expect(function() {
-        localCalculator.getVariant();
-      }).toThrow('Assignment bucket out of range. 99 unmatched in invalidWeighting: {"yes":33,"no":33,"maybe":33}');
+      expect(() => localCalculator.getVariant()).toThrow(
+        'Assignment bucket out of range. 99 unmatched in invalidWeighting: {"yes":33,"no":33,"maybe":33}'
+      );
     });
   });
 });

@@ -34,51 +34,43 @@ describe('ABConfiguration', () => {
   });
 
   it('requires a splitName', () => {
-    expect(
-      function() {
-        // @ts-expect-error Testing missing required property
-        new ABConfiguration({
-          trueVariant: 'red',
-          visitor: visitor
-        });
-      }.bind(this)
-    ).toThrow('must provide splitName');
+    expect(() => {
+      // @ts-expect-error Testing missing required property
+      new ABConfiguration({
+        trueVariant: 'red',
+        visitor: visitor
+      });
+    }).toThrow('must provide splitName');
   });
 
   it('requires an trueVariant', () => {
-    expect(
-      function() {
-        new ABConfiguration({
-          splitName: 'button_color',
-          visitor: visitor
-        });
-      }.bind(this)
-    ).toThrow('must provide trueVariant');
+    expect(() => {
+      new ABConfiguration({
+        splitName: 'button_color',
+        visitor: visitor
+      });
+    }).toThrow('must provide trueVariant');
   });
 
   it('requires a visitor', () => {
-    expect(
-      function() {
-        // @ts-expect-error Testing missing required property
-        new ABConfiguration({
-          splitName: 'button_color',
-          trueVariant: 'red'
-        });
-      }.bind(this)
-    ).toThrow('must provide visitor');
+    expect(() => {
+      // @ts-expect-error Testing missing required property
+      new ABConfiguration({
+        splitName: 'button_color',
+        trueVariant: 'red'
+      });
+    }).toThrow('must provide visitor');
   });
 
   it('allows a null trueVariant', () => {
-    expect(
-      function() {
-        new ABConfiguration({
-          splitName: 'button_color',
-          // @ts-expect-error Testing null value
-          trueVariant: null,
-          visitor: visitor
-        });
-      }.bind(this)
-    ).not.toThrow();
+    expect(() => {
+      new ABConfiguration({
+        splitName: 'button_color',
+        // @ts-expect-error Testing null value
+        trueVariant: null,
+        visitor: visitor
+      });
+    }).not.toThrow();
   });
 
   describe('#getVariants()', () => {

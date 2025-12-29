@@ -57,27 +57,21 @@ describe('Identifier', () => {
   });
 
   it('requires a visitorId', () => {
-    expect(function() {
-      // @ts-expect-error Testing deletion of required property
-      delete identifierOptions.visitorId;
-      createIdentifier();
-    }).toThrow('must provide visitorId');
+    // @ts-expect-error Testing deletion of required property
+    delete identifierOptions.visitorId;
+    expect(() => createIdentifier()).toThrow('must provide visitorId');
   });
 
   it('requires a identifierType', () => {
-    expect(function() {
-      // @ts-expect-error Testing deletion of required property
-      delete identifierOptions.identifierType;
-      createIdentifier();
-    }).toThrow('must provide identifierType');
+    // @ts-expect-error Testing deletion of required property
+    delete identifierOptions.identifierType;
+    expect(() => createIdentifier()).toThrow('must provide identifierType');
   });
 
   it('requires a value', () => {
-    expect(function() {
-      // @ts-expect-error Testing deletion of required property
-      delete identifierOptions.value;
-      createIdentifier();
-    }).toThrow('must provide value');
+    // @ts-expect-error Testing deletion of required property
+    delete identifierOptions.value;
+    expect(() => createIdentifier()).toThrow('must provide value');
   });
 
   describe('#save()', () => {

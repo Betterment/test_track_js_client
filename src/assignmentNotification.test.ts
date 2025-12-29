@@ -63,19 +63,15 @@ describe('AssignmentNotification', () => {
   });
 
   it('requires a visitor', () => {
-    expect(function() {
-      // @ts-expect-error Testing deletion of required property
-      delete notificationOptions.visitor;
-      createNotification();
-    }).toThrow('must provide visitor');
+    // @ts-expect-error Testing deletion of required property
+    delete notificationOptions.visitor;
+    expect(() => createNotification()).toThrow('must provide visitor');
   });
 
   it('requires an assignment', () => {
-    expect(function() {
-      // @ts-expect-error Testing deletion of required property
-      delete notificationOptions.assignment;
-      createNotification();
-    }).toThrow('must provide assignment');
+    // @ts-expect-error Testing deletion of required property
+    delete notificationOptions.assignment;
+    expect(() => createNotification()).toThrow('must provide assignment');
   });
 
   describe('#send()', () => {

@@ -53,35 +53,27 @@ describe('AssignmentOverride', () => {
   });
 
   it('requires a visitor', () => {
-    expect(function() {
-      // @ts-expect-error Testing deletion of required property
-      delete overrideOptions.visitor;
-      createOverride();
-    }).toThrow('must provide visitor');
+    // @ts-expect-error Testing deletion of required property
+    delete overrideOptions.visitor;
+    expect(() => createOverride()).toThrow('must provide visitor');
   });
 
   it('requires an assignment', () => {
-    expect(function() {
-      // @ts-expect-error Testing deletion of required property
-      delete overrideOptions.assignment;
-      createOverride();
-    }).toThrow('must provide assignment');
+    // @ts-expect-error Testing deletion of required property
+    delete overrideOptions.assignment;
+    expect(() => createOverride()).toThrow('must provide assignment');
   });
 
   it('requires an username', () => {
-    expect(function() {
-      // @ts-expect-error Testing deletion of required property
-      delete overrideOptions.username;
-      createOverride();
-    }).toThrow('must provide username');
+    // @ts-expect-error Testing deletion of required property
+    delete overrideOptions.username;
+    expect(() => createOverride()).toThrow('must provide username');
   });
 
   it('requires a password', () => {
-    expect(function() {
-      // @ts-expect-error Testing deletion of required property
-      delete overrideOptions.password;
-      createOverride();
-    }).toThrow('must provide password');
+    // @ts-expect-error Testing deletion of required property
+    delete overrideOptions.password;
+    expect(() => createOverride()).toThrow('must provide password');
   });
 
   describe('#persistAssignment()', () => {

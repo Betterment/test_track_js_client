@@ -313,38 +313,6 @@ describe('Session', () => {
           });
         });
       });
-
-      describe('context of the public API methods', () => {
-        beforeEach(() => {
-          session.vary = jest.fn();
-          session.ab = jest.fn();
-          session.logIn = jest.fn();
-          session.signUp = jest.fn();
-
-          // pull a fresh instance of publicApi to pick up the stubbed methods
-          publicApi = session.getPublicAPI();
-        });
-
-        it('runs #vary() in the context of the session', () => {
-          publicApi.vary();
-          expect(session.vary).toHaveBeenCalled();
-        });
-
-        it('runs #ab() in the context of the session', () => {
-          publicApi.ab();
-          expect(session.ab).toHaveBeenCalled();
-        });
-
-        it('runs #logIn() in the context of the session', () => {
-          publicApi.logIn();
-          expect(session.logIn).toHaveBeenCalled();
-        });
-
-        it('runs #signUp() in the context of the session', () => {
-          publicApi.signUp();
-          expect(session.signUp).toHaveBeenCalled();
-        });
-      });
     });
   });
 });

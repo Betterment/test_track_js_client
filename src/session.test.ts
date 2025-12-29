@@ -91,7 +91,7 @@ describe('Session', () => {
   describe('with stubbed visitor and split registry', () => {
     let jabbaAssignment: Assignment;
     let visitorInstance: visitor.default;
-    let session: any;
+    let session: Session;
 
     beforeEach(() => {
       jabbaAssignment = new Assignment({
@@ -106,6 +106,7 @@ describe('Session', () => {
       });
 
       visitorInstance.analytics = {
+        trackAssignment: jest.fn(),
         alias: jest.fn(),
         identify: jest.fn()
       };
@@ -117,8 +118,8 @@ describe('Session', () => {
 
       visitor.default.loadVisitor = jest.fn().mockResolvedValue(visitorInstance);
 
-      session = new Session().getPublicAPI();
-      return session.initialize().then(() => {
+      session = new Session();
+      return session.initialize({}).then(() => {
         jest.mocked(Cookies.set).mockClear();
       });
     });
@@ -141,14 +142,17 @@ describe('Session', () => {
         var analytics = { track: '' };
         visitorInstance.setAnalytics = jest.fn();
 
-        return new Session()
-          .getPublicAPI()
-          .initialize({ analytics: analytics })
-          .then(() => {
-            expect(visitorInstance.setAnalytics).toHaveBeenCalledTimes(1);
-            expect(visitorInstance.setAnalytics).toHaveBeenCalledTimes(1);
-            expect(visitorInstance.setAnalytics).toHaveBeenCalledWith(analytics);
-          });
+        return (
+          new Session()
+            .getPublicAPI()
+            // @ts-expect-error Testing with incomplete analytics object
+            .initialize({ analytics: analytics })
+            .then(() => {
+              expect(visitorInstance.setAnalytics).toHaveBeenCalledTimes(1);
+              expect(visitorInstance.setAnalytics).toHaveBeenCalledTimes(1);
+              expect(visitorInstance.setAnalytics).toHaveBeenCalledWith(analytics);
+            })
+        );
       });
 
       it('sets the error logger', () => {
@@ -210,22 +214,21 @@ describe('Session', () => {
     });
 
     describe('#vary()', () => {
-      it('calls the correct vary function for the given split', () => {
+      it('calls the correct vary function for the given split', async () => {
         const mockCgi = jest.fn();
         const mockPuppet = jest.fn();
 
-        session.vary('jabba', {
+        await session.vary('jabba', {
           context: 'spec',
           variants: {
             cgi: mockCgi,
             puppet: mockPuppet
           },
-          defaultVariant: 'puppet',
-          callback() {
-            expect(mockCgi).toHaveBeenCalled();
-            expect(mockPuppet).not.toHaveBeenCalled();
-          }
+          defaultVariant: 'puppet'
         });
+
+        expect(mockCgi).toHaveBeenCalled();
+        expect(mockPuppet).not.toHaveBeenCalled();
       });
     });
 
@@ -242,11 +245,11 @@ describe('Session', () => {
     });
 
     describe('#getPublicAPI()', () => {
-      let publicApi: any;
+      let publicApi: ReturnType<Session['getPublicAPI']>;
 
       beforeEach(() => {
         session = new Session();
-        session.initialize();
+        session.initialize({});
         publicApi = session.getPublicAPI();
       });
 

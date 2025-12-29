@@ -16,7 +16,7 @@ const mockClient = new MockAdapter(client);
 
 describe('Identifier', () => {
   let identifier: Identifier;
-  let identifierOptions;
+  let identifierOptions: ConstructorParameters<typeof Identifier>[0];
 
   function createIdentifier() {
     return new Identifier(identifierOptions);

@@ -1,7 +1,7 @@
 import Split from './split';
 
 describe('Split', () => {
-  let split;
+  let split: Split;
   beforeEach(() => {
     split = new Split('split name', true, { foo: 50, bar: 50, baz: 0 });
   });

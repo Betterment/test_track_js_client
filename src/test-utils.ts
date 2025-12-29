@@ -1,9 +1,9 @@
 import SplitRegistry from './splitRegistry';
-import Split from './split';
+import Split, { Weighting } from './split';
 
-function mockSplitRegistry(v1RegistryHash) {
+function mockSplitRegistry(v1RegistryHash: Record<string, Weighting>) {
   let mock = jest.fn(),
-    splits = [];
+    splits: Split[] = [];
 
   for (var splitName in v1RegistryHash) {
     splits.push(new Split(splitName, false, v1RegistryHash[splitName]));

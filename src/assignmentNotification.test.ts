@@ -13,7 +13,8 @@ jest.mock('./testTrackConfig', () => {
 
 const mockClient = new MockAdapter(client);
 
-const track = (success: boolean): AnalyticsProvider['trackAssignment'] => (_, __, callback) => callback(success);
+const track = (success: boolean): AnalyticsProvider['trackAssignment'] => (_visitorId, _assignment, callback) =>
+  callback(success);
 
 describe('AssignmentNotification', () => {
   let visitor: Visitor;

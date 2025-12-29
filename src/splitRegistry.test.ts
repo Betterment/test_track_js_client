@@ -2,7 +2,7 @@ import Split from './split';
 import SplitRegistry from './splitRegistry';
 
 describe('SplitRegistry', () => {
-  let splitRegistry;
+  let splitRegistry: SplitRegistry;
   beforeEach(() => {
     var split1 = new Split('split1', true, { foo: 50, bar: 50, baz: 0 });
     var split2 = new Split('split2', true, { up: 50, down: 50 });

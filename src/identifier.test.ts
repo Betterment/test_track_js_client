@@ -1,8 +1,8 @@
 import Assignment from './assignment';
 import Identifier from './identifier';
 import Visitor from './visitor';
-import client from './api';
-import MockAdapter from 'axios-mock-adapter';
+import { http, HttpResponse } from 'msw';
+import { server, requests } from './setupTests';
 
 vi.mock('./testTrackConfig', () => {
   return {
@@ -14,8 +14,6 @@ vi.mock('./testTrackConfig', () => {
 
 vi.mock('./visitor');
 
-const mockClient = new MockAdapter(client);
-
 describe('Identifier', () => {
   let identifier: Identifier;
   let identifierOptions: ConstructorParameters<typeof Identifier>[0];
@@ -25,25 +23,29 @@ describe('Identifier', () => {
   }
 
   beforeEach(() => {
-    mockClient.onPost('/v1/identifier').reply(200, {
-      visitor: {
-        id: 'actual_visitor_id',
-        assignments: [
-          {
-            split_name: 'jabba',
-            variant: 'puppet',
-            context: 'mos_eisley',
-            unsynced: true
-          },
-          {
-            split_name: 'wine',
-            variant: 'red',
-            context: 'napa',
-            unsynced: false
+    server.use(
+      http.post('http://testtrack.dev/api/v1/identifier',() => {
+        return HttpResponse.json({
+          visitor: {
+            id: 'actual_visitor_id',
+            assignments: [
+              {
+                split_name: 'jabba',
+                variant: 'puppet',
+                context: 'mos_eisley',
+                unsynced: true
+              },
+              {
+                split_name: 'wine',
+                variant: 'red',
+                context: 'napa',
+                unsynced: false
+              }
+            ]
           }
-        ]
-      }
-    });
+        });
+      })
+    );
 
     identifierOptions = {
       visitorId: 'transient_visitor_id',
@@ -52,10 +54,6 @@ describe('Identifier', () => {
     };
 
     identifier = createIdentifier();
-  });
-
-  afterEach(() => {
-    mockClient.reset();
   });
 
   it('requires a visitorId', () => {
@@ -79,9 +77,9 @@ describe('Identifier', () => {
   describe('#save()', () => {
     it('hits the test track server with the correct parameters', async () => {
       await identifier.save();
-      expect(mockClient.history.post.length).toBe(1);
-      expect(mockClient.history.post[0].url).toEqual(expect.stringContaining('/v1/identifier'));
-      expect(mockClient.history.post[0].data).toEqual(
+      expect(requests.length).toBe(1);
+      expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/identifier');
+      expect(await requests[0].text()).toEqual(
         'identifier_type=myappdb_user_id&value=444&visitor_id=transient_visitor_id'
       );
     });

@@ -6,10 +6,10 @@ import MixpanelAnalytics from './mixpanelAnalytics';
 import TestTrackConfig from './testTrackConfig';
 import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
-import client from './api';
 import { v4 as uuid } from 'uuid';
 import { mockSplitRegistry } from './test-utils';
-import MockAdapter from 'axios-mock-adapter';
+import { http, HttpResponse } from 'msw';
+import { server, requests } from './setupTests';
 
 vi.mock('uuid');
 
@@ -49,8 +49,6 @@ vi.mock('./identifier', () => {
   return { default: MockIdentifier };
 });
 
-const mockClient = new MockAdapter(client);
-
 describe('Visitor', () => {
   let visitor: Visitor;
 
@@ -77,10 +75,6 @@ describe('Visitor', () => {
     });
   });
 
-  afterEach(() => {
-    mockClient.reset();
-  });
-
   describe('instantiation', () => {
     it('requires an id', () => {
       expect(() => {
@@ -103,23 +97,40 @@ describe('Visitor', () => {
 
   describe('.loadVisitor()', () => {
     beforeEach(() => {
-      mockClient.onGet('/v1/visitors/server_visitor_id').reply(200, {
-        id: 'server_visitor_id',
-        assignments: [
-          {
-            split_name: 'jabba',
-            variant: 'puppet',
-            unsynced: false
-          }
-        ]
-      });
+      server.use(
+        http.get('http://testtrack.dev/api/v1/visitors/server_visitor_id', () => {
+          return HttpResponse.json({
+            id: 'server_visitor_id',
+            assignments: [
+              {
+                split_name: 'jabba',
+                variant: 'puppet',
+                unsynced: false
+              }
+            ]
+          });
+        }),
+        http.get('http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id', () => {
+          return HttpResponse.json({
+            id: 'puppeteer_visitor_id',
+            assignments: [
+              {
+                split_name: 'jabba',
+                variant: 'puppet',
+                context: 'mos_eisley',
+                unsynced: false
+              }
+            ]
+          });
+        })
+      );
     });
 
     it('does not hit the server when not passed a visitorId', async () => {
       vi.mocked(uuid).mockReturnValue('generated_uuid');
 
       const visitor = await Visitor.loadVisitor(undefined);
-      expect(mockClient.history.get.length).toBe(0);
+      expect(requests.length).toBe(0);
       expect(visitor.getId()).toEqual('generated_uuid');
       expect(visitor.getAssignmentRegistry()).toEqual({});
     });
@@ -140,7 +151,7 @@ describe('Visitor', () => {
       vi.mocked(TestTrackConfig.getAssignments).mockReturnValue([jabbaAssignment, wineAssignment]);
 
       const visitor = await Visitor.loadVisitor('baked_visitor_id');
-      expect(mockClient.history.get.length).toBe(0);
+      expect(requests.length).toBe(0);
       expect(visitor.getId()).toEqual('baked_visitor_id');
       expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
       expect(visitor._getUnsyncedAssignments()).toEqual([]);
@@ -150,20 +161,9 @@ describe('Visitor', () => {
     });
 
     it('loads a visitor from the server for an existing visitor if there are no baked assignments', async () => {
-      mockClient.onGet('/v1/visitors/puppeteer_visitor_id').reply(200, {
-        id: 'puppeteer_visitor_id',
-        assignments: [
-          {
-            split_name: 'jabba',
-            variant: 'puppet',
-            context: 'mos_eisley',
-            unsynced: false
-          }
-        ]
-      });
-
       const visitor = await Visitor.loadVisitor('puppeteer_visitor_id');
-      expect(mockClient.history.get[0].url).toEqual(expect.stringContaining('/v1/visitors/puppeteer_visitor_id'));
+      expect(requests.length).toBe(1);
+      expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id');
       const jabbaAssignment = new Assignment({
         splitName: 'jabba',
         variant: 'puppet',
@@ -176,10 +176,15 @@ describe('Visitor', () => {
     });
 
     it('builds a visitor in offline mode if the request fails', async () => {
-      mockClient.onGet('/v1/visitors/failed_visitor_id').timeout();
+      server.use(
+        http.get('http://testtrack.dev/api/v1/visitors/failed_visitor_id', () => {
+          return HttpResponse.error();
+        })
+      );
 
       const visitor = await Visitor.loadVisitor('failed_visitor_id');
-      expect(mockClient.history.get[0].url).toEqual(expect.stringContaining('/v1/visitors/failed_visitor_id'));
+      expect(requests.length).toBe(1);
+      expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/visitors/failed_visitor_id');
       expect(visitor.getId()).toEqual('failed_visitor_id');
       expect(visitor.getAssignmentRegistry()).toEqual({});
       // @ts-expect-error Private property

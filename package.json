@@ -36,7 +36,6 @@
     "@types/node": "^20.5.7",
     "@types/qs": "^6.9.7",
     "@types/uuid": "^9.0.2",
-    "axios-mock-adapter": "^1.17.0",
     "eslint": "^9.28.0",
     "jsdom": "^27.4.0",
     "lodash.omit": "^4.5.0",

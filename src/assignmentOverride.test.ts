@@ -1,8 +1,8 @@
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
 import Visitor from './visitor';
-import client from './api';
-import MockAdapter from 'axios-mock-adapter';
+import { http, HttpResponse } from 'msw';
+import { server, requests } from './setupTests';
 
 vi.mock('./testTrackConfig', () => {
   return {
@@ -11,8 +11,6 @@ vi.mock('./testTrackConfig', () => {
     }
   };
 });
-
-const mockClient = new MockAdapter(client);
 
 function createVisitor() {
   const visitor = new Visitor({ id: 'visitorId', assignments: [] });
@@ -26,11 +24,11 @@ function createAssignment() {
 
 describe('AssignmentOverride', () => {
   beforeEach(() => {
-    mockClient.onPost('/v1/assignment_override').reply(200);
-  });
-
-  afterEach(() => {
-    mockClient.reset();
+    server.use(
+      http.post('http://testtrack.dev/api/v1/assignment_override',() => {
+        return HttpResponse.json(null, { status: 200 });
+      })
+    );
   });
 
   it('requires a visitor', () => {
@@ -75,18 +73,21 @@ describe('AssignmentOverride', () => {
       });
 
       await override.persistAssignment();
-      expect(mockClient.history.post.length).toBe(1);
-      expect(mockClient.history.post[0].url).toEqual(expect.stringContaining('/v1/assignment_override'));
-      expect(mockClient.history.post[0].data).toEqual(
+      expect(requests.length).toBe(1);
+      expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/assignment_override');
+      expect(await requests[0].text()).toEqual(
         'visitor_id=visitorId&split_name=jabba&variant=cgi&context=spec&mixpanel_result=success'
       );
-      expect(mockClient.history.post[0].auth).toEqual({
-        username: 'the_username',
-        password: 'the_password'
-      });
+      expect(requests[0].headers.get('authorization')).toEqual('Basic ' + btoa('the_username:the_password'));
     });
 
     it('logs an error on an error response', async () => {
+      server.use(
+        http.post('http://testtrack.dev/api/v1/assignment_override',() => {
+          return HttpResponse.json(null, { status: 500 });
+        })
+      );
+
       const visitor = createVisitor();
       const assignment = createAssignment();
       const override = new AssignmentOverride({
@@ -95,18 +96,21 @@ describe('AssignmentOverride', () => {
         username: 'the_username',
         password: 'the_password'
       });
-
-      mockClient.reset();
-      mockClient.onPost().reply(500);
 
       await override.persistAssignment();
       expect(visitor.logError).toHaveBeenCalledTimes(1);
       expect(visitor.logError).toHaveBeenCalledWith(
-        'test_track persistAssignment response error: 500, undefined, undefined'
+        expect.stringContaining('test_track persistAssignment response error: 500')
       );
     });
 
     it('logs an error on a network error', async () => {
+      server.use(
+        http.post('http://testtrack.dev/api/v1/assignment_override',() => {
+          return HttpResponse.error();
+        })
+      );
+
       const visitor = createVisitor();
       const assignment = createAssignment();
       const override = new AssignmentOverride({
@@ -116,12 +120,9 @@ describe('AssignmentOverride', () => {
         password: 'the_password'
       });
 
-      mockClient.reset();
-      mockClient.onPost().networkError();
-
       await override.persistAssignment();
       expect(visitor.logError).toHaveBeenCalledTimes(1);
-      expect(visitor.logError).toHaveBeenCalledWith('test_track persistAssignment other error: Error: Network Error');
+      expect(visitor.logError).toHaveBeenCalledWith(expect.stringContaining('test_track persistAssignment other error'));
     });
   });
 });

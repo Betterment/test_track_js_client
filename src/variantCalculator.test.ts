@@ -43,6 +43,7 @@ describe('VariantCalculator', () => {
 
   it('requires a visitor', () => {
     expect(function() {
+      // @ts-expect-error Testing deletion of required property
       delete calculatorOptions.visitor;
       createCalculator();
     }).toThrow('must provide visitor');
@@ -50,6 +51,7 @@ describe('VariantCalculator', () => {
 
   it('requires a splitName', () => {
     expect(function() {
+      // @ts-expect-error Testing deletion of required property
       delete calculatorOptions.splitName;
       createCalculator();
     }).toThrow('must provide splitName');

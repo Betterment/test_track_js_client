@@ -15,6 +15,7 @@ describe('MixpanelAnalytics', () => {
   });
 
   afterEach(() => {
+    // @ts-expect-error Cleaning up test property
     delete window.mixpanel;
   });
 

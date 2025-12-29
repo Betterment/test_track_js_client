@@ -58,6 +58,7 @@ describe('Identifier', () => {
 
   it('requires a visitorId', () => {
     expect(function() {
+      // @ts-expect-error Testing deletion of required property
       delete identifierOptions.visitorId;
       createIdentifier();
     }).toThrow('must provide visitorId');
@@ -65,6 +66,7 @@ describe('Identifier', () => {
 
   it('requires a identifierType', () => {
     expect(function() {
+      // @ts-expect-error Testing deletion of required property
       delete identifierOptions.identifierType;
       createIdentifier();
     }).toThrow('must provide identifierType');
@@ -72,6 +74,7 @@ describe('Identifier', () => {
 
   it('requires a value', () => {
     expect(function() {
+      // @ts-expect-error Testing deletion of required property
       delete identifierOptions.value;
       createIdentifier();
     }).toThrow('must provide value');

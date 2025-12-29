@@ -54,6 +54,7 @@ describe('AssignmentOverride', () => {
 
   it('requires a visitor', () => {
     expect(function() {
+      // @ts-expect-error Testing deletion of required property
       delete overrideOptions.visitor;
       createOverride();
     }).toThrow('must provide visitor');
@@ -61,6 +62,7 @@ describe('AssignmentOverride', () => {
 
   it('requires an assignment', () => {
     expect(function() {
+      // @ts-expect-error Testing deletion of required property
       delete overrideOptions.assignment;
       createOverride();
     }).toThrow('must provide assignment');
@@ -68,6 +70,7 @@ describe('AssignmentOverride', () => {
 
   it('requires an username', () => {
     expect(function() {
+      // @ts-expect-error Testing deletion of required property
       delete overrideOptions.username;
       createOverride();
     }).toThrow('must provide username');
@@ -75,6 +78,7 @@ describe('AssignmentOverride', () => {
 
   it('requires a password', () => {
     expect(function() {
+      // @ts-expect-error Testing deletion of required property
       delete overrideOptions.password;
       createOverride();
     }).toThrow('must provide password');

@@ -181,6 +181,7 @@ describe('Visitor', () => {
 
         expect(visitor.getId()).toEqual('failed_visitor_id');
         expect(visitor.getAssignmentRegistry()).toEqual({});
+        // @ts-expect-error Private property
         expect(visitor._ttOffline).toEqual(true);
       });
     });
@@ -491,6 +492,7 @@ describe('Visitor', () => {
 
     describe('with an explicit trueVariant', () => {
       it('returns true when assigned to the trueVariant', () => {
+        // @ts-expect-error Private property
         visitor._assignments = [
           new Assignment({
             splitName: 'jabba',
@@ -509,6 +511,7 @@ describe('Visitor', () => {
       });
 
       it('returns false when not assigned to the trueVariant', () => {
+        // @ts-expect-error Private property
         visitor._assignments = [
           new Assignment({
             splitName: 'jabba',
@@ -529,6 +532,7 @@ describe('Visitor', () => {
 
     describe('with an implicit trueVariant', () => {
       it('returns true when variant is true', () => {
+        // @ts-expect-error Private property
         visitor._assignments = [
           new Assignment({
             splitName: 'blue_button',
@@ -546,6 +550,7 @@ describe('Visitor', () => {
       });
 
       it('returns false when variant is false', () => {
+        // @ts-expect-error Private property
         visitor._assignments = [
           new Assignment({
             splitName: 'blue_button',
@@ -608,6 +613,7 @@ describe('Visitor', () => {
       const jabbaPuppetAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: true });
       const wineAssignment = new Assignment({ splitName: 'wine', variant: 'white', isUnsynced: true });
 
+      // @ts-expect-error Private property
       visitor._assignments = [jabbaPuppetAssignment, wineAssignment];
 
       return visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
@@ -649,6 +655,7 @@ describe('Visitor', () => {
 
       visitor.setErrorLogger(errorLogger);
 
+      // @ts-expect-error Private property
       expect(visitor._errorLogger).toBe(errorLogger);
     });
   });

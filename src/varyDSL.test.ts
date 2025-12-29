@@ -81,6 +81,7 @@ describe('VaryDSL', () => {
       var handler = function() {};
       vary.when('earth', 'wind', 'fire', handler);
 
+      // @ts-expect-error Private property
       expect(vary._variantHandlers).toEqual({
         earth: handler,
         wind: handler,
@@ -92,6 +93,7 @@ describe('VaryDSL', () => {
       var handler = function() {};
       vary.when('earth', 'wind', 'leeloo_multipass', handler);
 
+      // @ts-expect-error Private property
       expect(vary._variantHandlers).toEqual({
         earth: handler,
         wind: handler,
@@ -164,6 +166,7 @@ describe('VaryDSL', () => {
     it('adds the variant to the _variantHandlers object', () => {
       var handler = function() {};
       vary.default('water', handler);
+      // @ts-expect-error Private property
       expect(vary._variantHandlers).toEqual({
         water: handler
       });
@@ -174,6 +177,7 @@ describe('VaryDSL', () => {
 
       vary.default('leeloo_multipass', handler);
 
+      // @ts-expect-error Private property
       expect(vary._variantHandlers).toEqual({
         leeloo_multipass: handler
       });

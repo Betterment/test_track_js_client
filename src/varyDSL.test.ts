@@ -80,7 +80,7 @@ describe('VaryDSL', () => {
     });
 
     it('supports multiple variants', () => {
-      var handler = function() {};
+      const handler = function() {};
       vary.when('earth', 'wind', 'fire', handler);
 
       // @ts-expect-error Private property
@@ -92,7 +92,7 @@ describe('VaryDSL', () => {
     });
 
     it('logs an error if given a variant that is not in the split registry', () => {
-      var handler = function() {};
+      const handler = function() {};
       vary.when('earth', 'wind', 'leeloo_multipass', handler);
 
       // @ts-expect-error Private property
@@ -108,7 +108,7 @@ describe('VaryDSL', () => {
     it('does not log an error when the split registry is not loaded', () => {
       jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
-      var localVary = new VaryDSL({
+      const localVary = new VaryDSL({
         assignment: assignment,
         visitor: visitor
       });
@@ -129,7 +129,7 @@ describe('VaryDSL', () => {
         }
       });
 
-      var localVary = new VaryDSL({
+      const localVary = new VaryDSL({
         assignment: assignment,
         visitor: visitor
       });
@@ -167,7 +167,7 @@ describe('VaryDSL', () => {
     });
 
     it('adds the variant to the _variantHandlers object', () => {
-      var handler = function() {};
+      const handler = function() {};
       vary.default('water', handler);
       // @ts-expect-error Private property
       expect(vary._variantHandlers).toEqual({
@@ -176,7 +176,7 @@ describe('VaryDSL', () => {
     });
 
     it('logs an error if given a variant that is not in the split registry', () => {
-      var handler = function() {};
+      const handler = function() {};
 
       vary.default('leeloo_multipass', handler);
 
@@ -191,7 +191,7 @@ describe('VaryDSL', () => {
     it('does not log an error when the split registry is not loaded', () => {
       jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
-      var localVary = new VaryDSL({
+      const localVary = new VaryDSL({
         assignment: assignment,
         visitor: visitor
       });
@@ -212,7 +212,7 @@ describe('VaryDSL', () => {
         }
       });
 
-      var localVary = new VaryDSL({
+      const localVary = new VaryDSL({
         assignment: assignment,
         visitor: visitor
       });
@@ -261,7 +261,7 @@ describe('VaryDSL', () => {
     });
 
     it('runs the default handler and is defaulted if the assigned variant is not represented', () => {
-      var localVary = new VaryDSL({
+      const localVary = new VaryDSL({
         assignment: assignment,
         visitor: visitor
       });
@@ -277,7 +277,7 @@ describe('VaryDSL', () => {
     });
 
     it('is not defaulted if the assigned variant is represented as the default', () => {
-      var localVary = new VaryDSL({
+      const localVary = new VaryDSL({
         assignment: assignment,
         visitor: visitor
       });
@@ -304,7 +304,7 @@ describe('VaryDSL', () => {
     it('does not log an error when the split registry is not loaded', () => {
       jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
-      var localVary = new VaryDSL({
+      const localVary = new VaryDSL({
         assignment: assignment,
         visitor: visitor
       });

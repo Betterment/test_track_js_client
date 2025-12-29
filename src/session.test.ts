@@ -38,7 +38,7 @@ describe('Session', () => {
 
   describe('Cookie behavior', () => {
     it('reads the visitor id from a cookie and sets it back in the cookie', () => {
-      var v = new visitor.default({ id: 'existing_visitor_id', assignments: [] });
+      const v = new visitor.default({ id: 'existing_visitor_id', assignments: [] });
       visitor.default.loadVisitor = jest.fn().mockResolvedValue(v);
 
       return (
@@ -66,7 +66,7 @@ describe('Session', () => {
       // @ts-expect-error Cookies.get returns different types depending on arguments
       jest.mocked(Cookies.get).mockReturnValue(null);
 
-      var v = new visitor.default({ id: 'generated_visitor_id', assignments: [] });
+      const v = new visitor.default({ id: 'generated_visitor_id', assignments: [] });
       visitor.default.loadVisitor = jest.fn().mockResolvedValue(v);
 
       return new Session()
@@ -139,7 +139,7 @@ describe('Session', () => {
       });
 
       it('sets the analytics lib', () => {
-        var analytics = { track: '' };
+        const analytics = { track: '' };
         visitorInstance.setAnalytics = jest.fn();
 
         return (
@@ -156,7 +156,7 @@ describe('Session', () => {
       });
 
       it('sets the error logger', () => {
-        var errorLogger = function() {};
+        const errorLogger = function() {};
         visitorInstance.setErrorLogger = jest.fn();
 
         return new Session()

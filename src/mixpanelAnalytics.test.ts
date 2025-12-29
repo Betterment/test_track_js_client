@@ -21,7 +21,7 @@ describe('MixpanelAnalytics', () => {
 
   describe('#trackAssignment()', () => {
     it('calls window.mixpanel.track()', () => {
-      var assignment = new Assignment({
+      const assignment = new Assignment({
         splitName: 'jabba',
         variant: 'cgi',
         context: 'spec',

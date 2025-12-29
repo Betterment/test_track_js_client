@@ -112,7 +112,7 @@ describe('VariantCalculator', () => {
   describe('#getWeighting()', () => {
     it('throws when given an unknown splitName', () => {
       calculatorOptions.splitName = 'nonExistentSplit';
-      var localCalculator = createCalculator();
+      const localCalculator = createCalculator();
 
       expect(function() {
         localCalculator.getVariant();
@@ -121,7 +121,7 @@ describe('VariantCalculator', () => {
 
     it('logs an error when given an unknown splitName', () => {
       calculatorOptions.splitName = 'nonExistentSplit';
-      var localCalculator = createCalculator();
+      const localCalculator = createCalculator();
 
       try {
         localCalculator.getVariant();
@@ -178,7 +178,7 @@ describe('VariantCalculator', () => {
       });
 
       calculatorOptions.splitName = 'invalidWeighting';
-      var localCalculator = createCalculator();
+      const localCalculator = createCalculator();
       localCalculator.getAssignmentBucket = jest.fn().mockReturnValue(99);
 
       expect(function() {

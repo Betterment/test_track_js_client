@@ -92,7 +92,7 @@ describe('Identifier', () => {
     });
 
     it('responds with a Visitor instance with the attributes from the server', () => {
-      var jabbaAssignment = new Assignment({
+      const jabbaAssignment = new Assignment({
           splitName: 'jabba',
           variant: 'puppet',
           context: 'mos_eisley',

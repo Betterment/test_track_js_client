@@ -83,7 +83,7 @@ describe('ABConfiguration', () => {
 
   describe('#getVariants()', () => {
     it('logs an error if the split does not have exactly two variants', () => {
-      var abConfiguration = new ABConfiguration({
+      const abConfiguration = new ABConfiguration({
         splitName: 'element',
         trueVariant: 'water',
         visitor: visitor
@@ -97,7 +97,7 @@ describe('ABConfiguration', () => {
     it('does not log an error if the split registry is not loaded', () => {
       jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
-      var abConfiguration = new ABConfiguration({
+      const abConfiguration = new ABConfiguration({
         splitName: 'element',
         trueVariant: 'water',
         visitor: visitor
@@ -110,7 +110,7 @@ describe('ABConfiguration', () => {
 
     describe('true variant', () => {
       it('is true if null was passed in during instantiation', () => {
-        var abConfiguration = new ABConfiguration({
+        const abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           // @ts-expect-error Testing null value
           trueVariant: null,
@@ -132,7 +132,7 @@ describe('ABConfiguration', () => {
       });
 
       it('is whatever was passed in during instantiation', () => {
-        var abConfiguration = new ABConfiguration({
+        const abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red',
           visitor: visitor
@@ -144,7 +144,7 @@ describe('ABConfiguration', () => {
 
     describe('false variant', () => {
       it('is the variant of the split that is not the true_variant', () => {
-        var abConfiguration = new ABConfiguration({
+        const abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red',
           visitor: visitor
@@ -156,7 +156,7 @@ describe('ABConfiguration', () => {
       it('is false when there is no split_registry', () => {
         jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
-        var abConfiguration = new ABConfiguration({
+        const abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red',
           visitor: visitor
@@ -166,7 +166,7 @@ describe('ABConfiguration', () => {
       });
 
       it('is always the same if the split has more than two variants', () => {
-        var abConfiguration = new ABConfiguration({
+        const abConfiguration = new ABConfiguration({
           splitName: 'element',
           trueVariant: 'earth',
           visitor: visitor
@@ -176,7 +176,7 @@ describe('ABConfiguration', () => {
       });
 
       it('is false if only one variant in the split', () => {
-        var abConfiguration = new ABConfiguration({
+        const abConfiguration = new ABConfiguration({
           splitName: 'new_feature',
           // @ts-expect-error Testing null value
           trueVariant: null,

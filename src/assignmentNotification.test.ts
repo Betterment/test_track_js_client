@@ -14,36 +14,32 @@ const mockClient = new MockAdapter(client);
 
 const track = success => (_, __, callback) => callback(success);
 
-type TestContext = {
-  visitor: Visitor;
-  analyticsTrackStub: jest.Mock;
-  assignment: Assignment;
-  notification: AssignmentNotification;
-};
-
 describe('AssignmentNotification', () => {
+  let visitor: Visitor;
+  let analyticsTrackStub: jest.Mock;
+  let assignment: Assignment;
+  let notification: AssignmentNotification;
   let notificationOptions;
+
   function createNotification() {
     return new AssignmentNotification(notificationOptions);
   }
 
-  let testContext: TestContext;
   beforeEach(() => {
-    testContext = {} as TestContext;
     mockClient.onPost().reply(200);
 
-    testContext.visitor = new Visitor({
+    visitor = new Visitor({
       id: 'visitorId',
       assignments: []
     });
 
-    testContext.analyticsTrackStub = jest.fn().mockImplementation(track(true));
-    testContext.visitor.setAnalytics({
-      trackAssignment: testContext.analyticsTrackStub
+    analyticsTrackStub = jest.fn().mockImplementation(track(true));
+    visitor.setAnalytics({
+      trackAssignment: analyticsTrackStub
     });
-    testContext.visitor.logError = jest.fn();
+    visitor.logError = jest.fn();
 
-    testContext.assignment = new Assignment({
+    assignment = new Assignment({
       splitName: 'jabba',
       variant: 'cgi',
       context: 'spec',
@@ -51,11 +47,11 @@ describe('AssignmentNotification', () => {
     });
 
     notificationOptions = {
-      visitor: testContext.visitor,
-      assignment: testContext.assignment
+      visitor: visitor,
+      assignment: assignment
     };
 
-    testContext.notification = createNotification();
+    notification = createNotification();
   });
 
   afterEach(() => {
@@ -78,20 +74,20 @@ describe('AssignmentNotification', () => {
 
   describe('#send()', () => {
     it('tracks an event', () => {
-      testContext.notification.send();
+      notification.send();
 
-      expect(testContext.analyticsTrackStub).toHaveBeenCalledTimes(1);
-      expect(testContext.analyticsTrackStub).toHaveBeenCalledWith(
+      expect(analyticsTrackStub).toHaveBeenCalledTimes(1);
+      expect(analyticsTrackStub).toHaveBeenCalledWith(
         'visitorId',
-        testContext.assignment,
+        assignment,
         expect.any(Function)
       );
     });
 
     it('notifies the test track server with an analytics success', () => {
-      testContext.analyticsTrackStub.mockImplementation(track(true));
+      analyticsTrackStub.mockImplementation(track(true));
 
-      return testContext.notification.send().then(() => {
+      return notification.send().then(() => {
         expect(mockClient.history.post.length).toBe(2);
         expect(mockClient.history.post[0].data).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
         expect(mockClient.history.post[1].data).toEqual(
@@ -101,9 +97,9 @@ describe('AssignmentNotification', () => {
     });
 
     it('notifies the test track server with an analytics failure', () => {
-      testContext.analyticsTrackStub.mockImplementation(track(false));
+      analyticsTrackStub.mockImplementation(track(false));
 
-      return testContext.notification.send().then(() => {
+      return notification.send().then(() => {
         expect(mockClient.history.post.length).toBe(2);
         expect(mockClient.history.post[0].data).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
         expect(mockClient.history.post[1].data).toEqual(
@@ -113,13 +109,13 @@ describe('AssignmentNotification', () => {
     });
 
     it('logs an error on an error response', () => {
-      testContext.analyticsTrackStub.mockImplementation(track(false));
+      analyticsTrackStub.mockImplementation(track(false));
       mockClient.reset();
       mockClient.onPost().reply(500, null);
 
-      return testContext.notification.send().then(() => {
-        expect(testContext.visitor.logError).toHaveBeenCalledTimes(2);
-        expect(testContext.visitor.logError).toHaveBeenCalledWith(
+      return notification.send().then(() => {
+        expect(visitor.logError).toHaveBeenCalledTimes(2);
+        expect(visitor.logError).toHaveBeenCalledWith(
           'test_track persistAssignment response error: 500, undefined, null'
         );
       });
@@ -129,9 +125,9 @@ describe('AssignmentNotification', () => {
       mockClient.reset();
       mockClient.onPost().networkError();
 
-      return testContext.notification.send().then(() => {
-        expect(testContext.visitor.logError).toHaveBeenCalledTimes(2);
-        expect(testContext.visitor.logError).toHaveBeenCalledWith(
+      return notification.send().then(() => {
+        expect(visitor.logError).toHaveBeenCalledTimes(2);
+        expect(visitor.logError).toHaveBeenCalledWith(
           'test_track persistAssignment other error: Error: Network Error'
         );
       });

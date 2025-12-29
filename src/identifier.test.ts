@@ -14,19 +14,15 @@ jest.mock('./visitor');
 
 const mockClient = new MockAdapter(client);
 
-type TestContext = {
-  identifier: Identifier;
-};
-
 describe('Identifier', () => {
+  let identifier: Identifier;
   let identifierOptions;
+
   function createIdentifier() {
     return new Identifier(identifierOptions);
   }
 
-  let testContext: TestContext;
   beforeEach(() => {
-    testContext = {} as TestContext;
     mockClient.onPost('/v1/identifier').reply(200, {
       visitor: {
         id: 'actual_visitor_id',
@@ -53,7 +49,7 @@ describe('Identifier', () => {
       value: 444
     };
 
-    testContext.identifier = createIdentifier();
+    identifier = createIdentifier();
   });
 
   afterEach(() => {
@@ -83,7 +79,7 @@ describe('Identifier', () => {
 
   describe('#save()', () => {
     it('hits the test track server with the correct parameters', () => {
-      return testContext.identifier.save().then(function() {
+      return identifier.save().then(function() {
         expect(mockClient.history.post.length).toBe(1);
         expect(mockClient.history.post[0].url).toEqual(expect.stringContaining('/v1/identifier'));
         expect(mockClient.history.post[0].data).toEqual(
@@ -101,7 +97,7 @@ describe('Identifier', () => {
         }),
         wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', context: 'napa', isUnsynced: false });
 
-      return testContext.identifier.save().then(function() {
+      return identifier.save().then(function() {
         expect(Visitor).toHaveBeenCalledTimes(1);
         expect(Visitor).toHaveBeenCalledWith({
           id: 'actual_visitor_id',

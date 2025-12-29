@@ -41,25 +41,10 @@ jest.mock('./identifier', () => {
 
 const mockClient = new MockAdapter(client);
 
-type TestContext = {
-  vary_jabba_split?: (visitor: Visitor) => void;
-  vary_wine_split?: (visitor: Visitor) => void;
-  trueHandler?: jest.Mock;
-  falseHandler?: jest.Mock;
-  vary_blue_button_split?: () => void;
-  jabbaCGIAssignment?: Assignment;
-  blueButtonAssignment?: Assignment;
-  actualVisitor?: Visitor;
-  errorLogger?: jest.Mock;
-};
-
 describe('Visitor', () => {
-  let testContext: TestContext;
   let visitor: Visitor;
 
   beforeEach(() => {
-    testContext = {} as TestContext;
-
     visitor = new Visitor({
       id: 'EXISTING_VISITOR_ID',
       assignments: [
@@ -202,10 +187,13 @@ describe('Visitor', () => {
   });
 
   describe('#vary()', () => {
+    let vary_jabba_split: (visitor: Visitor) => void;
+    let vary_wine_split: (visitor: Visitor) => void;
+
     beforeEach(() => {
       mockGetVariant.mockReturnValue('red');
 
-      testContext.vary_jabba_split = function(visitor) {
+      vary_jabba_split = function(visitor) {
         visitor.vary('jabba', {
           context: 'spec',
           variants: {
@@ -216,7 +204,7 @@ describe('Visitor', () => {
         });
       };
 
-      testContext.vary_wine_split = function(visitor) {
+      vary_wine_split = function(visitor) {
         visitor.vary('wine', {
           context: 'spec',
           variants: {
@@ -276,7 +264,7 @@ describe('Visitor', () => {
 
     describe('New Assignment', () => {
       it('generates a new assignment via VariantCalculator', () => {
-        testContext.vary_wine_split(visitor);
+        vary_wine_split(visitor);
 
         expect(VariantCalculator).toHaveBeenCalledWith({
           visitor: visitor,
@@ -286,7 +274,7 @@ describe('Visitor', () => {
       });
 
       it('adds new assignments to the assignment registry', () => {
-        testContext.vary_wine_split(visitor);
+        vary_wine_split(visitor);
 
         expect(visitor.getAssignmentRegistry()).toEqual({
           jabba: new Assignment({
@@ -304,7 +292,7 @@ describe('Visitor', () => {
       });
 
       it('sends an AssignmentNotification', () => {
-        testContext.vary_wine_split(visitor);
+        vary_wine_split(visitor);
 
         expect(AssignmentNotification).toHaveBeenCalledWith({
           visitor: visitor,
@@ -321,7 +309,7 @@ describe('Visitor', () => {
       it('only sends one AssignmentNotification with the default if it is defaulted', () => {
         mockGetVariant.mockReturnValue('rose');
 
-        testContext.vary_wine_split(visitor);
+        vary_wine_split(visitor);
 
         expect(AssignmentNotification).toHaveBeenCalledWith({
           visitor: visitor,
@@ -342,7 +330,7 @@ describe('Visitor', () => {
           throw new Error('something bad happened');
         });
 
-        testContext.vary_wine_split(visitor);
+        vary_wine_split(visitor);
 
         expect(AssignmentNotification).toHaveBeenCalledWith({
           visitor: visitor,
@@ -361,13 +349,13 @@ describe('Visitor', () => {
 
     describe('Existing Assignment', () => {
       it('returns an existing assignment wihout generating', () => {
-        testContext.vary_jabba_split(visitor);
+        vary_jabba_split(visitor);
 
         expect(VariantCalculator).not.toHaveBeenCalled();
       });
 
       it('does not send an AssignmentNotification', () => {
-        testContext.vary_jabba_split(visitor);
+        vary_jabba_split(visitor);
 
         expect(AssignmentNotification).not.toHaveBeenCalled();
         expect(mockSend).not.toHaveBeenCalled();
@@ -409,7 +397,7 @@ describe('Visitor', () => {
       });
 
       it('generates a new assignment via VariantCalculator', () => {
-        testContext.vary_jabba_split(offlineVisitor);
+        vary_jabba_split(offlineVisitor);
 
         expect(VariantCalculator).toHaveBeenCalledTimes(1);
         expect(VariantCalculator).toHaveBeenCalledWith({
@@ -420,7 +408,7 @@ describe('Visitor', () => {
       });
 
       it('does not send an AssignmentNotification', () => {
-        testContext.vary_wine_split(offlineVisitor);
+        vary_wine_split(offlineVisitor);
 
         expect(AssignmentNotification).not.toHaveBeenCalled();
         expect(mockSend).not.toHaveBeenCalled();
@@ -433,13 +421,13 @@ describe('Visitor', () => {
       });
 
       it('adds the assignment to the assignment registry', () => {
-        testContext.vary_wine_split(visitor);
+        vary_wine_split(visitor);
 
         expect(Object.keys(visitor.getAssignmentRegistry())).toEqual(expect.arrayContaining(['jabba', 'wine']));
       });
 
       it('does not send an AssignmentNotification', () => {
-        testContext.vary_wine_split(visitor);
+        vary_wine_split(visitor);
 
         expect(AssignmentNotification).not.toHaveBeenCalled();
         expect(mockSend).not.toHaveBeenCalled();
@@ -447,16 +435,20 @@ describe('Visitor', () => {
     });
 
     describe('Boolean split', () => {
-      beforeEach(() => {
-        testContext.trueHandler = jest.fn();
-        testContext.falseHandler = jest.fn();
+      let trueHandler: jest.Mock;
+      let falseHandler: jest.Mock;
+      let vary_blue_button_split: () => void;
 
-        testContext.vary_blue_button_split = function() {
+      beforeEach(() => {
+        trueHandler = jest.fn();
+        falseHandler = jest.fn();
+
+        vary_blue_button_split = function() {
           visitor.vary('blue_button', {
             context: 'spec',
             variants: {
-              true: testContext.trueHandler,
-              false: testContext.falseHandler
+              true: trueHandler,
+              false: falseHandler
             },
             defaultVariant: false
           });
@@ -466,19 +458,19 @@ describe('Visitor', () => {
       it('chooses the correct handler when given a true boolean', () => {
         mockGetVariant.mockReturnValue('true');
 
-        testContext.vary_blue_button_split();
+        vary_blue_button_split();
 
-        expect(testContext.trueHandler).toHaveBeenCalledTimes(1);
-        expect(testContext.falseHandler).not.toHaveBeenCalled();
+        expect(trueHandler).toHaveBeenCalledTimes(1);
+        expect(falseHandler).not.toHaveBeenCalled();
       });
 
       it('picks the correct handler when given a false boolean', () => {
         mockGetVariant.mockReturnValue('false');
 
-        testContext.vary_blue_button_split();
+        vary_blue_button_split();
 
-        expect(testContext.falseHandler).toHaveBeenCalledTimes(1);
-        expect(testContext.trueHandler).not.toHaveBeenCalled();
+        expect(falseHandler).toHaveBeenCalledTimes(1);
+        expect(trueHandler).not.toHaveBeenCalled();
       });
     });
   });
@@ -582,17 +574,21 @@ describe('Visitor', () => {
   });
 
   describe('#linkIdentifier()', () => {
+    let jabbaCGIAssignment: Assignment;
+    let blueButtonAssignment: Assignment;
+    let actualVisitor: Visitor;
+
     beforeEach(() => {
-      testContext.jabbaCGIAssignment = new Assignment({ splitName: 'jabba', variant: 'cgi', isUnsynced: false });
-      testContext.blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: true, isUnsynced: true });
+      jabbaCGIAssignment = new Assignment({ splitName: 'jabba', variant: 'cgi', isUnsynced: false });
+      blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: true, isUnsynced: true });
 
       mockSave.mockImplementation(() => {
-        testContext.actualVisitor = new Visitor({
+        actualVisitor = new Visitor({
           id: 'actual_visitor_id',
-          assignments: [testContext.jabbaCGIAssignment, testContext.blueButtonAssignment]
+          assignments: [jabbaCGIAssignment, blueButtonAssignment]
         });
 
-        return Promise.resolve(testContext.actualVisitor);
+        return Promise.resolve(actualVisitor);
       });
     });
 
@@ -616,9 +612,9 @@ describe('Visitor', () => {
 
       return visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
         expect(visitor.getAssignmentRegistry()).toEqual({
-          jabba: testContext.jabbaCGIAssignment,
+          jabba: jabbaCGIAssignment,
           wine: wineAssignment,
-          blue_button: testContext.blueButtonAssignment
+          blue_button: blueButtonAssignment
         });
       });
     });
@@ -634,7 +630,7 @@ describe('Visitor', () => {
         expect(AssignmentNotification).toHaveBeenCalledTimes(1);
         expect(AssignmentNotification).toHaveBeenCalledWith({
           visitor: visitor,
-          assignment: testContext.blueButtonAssignment
+          assignment: blueButtonAssignment
         });
         expect(mockSend).toHaveBeenCalledTimes(1);
       });
@@ -658,23 +654,25 @@ describe('Visitor', () => {
   });
 
   describe('#logError()', () => {
+    let errorLogger: jest.Mock;
+
     beforeEach(() => {
-      testContext.errorLogger = jest.fn();
+      errorLogger = jest.fn();
     });
 
     it('calls the error logger with the error message', () => {
-      visitor.setErrorLogger(testContext.errorLogger);
+      visitor.setErrorLogger(errorLogger);
       visitor.logError('something bad happened');
 
-      expect(testContext.errorLogger).toHaveBeenCalledTimes(1);
-      expect(testContext.errorLogger).toHaveBeenCalledWith('something bad happened');
+      expect(errorLogger).toHaveBeenCalledTimes(1);
+      expect(errorLogger).toHaveBeenCalledWith('something bad happened');
     });
 
     it('calls the error logger with a null context', () => {
-      visitor.setErrorLogger(testContext.errorLogger);
+      visitor.setErrorLogger(errorLogger);
       visitor.logError('something bad happened');
 
-      expect(testContext.errorLogger.mock.instances[0]).toBeNull();
+      expect(errorLogger.mock.instances[0]).toBeNull();
     });
 
     it('does a console.error if the error logger was never set', () => {
@@ -683,7 +681,7 @@ describe('Visitor', () => {
 
       expect(consoleSpy).toHaveBeenCalledTimes(1);
       expect(consoleSpy).toHaveBeenCalledWith('something bad happened');
-      expect(testContext.errorLogger).not.toHaveBeenCalled();
+      expect(errorLogger).not.toHaveBeenCalled();
     });
   });
 

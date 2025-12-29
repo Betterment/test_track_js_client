@@ -6,32 +6,28 @@ import { mockSplitRegistry } from './test-utils';
 
 jest.mock('./testTrackConfig');
 
-type TestContext = {
-  visitor: Visitor;
-  calculator: VariantCalculator;
-};
-
 describe('VariantCalculator', () => {
+  let visitor: Visitor;
+  let calculator: VariantCalculator;
   let calculatorOptions;
+
   function createCalculator() {
     return new VariantCalculator(calculatorOptions);
   }
 
-  let testContext: TestContext;
   beforeEach(() => {
-    testContext = {} as TestContext;
-    testContext.visitor = new Visitor({
+    visitor = new Visitor({
       id: '00000000-0000-0000-0000-000000000000',
       assignments: []
     });
-    testContext.visitor.logError = jest.fn();
+    visitor.logError = jest.fn();
 
     calculatorOptions = {
-      visitor: testContext.visitor,
+      visitor: visitor,
       splitName: 'logoSize'
     };
 
-    testContext.calculator = createCalculator();
+    calculator = createCalculator();
 
     TestTrackConfig.getSplitRegistry = mockSplitRegistry({
       logoSize: {
@@ -62,52 +58,52 @@ describe('VariantCalculator', () => {
   describe('#getSplitVisitorHash()', () => {
     it('calculates MD5 of splitName and visitorId', () => {
       // md5('logoSize00000000-0000-0000-0000-000000000000') => 'b72dca208c59ddeab8a1b9bc22f12224'
-      expect(testContext.calculator.getSplitVisitorHash()).toBe('b72dca208c59ddeab8a1b9bc22f12224');
+      expect(calculator.getSplitVisitorHash()).toBe('b72dca208c59ddeab8a1b9bc22f12224');
     });
   });
 
   describe('#getHashFixnum()', () => {
     it('converts 00000000deadbeef into 0', () => {
-      testContext.calculator.getSplitVisitorHash = jest.fn().mockReturnValue('00000000deadbeef');
-      expect(testContext.calculator.getHashFixnum()).toBe(0);
+      calculator.getSplitVisitorHash = jest.fn().mockReturnValue('00000000deadbeef');
+      expect(calculator.getHashFixnum()).toBe(0);
     });
 
     it('converts 0000000fdeadbeef into 15', () => {
-      testContext.calculator.getSplitVisitorHash = jest.fn().mockReturnValue('0000000fdeadbeef');
-      expect(testContext.calculator.getHashFixnum()).toBe(15);
+      calculator.getSplitVisitorHash = jest.fn().mockReturnValue('0000000fdeadbeef');
+      expect(calculator.getHashFixnum()).toBe(15);
     });
 
     it('converts ffffffffdeadbeef into 4294967295', () => {
-      testContext.calculator.getSplitVisitorHash = jest.fn().mockReturnValue('ffffffffdeadbeef');
-      expect(testContext.calculator.getHashFixnum()).toBe(4294967295);
+      calculator.getSplitVisitorHash = jest.fn().mockReturnValue('ffffffffdeadbeef');
+      expect(calculator.getHashFixnum()).toBe(4294967295);
     });
   });
 
   describe('#getAssignmentBucket()', () => {
     it('puts 0 in bucket 0', () => {
-      testContext.calculator.getHashFixnum = jest.fn().mockReturnValue(0);
-      expect(testContext.calculator.getAssignmentBucket()).toBe(0);
+      calculator.getHashFixnum = jest.fn().mockReturnValue(0);
+      expect(calculator.getAssignmentBucket()).toBe(0);
     });
 
     it('puts 99 in bucket 99', () => {
-      testContext.calculator.getHashFixnum = jest.fn().mockReturnValue(99);
-      expect(testContext.calculator.getAssignmentBucket()).toBe(99);
+      calculator.getHashFixnum = jest.fn().mockReturnValue(99);
+      expect(calculator.getAssignmentBucket()).toBe(99);
     });
 
     it('puts 100 in bucket 0', () => {
-      testContext.calculator.getHashFixnum = jest.fn().mockReturnValue(100);
-      expect(testContext.calculator.getAssignmentBucket()).toBe(0);
+      calculator.getHashFixnum = jest.fn().mockReturnValue(100);
+      expect(calculator.getAssignmentBucket()).toBe(0);
     });
 
     it('puts 4294967295 in bucket 95', () => {
-      testContext.calculator.getHashFixnum = jest.fn().mockReturnValue(4294967295);
-      expect(testContext.calculator.getAssignmentBucket()).toBe(95);
+      calculator.getHashFixnum = jest.fn().mockReturnValue(4294967295);
+      expect(calculator.getAssignmentBucket()).toBe(95);
     });
   });
 
   describe('#getSortedVariants()', () => {
     it('sorts variants alphabetically', () => {
-      expect(testContext.calculator.getSortedVariants()).toEqual([
+      expect(calculator.getSortedVariants()).toEqual([
         'extraGiant',
         'giant',
         'huge',
@@ -121,30 +117,30 @@ describe('VariantCalculator', () => {
   describe('#getWeighting()', () => {
     it('throws when given an unknown splitName', () => {
       calculatorOptions.splitName = 'nonExistentSplit';
-      var calculator = createCalculator();
+      var localCalculator = createCalculator();
 
       expect(function() {
-        calculator.getVariant();
+        localCalculator.getVariant();
       }).toThrow('Unknown split: "nonExistentSplit"');
     });
 
     it('logs an error when given an unknown splitName', () => {
       calculatorOptions.splitName = 'nonExistentSplit';
-      var calculator = createCalculator();
+      var localCalculator = createCalculator();
 
       try {
-        calculator.getVariant();
+        localCalculator.getVariant();
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         // ignore
       }
 
-      expect(testContext.visitor.logError).toHaveBeenCalledTimes(1);
-      expect(testContext.visitor.logError).toHaveBeenCalledWith('Unknown split: "nonExistentSplit"');
+      expect(visitor.logError).toHaveBeenCalledTimes(1);
+      expect(visitor.logError).toHaveBeenCalledWith('Unknown split: "nonExistentSplit"');
     });
 
     it('returns the weighting for a split', () => {
-      expect(testContext.calculator.getWeighting()).toEqual({
+      expect(calculator.getWeighting()).toEqual({
         extraGiant: 0,
         giant: 80,
         huge: 1,
@@ -157,24 +153,24 @@ describe('VariantCalculator', () => {
 
   describe('#getVariant()', () => {
     it('returns the first variant with non-zero weight from bucket 0', () => {
-      testContext.calculator.getAssignmentBucket = jest.fn().mockReturnValue(0);
-      expect(testContext.calculator.getVariant()).toBe('giant');
+      calculator.getAssignmentBucket = jest.fn().mockReturnValue(0);
+      expect(calculator.getVariant()).toBe('giant');
     });
 
     it('returns the last variant with non-zero weight from bucket 99', () => {
-      testContext.calculator.getAssignmentBucket = jest.fn().mockReturnValue(99);
-      expect(testContext.calculator.getVariant()).toBe('miniscule');
+      calculator.getAssignmentBucket = jest.fn().mockReturnValue(99);
+      expect(calculator.getVariant()).toBe('miniscule');
     });
 
     it('returns the correct 1%-wide variant', () => {
-      testContext.calculator.getAssignmentBucket = jest.fn().mockReturnValue(80);
-      expect(testContext.calculator.getVariant()).toBe('huge');
+      calculator.getAssignmentBucket = jest.fn().mockReturnValue(80);
+      expect(calculator.getVariant()).toBe('huge');
     });
 
     it('returns null if there is no split registry', () => {
       TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
 
-      expect(testContext.calculator.getVariant()).toBeNull();
+      expect(calculator.getVariant()).toBeNull();
     });
 
     it('throws an error with an incomplete weighting', () => {
@@ -187,11 +183,11 @@ describe('VariantCalculator', () => {
       });
 
       calculatorOptions.splitName = 'invalidWeighting';
-      var calculator = createCalculator();
-      calculator.getAssignmentBucket = jest.fn().mockReturnValue(99);
+      var localCalculator = createCalculator();
+      localCalculator.getAssignmentBucket = jest.fn().mockReturnValue(99);
 
       expect(function() {
-        calculator.getVariant();
+        localCalculator.getVariant();
       }).toThrow('Assignment bucket out of range. 99 unmatched in invalidWeighting: {"yes":33,"no":33,"maybe":33}');
     });
   });

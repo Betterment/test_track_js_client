@@ -12,30 +12,26 @@ jest.mock('./testTrackConfig', () => {
 
 const mockClient = new MockAdapter(client);
 
-type TestContext = {
-  visitor: Visitor;
-  assignment: Assignment;
-  override: AssignmentOverride;
-};
-
 describe('AssignmentOverride', () => {
+  let visitor: Visitor;
+  let assignment: Assignment;
+  let override: AssignmentOverride;
   let overrideOptions;
+
   function createOverride() {
     return new AssignmentOverride(overrideOptions);
   }
 
-  let testContext: TestContext;
   beforeEach(() => {
-    testContext = {} as TestContext;
     mockClient.onPost('/v1/assignment_override').reply(200);
 
-    testContext.visitor = new Visitor({
+    visitor = new Visitor({
       id: 'visitorId',
       assignments: []
     });
-    testContext.visitor.logError = jest.fn();
+    visitor.logError = jest.fn();
 
-    testContext.assignment = new Assignment({
+    assignment = new Assignment({
       splitName: 'jabba',
       variant: 'cgi',
       context: 'spec',
@@ -43,13 +39,13 @@ describe('AssignmentOverride', () => {
     });
 
     overrideOptions = {
-      visitor: testContext.visitor,
-      assignment: testContext.assignment,
+      visitor: visitor,
+      assignment: assignment,
       username: 'the_username',
       password: 'the_password'
     };
 
-    testContext.override = createOverride();
+    override = createOverride();
   });
 
   afterEach(() => {
@@ -86,7 +82,7 @@ describe('AssignmentOverride', () => {
 
   describe('#persistAssignment()', () => {
     it('creates an assignment on the test track server', () => {
-      return testContext.override.persistAssignment().then(() => {
+      return override.persistAssignment().then(() => {
         expect(mockClient.history.post.length).toBe(1);
         expect(mockClient.history.post[0].url).toEqual(expect.stringContaining('/v1/assignment_override'));
         expect(mockClient.history.post[0].data).toEqual(
@@ -103,9 +99,9 @@ describe('AssignmentOverride', () => {
       mockClient.reset();
       mockClient.onPost().reply(500);
 
-      return testContext.override.persistAssignment().then(() => {
-        expect(testContext.visitor.logError).toHaveBeenCalledTimes(1);
-        expect(testContext.visitor.logError).toHaveBeenCalledWith(
+      return override.persistAssignment().then(() => {
+        expect(visitor.logError).toHaveBeenCalledTimes(1);
+        expect(visitor.logError).toHaveBeenCalledWith(
           'test_track persistAssignment response error: 500, undefined, undefined'
         );
       });
@@ -115,9 +111,9 @@ describe('AssignmentOverride', () => {
       mockClient.reset();
       mockClient.onPost().networkError();
 
-      return testContext.override.persistAssignment().then(() => {
-        expect(testContext.visitor.logError).toHaveBeenCalledTimes(1);
-        expect(testContext.visitor.logError).toHaveBeenCalledWith(
+      return override.persistAssignment().then(() => {
+        expect(visitor.logError).toHaveBeenCalledTimes(1);
+        expect(visitor.logError).toHaveBeenCalledWith(
           'test_track persistAssignment other error: Error: Network Error'
         );
       });

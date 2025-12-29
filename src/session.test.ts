@@ -30,17 +30,8 @@ jest.mock('./configParser', () => {
 
 jest.mock('js-cookie');
 
-type TestContext = {
-  jabbaAssignment: Assignment;
-  visitor: visitor.default;
-  session: any;
-  publicApi: any;
-};
-
 describe('Session', () => {
-  let testContext: TestContext;
   beforeEach(() => {
-    testContext = {} as TestContext;
     Cookies.get.mockReturnValue('existing_visitor_id');
   });
 
@@ -93,80 +84,84 @@ describe('Session', () => {
   });
 
   describe('with stubbed visitor and split registry', () => {
+    let jabbaAssignment: Assignment;
+    let visitorInstance: visitor.default;
+    let session: any;
+
     beforeEach(() => {
-      testContext.jabbaAssignment = new Assignment({
+      jabbaAssignment = new Assignment({
         splitName: 'jabba',
         variant: 'cgi',
         isUnsynced: false
       });
 
-      testContext.visitor = new visitor.default({
+      visitorInstance = new visitor.default({
         id: 'dummy_visitor_id',
-        assignments: [testContext.jabbaAssignment]
+        assignments: [jabbaAssignment]
       });
 
-      testContext.visitor.analytics = {
+      visitorInstance.analytics = {
         alias: jest.fn(),
         identify: jest.fn()
       };
 
-      testContext.visitor.linkIdentifier = jest.fn().mockImplementation(() => {
-        testContext.visitor.getId = jest.fn(() => 'other_visitor_id'); // mimic behavior of linkIdentifier that we care about
+      visitorInstance.linkIdentifier = jest.fn().mockImplementation(() => {
+        visitorInstance.getId = jest.fn(() => 'other_visitor_id'); // mimic behavior of linkIdentifier that we care about
         return Promise.resolve();
       });
 
-      visitor.default.loadVisitor = jest.fn().mockResolvedValue(testContext.visitor);
+      visitor.default.loadVisitor = jest.fn().mockResolvedValue(visitorInstance);
 
-      testContext.session = new Session().getPublicAPI();
-      return testContext.session.initialize().then(() => {
+      session = new Session().getPublicAPI();
+      return session.initialize().then(() => {
         Cookies.set.mockClear();
       });
     });
 
     describe('#initialize()', () => {
       it('calls notifyUnsyncedAssignments when a visitor is loaded', () => {
-        testContext.visitor.notifyUnsyncedAssignments = jest.fn();
+        visitorInstance.notifyUnsyncedAssignments = jest.fn();
         return new Session()
           .getPublicAPI()
           .initialize()
           .then(() => {
-            expect(testContext.visitor.notifyUnsyncedAssignments).toHaveBeenCalledTimes(1);
+            expect(visitorInstance.notifyUnsyncedAssignments).toHaveBeenCalledTimes(1);
           });
       });
 
       it('sets the analytics lib', () => {
         var analytics = { track: '' };
-        testContext.visitor.setAnalytics = jest.fn();
+        visitorInstance.setAnalytics = jest.fn();
 
         return new Session()
           .getPublicAPI()
           .initialize({ analytics: analytics })
           .then(() => {
-            expect(testContext.visitor.setAnalytics).toHaveBeenCalledTimes(1);
-            expect(testContext.visitor.setAnalytics).toHaveBeenCalledTimes(1);
-            expect(testContext.visitor.setAnalytics).toHaveBeenCalledWith(analytics);
+            expect(visitorInstance.setAnalytics).toHaveBeenCalledTimes(1);
+            expect(visitorInstance.setAnalytics).toHaveBeenCalledTimes(1);
+            expect(visitorInstance.setAnalytics).toHaveBeenCalledWith(analytics);
           });
       });
 
       it('sets the error logger', () => {
         var errorLogger = function() {};
-        testContext.visitor.setErrorLogger = jest.fn();
+        visitorInstance.setErrorLogger = jest.fn();
 
         return new Session()
           .getPublicAPI()
           .initialize({ errorLogger: errorLogger })
           .then(() => {
-            expect(testContext.visitor.setErrorLogger).toHaveBeenCalledTimes(1);
-            expect(testContext.visitor.setErrorLogger).toHaveBeenCalledWith(errorLogger);
+            expect(visitorInstance.setErrorLogger).toHaveBeenCalledTimes(1);
+            expect(visitorInstance.setErrorLogger).toHaveBeenCalledWith(errorLogger);
           });
       });
     });
 
     describe('#logIn()', () => {
       it('updates the visitor id in the cookie', () => {
-        return testContext.session.logIn('myappdb_user_id', 444).then(() => {
-          expect(testContext.visitor.linkIdentifier).toHaveBeenCalledTimes(1);
-          expect(testContext.visitor.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
+        return session.logIn('myappdb_user_id', 444).then(() => {
+          expect(visitorInstance.linkIdentifier).toHaveBeenCalledTimes(1);
+          expect(visitorInstance.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
           expect(Cookies.set).toHaveBeenCalledTimes(1);
           expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
             expires: 365,
@@ -177,18 +172,18 @@ describe('Session', () => {
       });
 
       it('calls analytics.identify with the resolved visitor id', () => {
-        return testContext.session.logIn('myappdb_user_id', 444).then(() => {
-          expect(testContext.visitor.analytics.identify).toHaveBeenCalledTimes(1);
-          expect(testContext.visitor.analytics.identify).toHaveBeenCalledWith('other_visitor_id');
+        return session.logIn('myappdb_user_id', 444).then(() => {
+          expect(visitorInstance.analytics.identify).toHaveBeenCalledTimes(1);
+          expect(visitorInstance.analytics.identify).toHaveBeenCalledWith('other_visitor_id');
         });
       });
     });
 
     describe('#signUp()', () => {
       it('updates the visitor id in the cookie', () => {
-        return testContext.session.signUp('myappdb_user_id', 444).then(() => {
-          expect(testContext.visitor.linkIdentifier).toHaveBeenCalledTimes(1);
-          expect(testContext.visitor.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
+        return session.signUp('myappdb_user_id', 444).then(() => {
+          expect(visitorInstance.linkIdentifier).toHaveBeenCalledTimes(1);
+          expect(visitorInstance.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
           expect(Cookies.set).toHaveBeenCalledTimes(1);
           expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
             expires: 365,
@@ -199,9 +194,9 @@ describe('Session', () => {
       });
 
       it('calls analytics.alias with the resolved visitor id', () => {
-        return testContext.session.signUp('myappdb_user_id', 444).then(() => {
-          expect(testContext.visitor.analytics.alias).toHaveBeenCalledTimes(1);
-          expect(testContext.visitor.analytics.alias).toHaveBeenCalledWith('other_visitor_id');
+        return session.signUp('myappdb_user_id', 444).then(() => {
+          expect(visitorInstance.analytics.alias).toHaveBeenCalledTimes(1);
+          expect(visitorInstance.analytics.alias).toHaveBeenCalledWith('other_visitor_id');
         });
       });
     });
@@ -211,7 +206,7 @@ describe('Session', () => {
         const mockCgi = jest.fn();
         const mockPuppet = jest.fn();
 
-        testContext.session.vary('jabba', {
+        session.vary('jabba', {
           context: 'spec',
           variants: {
             cgi: mockCgi,
@@ -228,7 +223,7 @@ describe('Session', () => {
 
     describe('#ab()', () => {
       it('passes true or false into the callback', () => {
-        testContext.session.ab('jabba', {
+        session.ab('jabba', {
           context: 'spec',
           trueVariant: 'cgi',
           callback(cgi) {
@@ -239,14 +234,16 @@ describe('Session', () => {
     });
 
     describe('#getPublicAPI()', () => {
+      let publicApi: any;
+
       beforeEach(() => {
-        testContext.session = new Session();
-        testContext.session.initialize();
-        testContext.publicApi = testContext.session.getPublicAPI();
+        session = new Session();
+        session.initialize();
+        publicApi = session.getPublicAPI();
       });
 
       it('returns an object with a limited set of methods', () => {
-        expect(testContext.publicApi).toEqual(
+        expect(publicApi).toEqual(
           expect.objectContaining({
             vary: expect.any(Function),
             ab: expect.any(Function),
@@ -256,7 +253,7 @@ describe('Session', () => {
           })
         );
 
-        expect(testContext.publicApi._crx).toEqual(
+        expect(publicApi._crx).toEqual(
           expect.objectContaining({
             loadInfo: expect.any(Function),
             persistAssignment: expect.any(Function)
@@ -273,12 +270,12 @@ describe('Session', () => {
               };
             });
 
-            return testContext.publicApi._crx
+            return publicApi._crx
               .persistAssignment('split', 'variant', 'the_username', 'the_password')
               .then(() => {
                 expect(AssignmentOverride).toHaveBeenCalledTimes(1);
                 expect(AssignmentOverride).toHaveBeenCalledWith({
-                  visitor: testContext.visitor,
+                  visitor: visitorInstance,
                   username: 'the_username',
                   password: 'the_password',
                   assignment: new Assignment({
@@ -294,7 +291,7 @@ describe('Session', () => {
 
         describe('#loadInfo()', () => {
           it('returns a promise that resolves with the split registry, assignment registry and visitor id', () => {
-            return testContext.publicApi._crx.loadInfo().then(info => {
+            return publicApi._crx.loadInfo().then(info => {
               expect(info.visitorId).toEqual('dummy_visitor_id');
               expect(info.splitRegistry).toEqual({
                 jabba: { cgi: 50, puppet: 50 },
@@ -308,33 +305,33 @@ describe('Session', () => {
 
       describe('context of the public API methods', () => {
         beforeEach(() => {
-          testContext.session.vary = jest.fn();
-          testContext.session.ab = jest.fn();
-          testContext.session.logIn = jest.fn();
-          testContext.session.signUp = jest.fn();
+          session.vary = jest.fn();
+          session.ab = jest.fn();
+          session.logIn = jest.fn();
+          session.signUp = jest.fn();
 
           // pull a fresh instance of publicApi to pick up the stubbed methods
-          testContext.publicApi = testContext.session.getPublicAPI();
+          publicApi = session.getPublicAPI();
         });
 
         it('runs #vary() in the context of the session', () => {
-          testContext.publicApi.vary();
-          expect(testContext.session.vary).toHaveBeenCalled();
+          publicApi.vary();
+          expect(session.vary).toHaveBeenCalled();
         });
 
         it('runs #ab() in the context of the session', () => {
-          testContext.publicApi.ab();
-          expect(testContext.session.ab).toHaveBeenCalled();
+          publicApi.ab();
+          expect(session.ab).toHaveBeenCalled();
         });
 
         it('runs #logIn() in the context of the session', () => {
-          testContext.publicApi.logIn();
-          expect(testContext.session.logIn).toHaveBeenCalled();
+          publicApi.logIn();
+          expect(session.logIn).toHaveBeenCalled();
         });
 
         it('runs #signUp() in the context of the session', () => {
-          testContext.publicApi.signUp();
-          expect(testContext.session.signUp).toHaveBeenCalled();
+          publicApi.signUp();
+          expect(session.signUp).toHaveBeenCalled();
         });
       });
     });

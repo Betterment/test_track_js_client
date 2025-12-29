@@ -6,16 +6,10 @@ import { mockSplitRegistry } from './test-utils';
 
 jest.mock('./testTrackConfig');
 
-type TestContext = {
-  visitor: Visitor;
-};
-
 describe('ABConfiguration', () => {
-  let testContext: TestContext;
+  let visitor: Visitor;
 
   beforeEach(() => {
-    testContext = {} as TestContext;
-
     TestTrackConfig.getSplitRegistry = mockSplitRegistry({
       element: {
         earth: 25,
@@ -32,11 +26,11 @@ describe('ABConfiguration', () => {
       }
     });
 
-    testContext.visitor = new Visitor({
+    visitor = new Visitor({
       id: 'visitor_id',
       assignments: []
     });
-    testContext.visitor.logError = jest.fn();
+    visitor.logError = jest.fn();
   });
 
   it('requires a splitName', () => {
@@ -44,7 +38,7 @@ describe('ABConfiguration', () => {
       function() {
         new ABConfiguration({
           trueVariant: 'red',
-          visitor: testContext.visitor
+          visitor: visitor
         });
       }.bind(this)
     ).toThrow('must provide splitName');
@@ -55,7 +49,7 @@ describe('ABConfiguration', () => {
       function() {
         new ABConfiguration({
           splitName: 'button_color',
-          visitor: testContext.visitor
+          visitor: visitor
         });
       }.bind(this)
     ).toThrow('must provide trueVariant');
@@ -78,7 +72,7 @@ describe('ABConfiguration', () => {
         new ABConfiguration({
           splitName: 'button_color',
           trueVariant: null,
-          visitor: testContext.visitor
+          visitor: visitor
         });
       }.bind(this)
     ).not.toThrow();
@@ -89,12 +83,12 @@ describe('ABConfiguration', () => {
       var abConfiguration = new ABConfiguration({
         splitName: 'element',
         trueVariant: 'water',
-        visitor: testContext.visitor
+        visitor: visitor
       });
 
       abConfiguration.getVariants();
 
-      expect(testContext.visitor.logError).toHaveBeenCalledWith(
+      expect(visitor.logError).toHaveBeenCalledWith(
         'A/B for element configures split with more than 2 variants'
       );
     });
@@ -105,12 +99,12 @@ describe('ABConfiguration', () => {
       var abConfiguration = new ABConfiguration({
         splitName: 'element',
         trueVariant: 'water',
-        visitor: testContext.visitor
+        visitor: visitor
       });
 
       abConfiguration.getVariants();
 
-      expect(testContext.visitor.logError).not.toHaveBeenCalled();
+      expect(visitor.logError).not.toHaveBeenCalled();
     });
 
     describe('true variant', () => {
@@ -118,7 +112,7 @@ describe('ABConfiguration', () => {
         var abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           trueVariant: null,
-          visitor: testContext.visitor
+          visitor: visitor
         });
 
         expect(abConfiguration.getVariants().true).toBe('true');
@@ -128,7 +122,7 @@ describe('ABConfiguration', () => {
         var abConfiguration = new ABConfiguration({
           splitName: 'new_feature',
           trueVariant: null,
-          visitor: testContext.visitor
+          visitor: visitor
         });
 
         expect(abConfiguration.getVariants().true).toBe('true');
@@ -138,7 +132,7 @@ describe('ABConfiguration', () => {
         var abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red',
-          visitor: testContext.visitor
+          visitor: visitor
         });
 
         expect(abConfiguration.getVariants().true).toBe('red');
@@ -150,7 +144,7 @@ describe('ABConfiguration', () => {
         var abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red',
-          visitor: testContext.visitor
+          visitor: visitor
         });
 
         expect(abConfiguration.getVariants().false).toBe('blue');
@@ -162,7 +156,7 @@ describe('ABConfiguration', () => {
         var abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red',
-          visitor: testContext.visitor
+          visitor: visitor
         });
 
         expect(abConfiguration.getVariants().false).toBe('false');
@@ -172,7 +166,7 @@ describe('ABConfiguration', () => {
         var abConfiguration = new ABConfiguration({
           splitName: 'element',
           trueVariant: 'earth',
-          visitor: testContext.visitor
+          visitor: visitor
         });
 
         expect(abConfiguration.getVariants().false).toBe('fire');
@@ -182,7 +176,7 @@ describe('ABConfiguration', () => {
         var abConfiguration = new ABConfiguration({
           splitName: 'new_feature',
           trueVariant: null,
-          visitor: testContext.visitor
+          visitor: visitor
         });
 
         expect(abConfiguration.getVariants().false).toBe('false');

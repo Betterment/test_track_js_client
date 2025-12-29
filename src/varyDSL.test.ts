@@ -7,72 +7,63 @@ import { mockSplitRegistry } from './test-utils';
 
 jest.mock('./testTrackConfig');
 
-describe('VaryDSL', () => {
-  let assignment: Assignment;
-  let visitor: Visitor;
-  let vary: VaryDSL;
+function createAssignment() {
+  return new Assignment({ splitName: 'element', variant: 'earth', isUnsynced: true });
+}
 
+function createVisitor() {
+  const assignment = createAssignment();
+  const visitor = new Visitor({ id: 'visitor_id', assignments: [assignment] });
+  visitor.logError = jest.fn();
+  return visitor;
+}
+
+describe('VaryDSL', () => {
   beforeEach(() => {
     TestTrackConfig.getSplitRegistry = mockSplitRegistry({
-      element: {
-        earth: 25,
-        wind: 25,
-        fire: 25,
-        water: 25
-      }
-    });
-
-    assignment = new Assignment({
-      splitName: 'element',
-      variant: 'earth',
-      isUnsynced: true
-    });
-
-    visitor = new Visitor({
-      id: 'visitor_id',
-      assignments: [assignment]
-    });
-    visitor.logError = jest.fn();
-
-    vary = new VaryDSL({
-      assignment: assignment,
-      visitor: visitor
+      element: { earth: 25, wind: 25, fire: 25, water: 25 }
     });
   });
 
   it('requires an assignment', () => {
-    expect(() => {
-      // @ts-expect-error Testing missing required property
-      new VaryDSL({
-        visitor: visitor
-      });
-    }).toThrow('must provide assignment');
+    const visitor = createVisitor();
+    // @ts-expect-error Testing missing required property
+    expect(() => new VaryDSL({ visitor })).toThrow('must provide assignment');
   });
 
   it('requires a visitor', () => {
-    expect(() => {
-      // @ts-expect-error Testing missing required property
-      new VaryDSL({
-        assignment: assignment
-      });
-    }).toThrow('must provide visitor');
+    const assignment = createAssignment();
+    // @ts-expect-error Testing missing required property
+    expect(() => new VaryDSL({ assignment })).toThrow('must provide visitor');
   });
 
   describe('#when()', () => {
     it('throws an error if no variants are provided', () => {
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
+
       expect(() => {
         vary.when(function() {});
       }).toThrow('must provide at least one variant');
     });
 
     it('throws an error if handler is not provided', () => {
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
+
       expect(() => {
         vary.when('earth');
       }).toThrow('must provide handler for earth');
     });
 
     it('supports multiple variants', () => {
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
       const handler = function() {};
+
       vary.when('earth', 'wind', 'fire', handler);
 
       // @ts-expect-error Private property
@@ -84,7 +75,11 @@ describe('VaryDSL', () => {
     });
 
     it('logs an error if given a variant that is not in the split registry', () => {
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
       const handler = function() {};
+
       vary.when('earth', 'wind', 'leeloo_multipass', handler);
 
       // @ts-expect-error Private property
@@ -100,12 +95,11 @@ describe('VaryDSL', () => {
     it('does not log an error when the split registry is not loaded', () => {
       jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
-      const localVary = new VaryDSL({
-        assignment: assignment,
-        visitor: visitor
-      });
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
 
-      localVary.when('earth', 'wind', 'leeloo_multipass', jest.fn());
+      vary.when('earth', 'wind', 'leeloo_multipass', jest.fn());
 
       expect(visitor.logError).not.toHaveBeenCalled();
     });
@@ -121,12 +115,11 @@ describe('VaryDSL', () => {
         }
       });
 
-      const localVary = new VaryDSL({
-        assignment: assignment,
-        visitor: visitor
-      });
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
 
-      localVary.when('leeloo_multipass', function() {});
+      vary.when('leeloo_multipass', function() {});
 
       expect(visitor.logError).not.toHaveBeenCalled();
     });
@@ -134,6 +127,10 @@ describe('VaryDSL', () => {
 
   describe('#default()', () => {
     it('throws an error if handler is not provided', () => {
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
+
       expect(() => {
         // @ts-expect-error Testing missing required argument
         vary.default('earth');
@@ -141,6 +138,10 @@ describe('VaryDSL', () => {
     });
 
     it('throws an error if default is called more than once', () => {
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
+
       expect(() => {
         vary.default('fire', function() {});
 
@@ -149,14 +150,23 @@ describe('VaryDSL', () => {
     });
 
     it('sets the default variant', () => {
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
+
       vary.default('water', function() {});
 
       expect(vary.getDefaultVariant()).toBe('water');
     });
 
     it('adds the variant to the _variantHandlers object', () => {
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
       const handler = function() {};
+
       vary.default('water', handler);
+
       // @ts-expect-error Private property
       expect(vary._variantHandlers).toEqual({
         water: handler
@@ -164,6 +174,9 @@ describe('VaryDSL', () => {
     });
 
     it('logs an error if given a variant that is not in the split registry', () => {
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
       const handler = function() {};
 
       vary.default('leeloo_multipass', handler);
@@ -179,12 +192,11 @@ describe('VaryDSL', () => {
     it('does not log an error when the split registry is not loaded', () => {
       jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
-      const localVary = new VaryDSL({
-        assignment: assignment,
-        visitor: visitor
-      });
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
 
-      localVary.default('leeloo_multipass', function() {});
+      vary.default('leeloo_multipass', function() {});
 
       expect(visitor.logError).not.toHaveBeenCalled();
     });
@@ -200,12 +212,11 @@ describe('VaryDSL', () => {
         }
       });
 
-      const localVary = new VaryDSL({
-        assignment: assignment,
-        visitor: visitor
-      });
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
 
-      localVary.default('leeloo_multipass', function() {});
+      vary.default('leeloo_multipass', function() {});
 
       expect(visitor.logError).not.toHaveBeenCalled();
     });
@@ -221,12 +232,18 @@ describe('VaryDSL', () => {
     });
 
     it('throws an error if `default` was never called', () => {
-      expect(() => {
-        vary.run();
-      }).toThrow('must provide exactly one `default`');
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
+
+      expect(() => vary.run()).toThrow('must provide exactly one `default`');
     });
 
     it('throws an error if `when` was never called', () => {
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
+
       expect(() => {
         vary.default('water', function() {});
 
@@ -235,6 +252,10 @@ describe('VaryDSL', () => {
     });
 
     it('runs the handler of the assigned variant', () => {
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
+
       vary.when('earth', whenHandler);
       vary.default('water', defaultHandler);
 
@@ -245,38 +266,40 @@ describe('VaryDSL', () => {
     });
 
     it('runs the default handler and is defaulted if the assigned variant is not represented', () => {
-      const localVary = new VaryDSL({
-        assignment: assignment,
-        visitor: visitor
-      });
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
 
-      localVary.when('fire', whenHandler);
-      localVary.default('water', defaultHandler);
+      vary.when('fire', whenHandler);
+      vary.default('water', defaultHandler);
 
-      localVary.run();
+      vary.run();
 
       expect(defaultHandler).toHaveBeenCalled();
       expect(whenHandler).not.toHaveBeenCalled();
-      expect(localVary.isDefaulted()).toBe(true);
+      expect(vary.isDefaulted()).toBe(true);
     });
 
     it('is not defaulted if the assigned variant is represented as the default', () => {
-      const localVary = new VaryDSL({
-        assignment: assignment,
-        visitor: visitor
-      });
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
 
-      localVary.when('water', whenHandler);
-      localVary.default('earth', defaultHandler);
+      vary.when('water', whenHandler);
+      vary.default('earth', defaultHandler);
 
-      localVary.run();
+      vary.run();
 
       expect(defaultHandler).toHaveBeenCalled();
       expect(whenHandler).not.toHaveBeenCalled();
-      expect(localVary.isDefaulted()).toBe(false);
+      expect(vary.isDefaulted()).toBe(false);
     });
 
     it('logs an error if not all variants are represented', () => {
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
+
       vary.when('earth', whenHandler);
       vary.default('fire', defaultHandler);
 
@@ -288,15 +311,14 @@ describe('VaryDSL', () => {
     it('does not log an error when the split registry is not loaded', () => {
       jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
-      const localVary = new VaryDSL({
-        assignment: assignment,
-        visitor: visitor
-      });
+      const assignment = createAssignment();
+      const visitor = createVisitor();
+      const vary = new VaryDSL({ assignment, visitor });
 
-      localVary.when('earth', whenHandler);
-      localVary.default('fire', defaultHandler);
+      vary.when('earth', whenHandler);
+      vary.default('fire', defaultHandler);
 
-      localVary.run();
+      vary.run();
 
       expect(visitor.logError).not.toHaveBeenCalled();
     });

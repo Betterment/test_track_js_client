@@ -1,6 +1,5 @@
 import Assignment from './assignment';
-import { AnalyticsProvider } from './analyticsProvider';
-import AssignmentNotification, { AssignmentNotificationOptions } from './assignmentNotification';
+import AssignmentNotification from './assignmentNotification';
 import Visitor from './visitor';
 import client from './api';
 import MockAdapter from 'axios-mock-adapter';
@@ -13,49 +12,26 @@ jest.mock('./testTrackConfig', () => {
 
 const mockClient = new MockAdapter(client);
 
-const track = (success: boolean): AnalyticsProvider['trackAssignment'] => (_visitorId, _assignment, callback) =>
-  callback(success);
+function createVisitor(options: { trackSuccess: boolean }) {
+  const visitor = new Visitor({ id: 'visitorId', assignments: [] });
+
+  visitor.setAnalytics({
+    identify: jest.fn(),
+    alias: jest.fn(),
+    trackAssignment: jest.fn().mockImplementation((_visitorId, _assignment, callback) => callback(options.trackSuccess))
+  });
+  visitor.logError = jest.fn();
+
+  return visitor;
+}
+
+function createAssignment() {
+  return new Assignment({ splitName: 'jabba', variant: 'cgi', context: 'spec', isUnsynced: false });
+}
 
 describe('AssignmentNotification', () => {
-  let visitor: Visitor;
-  let analyticsTrackStub: jest.Mock;
-  let assignment: Assignment;
-  let notification: AssignmentNotification;
-  let notificationOptions: AssignmentNotificationOptions;
-
-  function createNotification() {
-    return new AssignmentNotification(notificationOptions);
-  }
-
   beforeEach(() => {
     mockClient.onPost().reply(200);
-
-    visitor = new Visitor({
-      id: 'visitorId',
-      assignments: []
-    });
-
-    analyticsTrackStub = jest.fn().mockImplementation(track(true));
-    visitor.setAnalytics({
-      trackAssignment: analyticsTrackStub,
-      identify: jest.fn(),
-      alias: jest.fn()
-    });
-    visitor.logError = jest.fn();
-
-    assignment = new Assignment({
-      splitName: 'jabba',
-      variant: 'cgi',
-      context: 'spec',
-      isUnsynced: false
-    });
-
-    notificationOptions = {
-      visitor: visitor,
-      assignment: assignment
-    };
-
-    notification = createNotification();
   });
 
   afterEach(() => {
@@ -63,27 +39,33 @@ describe('AssignmentNotification', () => {
   });
 
   it('requires a visitor', () => {
-    // @ts-expect-error Testing deletion of required property
-    delete notificationOptions.visitor;
-    expect(() => createNotification()).toThrow('must provide visitor');
+    const assignment = createAssignment();
+    // @ts-expect-error Intentionally passing the wrong types
+    expect(() => new AssignmentNotification({ assignment })).toThrow('must provide visitor');
   });
 
   it('requires an assignment', () => {
-    // @ts-expect-error Testing deletion of required property
-    delete notificationOptions.assignment;
-    expect(() => createNotification()).toThrow('must provide assignment');
+    const visitor = createVisitor({ trackSuccess: true });
+    // @ts-expect-error Intentionally passing the wrong types
+    expect(() => new AssignmentNotification({ visitor })).toThrow('must provide assignment');
   });
 
   describe('#send()', () => {
     it('tracks an event', () => {
+      const visitor = createVisitor({ trackSuccess: true });
+      const assignment = createAssignment();
+      const notification = new AssignmentNotification({ visitor, assignment });
+
       notification.send();
 
-      expect(analyticsTrackStub).toHaveBeenCalledTimes(1);
-      expect(analyticsTrackStub).toHaveBeenCalledWith('visitorId', assignment, expect.any(Function));
+      expect(visitor.analytics.trackAssignment).toHaveBeenCalledTimes(1);
+      expect(visitor.analytics.trackAssignment).toHaveBeenCalledWith('visitorId', assignment, expect.any(Function));
     });
 
     it('notifies the test track server with an analytics success', async () => {
-      analyticsTrackStub.mockImplementation(track(true));
+      const visitor = createVisitor({ trackSuccess: true });
+      const assignment = createAssignment();
+      const notification = new AssignmentNotification({ visitor, assignment });
 
       await notification.send();
       expect(mockClient.history.post.length).toBe(2);
@@ -94,7 +76,9 @@ describe('AssignmentNotification', () => {
     });
 
     it('notifies the test track server with an analytics failure', async () => {
-      analyticsTrackStub.mockImplementation(track(false));
+      const visitor = createVisitor({ trackSuccess: false });
+      const assignment = createAssignment();
+      const notification = new AssignmentNotification({ visitor, assignment });
 
       await notification.send();
       expect(mockClient.history.post.length).toBe(2);
@@ -105,7 +89,10 @@ describe('AssignmentNotification', () => {
     });
 
     it('logs an error on an error response', async () => {
-      analyticsTrackStub.mockImplementation(track(false));
+      const visitor = createVisitor({ trackSuccess: false });
+      const assignment = createAssignment();
+      const notification = new AssignmentNotification({ visitor, assignment });
+
       mockClient.reset();
       mockClient.onPost().reply(500, null);
 
@@ -117,6 +104,10 @@ describe('AssignmentNotification', () => {
     });
 
     it('logs an error on an failed request', async () => {
+      const visitor = createVisitor({ trackSuccess: true });
+      const assignment = createAssignment();
+      const notification = new AssignmentNotification({ visitor, assignment });
+
       mockClient.reset();
       mockClient.onPost().networkError();
 

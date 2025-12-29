@@ -224,13 +224,8 @@ describe('VaryDSL', () => {
   });
 
   describe('#run()', () => {
-    let whenHandler: Mock;
-    let defaultHandler: Mock;
-
-    beforeEach(() => {
-      whenHandler = vi.fn();
-      defaultHandler = vi.fn();
-    });
+    const whenHandler = vi.fn();
+    const defaultHandler = vi.fn();
 
     it('throws an error if `default` was never called', () => {
       const assignment = createAssignment();

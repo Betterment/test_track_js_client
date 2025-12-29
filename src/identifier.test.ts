@@ -14,17 +14,18 @@ vi.mock('./testTrackConfig', () => {
 
 vi.mock('./visitor');
 
+function createIdentifier() {
+  return new Identifier({
+    visitorId: 'transient_visitor_id',
+    identifierType: 'myappdb_user_id',
+    value: 444
+  });
+}
+
 describe('Identifier', () => {
-  let identifier: Identifier;
-  let identifierOptions: ConstructorParameters<typeof Identifier>[0];
-
-  function createIdentifier() {
-    return new Identifier(identifierOptions);
-  }
-
   beforeEach(() => {
     server.use(
-      http.post('http://testtrack.dev/api/v1/identifier',() => {
+      http.post('http://testtrack.dev/api/v1/identifier', () => {
         return HttpResponse.json({
           visitor: {
             id: 'actual_visitor_id',
@@ -46,36 +47,28 @@ describe('Identifier', () => {
         });
       })
     );
-
-    identifierOptions = {
-      visitorId: 'transient_visitor_id',
-      identifierType: 'myappdb_user_id',
-      value: 444
-    };
-
-    identifier = createIdentifier();
   });
 
   it('requires a visitorId', () => {
-    // @ts-expect-error Testing deletion of required property
-    delete identifierOptions.visitorId;
-    expect(() => createIdentifier()).toThrow('must provide visitorId');
+    // @ts-expect-error Testing missing required property
+    expect(() => new Identifier({ identifierType: 'myappdb_user_id', value: 444 })).toThrow('must provide visitorId');
   });
 
   it('requires a identifierType', () => {
-    // @ts-expect-error Testing deletion of required property
-    delete identifierOptions.identifierType;
-    expect(() => createIdentifier()).toThrow('must provide identifierType');
+    // @ts-expect-error Testing missing required property
+    expect(() => new Identifier({ visitorId: 'visitorId', value: 444 })).toThrow('must provide identifierType');
   });
 
   it('requires a value', () => {
-    // @ts-expect-error Testing deletion of required property
-    delete identifierOptions.value;
-    expect(() => createIdentifier()).toThrow('must provide value');
+    // @ts-expect-error Testing missing required property
+    expect(() => new Identifier({ visitorId: 'visitorId', identifierType: 'myappdb_user_id' })).toThrow(
+      'must provide identifierType'
+    );
   });
 
   describe('#save()', () => {
     it('hits the test track server with the correct parameters', async () => {
+      const identifier = createIdentifier();
       await identifier.save();
       expect(requests.length).toBe(1);
       expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/identifier');
@@ -85,13 +78,14 @@ describe('Identifier', () => {
     });
 
     it('responds with a Visitor instance with the attributes from the server', async () => {
+      const identifier = createIdentifier();
       const jabbaAssignment = new Assignment({
-          splitName: 'jabba',
-          variant: 'puppet',
-          context: 'mos_eisley',
-          isUnsynced: true
-        }),
-        wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', context: 'napa', isUnsynced: false });
+        splitName: 'jabba',
+        variant: 'puppet',
+        context: 'mos_eisley',
+        isUnsynced: true
+      });
+      const wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', context: 'napa', isUnsynced: false });
 
       await identifier.save();
       expect(Visitor).toHaveBeenCalledTimes(1);

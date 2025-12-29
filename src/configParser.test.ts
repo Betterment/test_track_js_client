@@ -1,15 +1,13 @@
 import ConfigParser from './configParser';
 
 describe('ConfigParser', () => {
-  let configParser: ConfigParser;
-
   beforeEach(() => {
-    configParser = new ConfigParser();
     window.TT = 'eyJhIjoiYiIsImMiOnsiZCI6ImUifSwiZiI6WyJnIiwiaCJdfQ==';
   });
 
   describe('#getConfig()', () => {
     it('parses the window.TT variable', () => {
+      const configParser = new ConfigParser();
       expect(configParser.getConfig()).toEqual({
         a: 'b',
         c: { d: 'e' },
@@ -23,6 +21,7 @@ describe('ConfigParser', () => {
       });
 
       it('raises an error', () => {
+        const configParser = new ConfigParser();
         expect(configParser.getConfig).toThrow('Unable to parse configuration');
       });
     });
@@ -40,6 +39,7 @@ describe('ConfigParser', () => {
       });
 
       it('parses the window.TT variable', () => {
+        const configParser = new ConfigParser();
         expect(configParser.getConfig()).toEqual({
           a: 'b',
           c: { d: 'e' },

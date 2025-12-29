@@ -2,16 +2,12 @@ import Assignment from './assignment';
 import MixpanelAnalytics from './mixpanelAnalytics';
 
 describe('MixpanelAnalytics', () => {
-  let mixpanelAnalytics: MixpanelAnalytics;
-
   beforeEach(() => {
     window.mixpanel = {
       track: vi.fn(),
       alias: vi.fn(),
       identify: vi.fn()
     };
-
-    mixpanelAnalytics = new MixpanelAnalytics();
   });
 
   afterEach(() => {
@@ -21,6 +17,7 @@ describe('MixpanelAnalytics', () => {
 
   describe('#trackAssignment()', () => {
     it('calls window.mixpanel.track()', () => {
+      const mixpanelAnalytics = new MixpanelAnalytics();
       const assignment = new Assignment({
         splitName: 'jabba',
         variant: 'cgi',
@@ -49,6 +46,7 @@ describe('MixpanelAnalytics', () => {
 
   describe('#alias()', () => {
     it('calls window.mixpanel.alias()', () => {
+      const mixpanelAnalytics = new MixpanelAnalytics();
       mixpanelAnalytics.alias('id');
 
       expect(window.mixpanel.alias).toHaveBeenCalled();
@@ -58,6 +56,7 @@ describe('MixpanelAnalytics', () => {
 
   describe('#identify()', () => {
     it('calls window.mixpanel.identify()', () => {
+      const mixpanelAnalytics = new MixpanelAnalytics();
       mixpanelAnalytics.identify('id');
 
       expect(window.mixpanel.identify).toHaveBeenCalled();

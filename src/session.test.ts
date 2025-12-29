@@ -2,7 +2,8 @@ import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
 import Cookies from 'js-cookie';
 import Session from './session';
-import * as visitor from './visitor';
+import Visitor from './visitor';
+import { AnalyticsProvider } from './analyticsProvider';
 
 vi.mock('./assignmentOverride');
 
@@ -37,40 +38,31 @@ describe('Session', () => {
   });
 
   describe('Cookie behavior', () => {
-    it('reads the visitor id from a cookie and sets it back in the cookie', () => {
-      const v = new visitor.default({ id: 'existing_visitor_id', assignments: [] });
-      visitor.default.loadVisitor = vi.fn().mockResolvedValue(v);
+    it('reads the visitor id from a cookie and sets it back in the cookie', async () => {
+      const v = new Visitor({ id: 'existing_visitor_id', assignments: [] });
+      Visitor.loadVisitor = vi.fn().mockResolvedValue(v);
 
-      return (
-        new Session()
-          .getPublicAPI()
-          // @ts-expect-error Testing without arguments
-          .initialize()
-          .then(() => {
-            expect(visitor.default.loadVisitor).toHaveBeenCalledWith('existing_visitor_id');
-
-            expect(Cookies.get).toHaveBeenCalledTimes(1);
-            expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
-
-            expect(Cookies.set).toHaveBeenCalledTimes(1);
-            expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'existing_visitor_id', {
-              expires: 365,
-              path: '/',
-              domain: '.example.com'
-            });
-          })
-      );
+      await new Session().getPublicAPI().initialize({});
+      expect(Visitor.loadVisitor).toHaveBeenCalledWith('existing_visitor_id');
+      expect(Cookies.get).toHaveBeenCalledTimes(1);
+      expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
+      expect(Cookies.set).toHaveBeenCalledTimes(1);
+      expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'existing_visitor_id', {
+        expires: 365,
+        path: '/',
+        domain: '.example.com'
+      });
     });
 
     it('saves the visitor id in a cookie', async () => {
       // @ts-expect-error Cookies.get returns different types depending on arguments
       vi.mocked(Cookies.get).mockReturnValue(null);
 
-      const v = new visitor.default({ id: 'generated_visitor_id', assignments: [] });
-      visitor.default.loadVisitor = vi.fn().mockResolvedValue(v);
+      const v = new Visitor({ id: 'generated_visitor_id', assignments: [] });
+      Visitor.loadVisitor = vi.fn().mockResolvedValue(v);
 
       await new Session().getPublicAPI().initialize({});
-      expect(visitor.default.loadVisitor).toHaveBeenCalledWith(null);
+      expect(Visitor.loadVisitor).toHaveBeenCalledWith(null);
       expect(Cookies.get).toHaveBeenCalledTimes(1);
       expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
       expect(Cookies.set).toHaveBeenCalledTimes(1);
@@ -84,7 +76,7 @@ describe('Session', () => {
 
   describe('with stubbed visitor and split registry', () => {
     let jabbaAssignment: Assignment;
-    let visitorInstance: visitor.default;
+    let visitorInstance: Visitor;
     let session: Session;
 
     beforeEach(async () => {
@@ -94,7 +86,7 @@ describe('Session', () => {
         isUnsynced: false
       });
 
-      visitorInstance = new visitor.default({
+      visitorInstance = new Visitor({
         id: 'dummy_visitor_id',
         assignments: [jabbaAssignment]
       });
@@ -110,7 +102,7 @@ describe('Session', () => {
         return Promise.resolve();
       });
 
-      visitor.default.loadVisitor = vi.fn().mockResolvedValue(visitorInstance);
+      Visitor.loadVisitor = vi.fn().mockResolvedValue(visitorInstance);
 
       session = new Session();
       await session.initialize({});
@@ -118,34 +110,25 @@ describe('Session', () => {
     });
 
     describe('#initialize()', () => {
-      it('calls notifyUnsyncedAssignments when a visitor is loaded', () => {
+      it('calls notifyUnsyncedAssignments when a visitor is loaded', async () => {
         visitorInstance.notifyUnsyncedAssignments = vi.fn();
-        return (
-          new Session()
-            .getPublicAPI()
-            // @ts-expect-error Testing without arguments
-            .initialize()
-            .then(() => {
-              expect(visitorInstance.notifyUnsyncedAssignments).toHaveBeenCalledTimes(1);
-            })
-        );
+        await new Session().getPublicAPI().initialize({});
+        expect(visitorInstance.notifyUnsyncedAssignments).toHaveBeenCalledTimes(1);
       });
 
-      it('sets the analytics lib', () => {
-        const analytics = { track: '' };
+      it('sets the analytics lib', async () => {
+        const analytics: AnalyticsProvider = {
+          trackAssignment: vi.fn(),
+          identify: vi.fn(),
+          alias: vi.fn()
+        };
+
         visitorInstance.setAnalytics = vi.fn();
 
-        return (
-          new Session()
-            .getPublicAPI()
-            // @ts-expect-error Testing with incomplete analytics object
-            .initialize({ analytics: analytics })
-            .then(() => {
-              expect(visitorInstance.setAnalytics).toHaveBeenCalledTimes(1);
-              expect(visitorInstance.setAnalytics).toHaveBeenCalledTimes(1);
-              expect(visitorInstance.setAnalytics).toHaveBeenCalledWith(analytics);
-            })
-        );
+        await new Session().getPublicAPI().initialize({ analytics });
+        expect(visitorInstance.setAnalytics).toHaveBeenCalledTimes(1);
+        expect(visitorInstance.setAnalytics).toHaveBeenCalledTimes(1);
+        expect(visitorInstance.setAnalytics).toHaveBeenCalledWith(analytics);
       });
 
       it('sets the error logger', async () => {

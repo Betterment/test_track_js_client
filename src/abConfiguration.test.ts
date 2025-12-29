@@ -6,9 +6,13 @@ import { mockSplitRegistry } from './test-utils';
 
 vi.mock('./testTrackConfig');
 
-describe('ABConfiguration', () => {
-  let visitor: Visitor;
+function createVisitor() {
+  const visitor = new Visitor({ id: 'visitor_id', assignments: [] });
+  visitor.logError = vi.fn();
+  return visitor;
+}
 
+describe('ABConfiguration', () => {
   beforeEach(() => {
     TestTrackConfig.getSplitRegistry = mockSplitRegistry({
       element: {
@@ -25,44 +29,35 @@ describe('ABConfiguration', () => {
         true: 100
       }
     });
-
-    visitor = new Visitor({
-      id: 'visitor_id',
-      assignments: []
-    });
-    visitor.logError = vi.fn();
   });
 
   it('requires a splitName', () => {
+    const visitor = createVisitor();
+
     expect(() => {
       // @ts-expect-error Testing missing required property
-      new ABConfiguration({
-        trueVariant: 'red',
-        visitor: visitor
-      });
+      new ABConfiguration({ trueVariant: 'red', visitor: visitor });
     }).toThrow('must provide splitName');
   });
 
   it('requires an trueVariant', () => {
+    const visitor = createVisitor();
+
     expect(() => {
-      new ABConfiguration({
-        splitName: 'button_color',
-        visitor: visitor
-      });
+      new ABConfiguration({ splitName: 'button_color', visitor: visitor });
     }).toThrow('must provide trueVariant');
   });
 
   it('requires a visitor', () => {
     expect(() => {
       // @ts-expect-error Testing missing required property
-      new ABConfiguration({
-        splitName: 'button_color',
-        trueVariant: 'red'
-      });
+      new ABConfiguration({ splitName: 'button_color', trueVariant: 'red' });
     }).toThrow('must provide visitor');
   });
 
   it('allows a null trueVariant', () => {
+    const visitor = createVisitor();
+
     expect(() => {
       new ABConfiguration({
         splitName: 'button_color',
@@ -75,6 +70,7 @@ describe('ABConfiguration', () => {
 
   describe('#getVariants()', () => {
     it('logs an error if the split does not have exactly two variants', () => {
+      const visitor = createVisitor();
       const abConfiguration = new ABConfiguration({
         splitName: 'element',
         trueVariant: 'water',
@@ -89,10 +85,11 @@ describe('ABConfiguration', () => {
     it('does not log an error if the split registry is not loaded', () => {
       vi.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
+      const visitor = createVisitor();
       const abConfiguration = new ABConfiguration({
         splitName: 'element',
         trueVariant: 'water',
-        visitor: visitor
+        visitor
       });
 
       abConfiguration.getVariants();
@@ -106,7 +103,7 @@ describe('ABConfiguration', () => {
           splitName: 'button_color',
           // @ts-expect-error Testing null value
           trueVariant: null,
-          visitor: visitor
+          visitor: createVisitor()
         });
 
         expect(abConfiguration.getVariants().true).toBe('true');
@@ -117,7 +114,7 @@ describe('ABConfiguration', () => {
           splitName: 'new_feature',
           // @ts-expect-error Testing null value
           trueVariant: null,
-          visitor: visitor
+          visitor: createVisitor()
         });
 
         expect(abConfiguration.getVariants().true).toBe('true');
@@ -127,7 +124,7 @@ describe('ABConfiguration', () => {
         const abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red',
-          visitor: visitor
+          visitor: createVisitor()
         });
 
         expect(abConfiguration.getVariants().true).toBe('red');
@@ -139,7 +136,7 @@ describe('ABConfiguration', () => {
         const abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red',
-          visitor: visitor
+          visitor: createVisitor()
         });
 
         expect(abConfiguration.getVariants().false).toBe('blue');
@@ -151,7 +148,7 @@ describe('ABConfiguration', () => {
         const abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red',
-          visitor: visitor
+          visitor: createVisitor()
         });
 
         expect(abConfiguration.getVariants().false).toBe('false');
@@ -161,7 +158,7 @@ describe('ABConfiguration', () => {
         const abConfiguration = new ABConfiguration({
           splitName: 'element',
           trueVariant: 'earth',
-          visitor: visitor
+          visitor: createVisitor()
         });
 
         expect(abConfiguration.getVariants().false).toBe('fire');
@@ -172,7 +169,7 @@ describe('ABConfiguration', () => {
           splitName: 'new_feature',
           // @ts-expect-error Testing null value
           trueVariant: null,
-          visitor: visitor
+          visitor: createVisitor()
         });
 
         expect(abConfiguration.getVariants().false).toBe('false');

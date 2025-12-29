@@ -29,7 +29,7 @@ jest.mock('./configParser', () => {
 
 describe('TestTrackConfig', () => {
   beforeEach(() => {
-    ConfigParser.mockClear();
+    jest.mocked(ConfigParser).mockClear();
     TestTrackConfig._clear();
   });
 

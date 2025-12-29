@@ -1,7 +1,7 @@
 import ConfigParser from './configParser';
 
 describe('ConfigParser', () => {
-  let testContext;
+  let testContext: { configParser?: ConfigParser; originalAtob?: typeof atob };
 
   beforeEach(() => {
     testContext = {};

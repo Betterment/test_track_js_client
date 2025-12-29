@@ -42,7 +42,7 @@ describe('MixpanelAnalytics', () => {
       });
 
       // call success
-      window.mixpanel.track.mock.calls[0][2](true);
+      jest.mocked(window.mixpanel.track).mock.calls[0][2](true);
     });
   });
 

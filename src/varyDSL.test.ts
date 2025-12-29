@@ -104,7 +104,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
-      TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
+      jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       var localVary = new VaryDSL({
         assignment: assignment,
@@ -186,7 +186,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
-      TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
+      jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       var localVary = new VaryDSL({
         assignment: assignment,
@@ -299,7 +299,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
-      TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
+      jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       var localVary = new VaryDSL({
         assignment: assignment,

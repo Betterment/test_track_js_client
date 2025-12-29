@@ -94,7 +94,7 @@ describe('ABConfiguration', () => {
     });
 
     it('does not log an error if the split registry is not loaded', () => {
-      TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
+      jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       var abConfiguration = new ABConfiguration({
         splitName: 'element',
@@ -151,7 +151,7 @@ describe('ABConfiguration', () => {
       });
 
       it('is false when there is no split_registry', () => {
-        TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
+        jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
         var abConfiguration = new ABConfiguration({
           splitName: 'button_color',

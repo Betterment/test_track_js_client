@@ -56,7 +56,7 @@ describe('Visitor', () => {
       ]
     });
 
-    TestTrackConfig.getAssignments.mockReset();
+    jest.mocked(TestTrackConfig.getAssignments).mockReset();
     TestTrackConfig.getSplitRegistry = mockSplitRegistry({
       element: {
         earth: 25,
@@ -129,7 +129,7 @@ describe('Visitor', () => {
         isUnsynced: false
       });
 
-      TestTrackConfig.getAssignments.mockReturnValue([jabbaAssignment, wineAssignment]);
+      jest.mocked(TestTrackConfig.getAssignments).mockReturnValue([jabbaAssignment, wineAssignment]);
 
       return Visitor.loadVisitor('baked_visitor_id').then(function(visitor) {
         expect(mockClient.history.get.length).toBe(0);

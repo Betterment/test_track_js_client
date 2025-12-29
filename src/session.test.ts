@@ -32,7 +32,7 @@ jest.mock('js-cookie');
 
 describe('Session', () => {
   beforeEach(() => {
-    Cookies.get.mockReturnValue('existing_visitor_id');
+    jest.mocked(Cookies.get).mockReturnValue('existing_visitor_id');
   });
 
   describe('Cookie behavior', () => {
@@ -59,7 +59,7 @@ describe('Session', () => {
     });
 
     it('saves the visitor id in a cookie', () => {
-      Cookies.get.mockReturnValue(null);
+      jest.mocked(Cookies.get).mockReturnValue(null);
 
       var v = new visitor.default({ id: 'generated_visitor_id', assignments: [] });
       visitor.default.loadVisitor = jest.fn().mockResolvedValue(v);
@@ -114,7 +114,7 @@ describe('Session', () => {
 
       session = new Session().getPublicAPI();
       return session.initialize().then(() => {
-        Cookies.set.mockClear();
+        jest.mocked(Cookies.set).mockClear();
       });
     });
 
@@ -264,7 +264,7 @@ describe('Session', () => {
       describe('_crx', () => {
         describe('#persistAssignment()', () => {
           it('creates an AssignmentOverride and persists it', () => {
-            AssignmentOverride.mockImplementation(() => {
+            jest.mocked(AssignmentOverride).mockImplementation(() => {
               return {
                 persistAssignment: jest.fn().mockResolvedValue()
               };

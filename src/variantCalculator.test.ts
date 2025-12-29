@@ -168,7 +168,7 @@ describe('VariantCalculator', () => {
     });
 
     it('returns null if there is no split registry', () => {
-      TestTrackConfig.getSplitRegistry.mockReturnValue(new SplitRegistry(null));
+      jest.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       expect(calculator.getVariant()).toBeNull();
     });

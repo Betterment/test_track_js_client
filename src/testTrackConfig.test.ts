@@ -2,7 +2,7 @@ import Assignment from './assignment';
 import ConfigParser from './configParser';
 import TestTrackConfig from './testTrackConfig';
 
-let mockCookieName;
+let mockCookieName: string | undefined;
 
 jest.mock('./configParser', () => {
   return jest.fn().mockImplementation(() => {

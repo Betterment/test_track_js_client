@@ -711,7 +711,7 @@ describe('Visitor', () => {
   describe('#notifyUnsyncedAssignments', () => {
     it('notifies any unsynced assignments', () => {
       const wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', isUnsynced: false });
-      const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: true, isUnsynced: true });
+      const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: 'true', isUnsynced: true });
 
       const visitor = new Visitor({
         id: 'unsynced_visitor_id',

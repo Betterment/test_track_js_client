@@ -42,10 +42,8 @@ jest.mock('./identifier', () => {
 const mockClient = new MockAdapter(client);
 
 type TestContext = {
-  visitor: Visitor;
   vary_jabba_split?: (visitor: Visitor) => void;
   vary_wine_split?: (visitor: Visitor) => void;
-  offlineVisitor?: Visitor;
   trueHandler?: jest.Mock;
   falseHandler?: jest.Mock;
   vary_blue_button_split?: () => void;
@@ -57,9 +55,22 @@ type TestContext = {
 
 describe('Visitor', () => {
   let testContext: TestContext;
+  let visitor: Visitor;
+
   beforeEach(() => {
     testContext = {} as TestContext;
-    testContext.visitor = existingVisitor();
+
+    visitor = new Visitor({
+      id: 'EXISTING_VISITOR_ID',
+      assignments: [
+        new Assignment({
+          splitName: 'jabba',
+          variant: 'puppet',
+          isUnsynced: false
+        })
+      ]
+    });
+
     TestTrackConfig.getAssignments.mockReset();
     TestTrackConfig.getSplitRegistry = mockSplitRegistry({
       element: {
@@ -75,22 +86,10 @@ describe('Visitor', () => {
     mockClient.reset();
   });
 
-  function existingVisitor(visitorId) {
-    return new Visitor({
-      id: visitorId || 'EXISTING_VISITOR_ID',
-      assignments: [
-        new Assignment({
-          splitName: 'jabba',
-          variant: 'puppet',
-          isUnsynced: false
-        })
-      ]
-    });
-  }
-
   describe('instantiation', () => {
     it('requires an id', () => {
       expect(function() {
+        // @ts-expect-error id is required
         new Visitor({
           assignments: []
         });
@@ -99,6 +98,7 @@ describe('Visitor', () => {
 
     it('requires assignments', () => {
       expect(function() {
+        // @ts-expect-error assignments are required
         new Visitor({
           id: 'visitor_id'
         });
@@ -121,7 +121,7 @@ describe('Visitor', () => {
     });
 
     it('does not hit the server when not passed a visitorId', () => {
-      uuid.mockReturnValue('generated_uuid');
+      jest.mocked(uuid).mockReturnValue('generated_uuid');
 
       return Visitor.loadVisitor(undefined).then(function(visitor) {
         expect(mockClient.history.get.length).toBe(0);
@@ -230,7 +230,7 @@ describe('Visitor', () => {
 
     it('throws an error if a variants object is not provided', () => {
       expect(() => {
-        testContext.visitor.vary('wine', {
+        visitor.vary('wine', {
           context: 'spec',
           defaultVariant: 'white'
         });
@@ -239,7 +239,7 @@ describe('Visitor', () => {
 
     it('throws an error if a context is not provided', () => {
       expect(() => {
-        testContext.visitor.vary('wine', {
+        visitor.vary('wine', {
           defaultVariant: 'white',
           variants: {
             white: function() {},
@@ -251,7 +251,7 @@ describe('Visitor', () => {
 
     it('throws an error if a defaultVariant is not provided', () => {
       expect(() => {
-        testContext.visitor.vary('wine', {
+        visitor.vary('wine', {
           context: 'spec',
           variants: {
             white: function() {},
@@ -263,7 +263,7 @@ describe('Visitor', () => {
 
     it('throws an error if the defaultVariant is not represented in the variants object', () => {
       expect(() => {
-        testContext.visitor.vary('wine', {
+        visitor.vary('wine', {
           context: 'spec',
           variants: {
             white: function() {},
@@ -276,19 +276,19 @@ describe('Visitor', () => {
 
     describe('New Assignment', () => {
       it('generates a new assignment via VariantCalculator', () => {
-        testContext.vary_wine_split(testContext.visitor);
+        testContext.vary_wine_split(visitor);
 
         expect(VariantCalculator).toHaveBeenCalledWith({
-          visitor: testContext.visitor,
+          visitor: visitor,
           splitName: 'wine'
         });
         expect(mockGetVariant).toHaveBeenCalled();
       });
 
       it('adds new assignments to the assignment registry', () => {
-        testContext.vary_wine_split(testContext.visitor);
+        testContext.vary_wine_split(visitor);
 
-        expect(testContext.visitor.getAssignmentRegistry()).toEqual({
+        expect(visitor.getAssignmentRegistry()).toEqual({
           jabba: new Assignment({
             splitName: 'jabba',
             variant: 'puppet',
@@ -304,10 +304,10 @@ describe('Visitor', () => {
       });
 
       it('sends an AssignmentNotification', () => {
-        testContext.vary_wine_split(testContext.visitor);
+        testContext.vary_wine_split(visitor);
 
         expect(AssignmentNotification).toHaveBeenCalledWith({
-          visitor: testContext.visitor,
+          visitor: visitor,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'red',
@@ -321,10 +321,10 @@ describe('Visitor', () => {
       it('only sends one AssignmentNotification with the default if it is defaulted', () => {
         mockGetVariant.mockReturnValue('rose');
 
-        testContext.vary_wine_split(testContext.visitor);
+        testContext.vary_wine_split(visitor);
 
         expect(AssignmentNotification).toHaveBeenCalledWith({
-          visitor: testContext.visitor,
+          visitor: visitor,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'white',
@@ -336,16 +336,16 @@ describe('Visitor', () => {
       });
 
       it('logs an error if the AssignmentNotification throws an error', () => {
-        testContext.visitor.logError = jest.fn();
+        visitor.logError = jest.fn();
 
         mockSend.mockImplementation(() => {
           throw new Error('something bad happened');
         });
 
-        testContext.vary_wine_split(testContext.visitor);
+        testContext.vary_wine_split(visitor);
 
         expect(AssignmentNotification).toHaveBeenCalledWith({
-          visitor: testContext.visitor,
+          visitor: visitor,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'red',
@@ -355,28 +355,26 @@ describe('Visitor', () => {
         });
         expect(mockSend).toHaveBeenCalledTimes(1);
 
-        expect(testContext.visitor.logError).toHaveBeenCalledWith(
-          'test_track notify error: Error: something bad happened'
-        );
+        expect(visitor.logError).toHaveBeenCalledWith('test_track notify error: Error: something bad happened');
       });
     });
 
     describe('Existing Assignment', () => {
       it('returns an existing assignment wihout generating', () => {
-        testContext.vary_jabba_split(testContext.visitor);
+        testContext.vary_jabba_split(visitor);
 
         expect(VariantCalculator).not.toHaveBeenCalled();
       });
 
       it('does not send an AssignmentNotification', () => {
-        testContext.vary_jabba_split(testContext.visitor);
+        testContext.vary_jabba_split(visitor);
 
         expect(AssignmentNotification).not.toHaveBeenCalled();
         expect(mockSend).not.toHaveBeenCalled();
       });
 
       it('sends an AssignmentNotification with the default if it is defaulted', () => {
-        testContext.visitor.vary('jabba', {
+        visitor.vary('jabba', {
           context: 'defaulted',
           variants: {
             furry_man: function() {},
@@ -387,7 +385,7 @@ describe('Visitor', () => {
 
         expect(AssignmentNotification).toHaveBeenCalledTimes(1);
         expect(AssignmentNotification).toHaveBeenCalledWith({
-          visitor: testContext.visitor,
+          visitor: visitor,
           assignment: new Assignment({
             splitName: 'jabba',
             variant: 'cgi',
@@ -400,8 +398,10 @@ describe('Visitor', () => {
     });
 
     describe('Offline Visitor', () => {
+      let offlineVisitor: Visitor;
+
       beforeEach(() => {
-        testContext.offlineVisitor = new Visitor({
+        offlineVisitor = new Visitor({
           id: 'offline_visitor_id',
           assignments: [],
           ttOffline: true
@@ -409,18 +409,18 @@ describe('Visitor', () => {
       });
 
       it('generates a new assignment via VariantCalculator', () => {
-        testContext.vary_jabba_split(testContext.offlineVisitor);
+        testContext.vary_jabba_split(offlineVisitor);
 
         expect(VariantCalculator).toHaveBeenCalledTimes(1);
         expect(VariantCalculator).toHaveBeenCalledWith({
-          visitor: testContext.offlineVisitor,
+          visitor: offlineVisitor,
           splitName: 'jabba'
         });
         expect(mockGetVariant).toHaveBeenCalledTimes(1);
       });
 
       it('does not send an AssignmentNotification', () => {
-        testContext.vary_wine_split(testContext.offlineVisitor);
+        testContext.vary_wine_split(offlineVisitor);
 
         expect(AssignmentNotification).not.toHaveBeenCalled();
         expect(mockSend).not.toHaveBeenCalled();
@@ -433,15 +433,13 @@ describe('Visitor', () => {
       });
 
       it('adds the assignment to the assignment registry', () => {
-        testContext.vary_wine_split(testContext.visitor);
+        testContext.vary_wine_split(visitor);
 
-        expect(Object.keys(testContext.visitor.getAssignmentRegistry())).toEqual(
-          expect.arrayContaining(['jabba', 'wine'])
-        );
+        expect(Object.keys(visitor.getAssignmentRegistry())).toEqual(expect.arrayContaining(['jabba', 'wine']));
       });
 
       it('does not send an AssignmentNotification', () => {
-        testContext.vary_wine_split(testContext.visitor);
+        testContext.vary_wine_split(visitor);
 
         expect(AssignmentNotification).not.toHaveBeenCalled();
         expect(mockSend).not.toHaveBeenCalled();
@@ -454,7 +452,7 @@ describe('Visitor', () => {
         testContext.falseHandler = jest.fn();
 
         testContext.vary_blue_button_split = function() {
-          testContext.visitor.vary('blue_button', {
+          visitor.vary('blue_button', {
             context: 'spec',
             variants: {
               true: testContext.trueHandler,
@@ -489,7 +487,7 @@ describe('Visitor', () => {
     it('leverages vary to configure the split', () => {
       const handler = jest.fn();
 
-      testContext.visitor.ab('jabba', {
+      visitor.ab('jabba', {
         context: 'spec',
         trueVariant: 'puppet',
         callback: handler
@@ -501,7 +499,7 @@ describe('Visitor', () => {
 
     describe('with an explicit trueVariant', () => {
       it('returns true when assigned to the trueVariant', () => {
-        testContext.visitor._assignments = [
+        visitor._assignments = [
           new Assignment({
             splitName: 'jabba',
             variant: 'puppet',
@@ -509,7 +507,7 @@ describe('Visitor', () => {
           })
         ];
 
-        testContext.visitor.ab('jabba', {
+        visitor.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
           callback: function(isPuppet) {
@@ -519,7 +517,7 @@ describe('Visitor', () => {
       });
 
       it('returns false when not assigned to the trueVariant', () => {
-        testContext.visitor._assignments = [
+        visitor._assignments = [
           new Assignment({
             splitName: 'jabba',
             variant: 'cgi',
@@ -527,7 +525,7 @@ describe('Visitor', () => {
           })
         ];
 
-        testContext.visitor.ab('jabba', {
+        visitor.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
           callback: function(isPuppet) {
@@ -539,7 +537,7 @@ describe('Visitor', () => {
 
     describe('with an implicit trueVariant', () => {
       it('returns true when variant is true', () => {
-        testContext.visitor._assignments = [
+        visitor._assignments = [
           new Assignment({
             splitName: 'blue_button',
             variant: 'true',
@@ -547,7 +545,7 @@ describe('Visitor', () => {
           })
         ];
 
-        testContext.visitor.ab('blue_button', {
+        visitor.ab('blue_button', {
           context: 'spec',
           callback: function(isBlue) {
             expect(isBlue).toBe(true);
@@ -556,7 +554,7 @@ describe('Visitor', () => {
       });
 
       it('returns false when variant is false', () => {
-        testContext.visitor._assignments = [
+        visitor._assignments = [
           new Assignment({
             splitName: 'blue_button',
             variant: 'false',
@@ -564,7 +562,7 @@ describe('Visitor', () => {
           })
         ];
 
-        testContext.visitor.ab('blue_button', {
+        visitor.ab('blue_button', {
           context: 'spec',
           callback: function(isBlue) {
             expect(isBlue).toBe(false);
@@ -573,7 +571,7 @@ describe('Visitor', () => {
       });
 
       it('returns false when split variants are not true and false', () => {
-        testContext.visitor.ab('jabba', {
+        visitor.ab('jabba', {
           context: 'spec',
           callback: function(isTrue) {
             expect(isTrue).toBe(false);
@@ -599,7 +597,7 @@ describe('Visitor', () => {
     });
 
     it('saves an identifier', () => {
-      testContext.visitor.linkIdentifier('myappdb_user_id', 444);
+      visitor.linkIdentifier('myappdb_user_id', 444);
 
       expect(Identifier).toHaveBeenCalledTimes(1);
       expect(Identifier).toHaveBeenCalledWith({
@@ -614,10 +612,10 @@ describe('Visitor', () => {
       const jabbaPuppetAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: true });
       const wineAssignment = new Assignment({ splitName: 'wine', variant: 'white', isUnsynced: true });
 
-      testContext.visitor._assignments = [jabbaPuppetAssignment, wineAssignment];
+      visitor._assignments = [jabbaPuppetAssignment, wineAssignment];
 
-      return testContext.visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
-        expect(testContext.visitor.getAssignmentRegistry()).toEqual({
+      return visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
+        expect(visitor.getAssignmentRegistry()).toEqual({
           jabba: testContext.jabbaCGIAssignment,
           wine: wineAssignment,
           blue_button: testContext.blueButtonAssignment
@@ -626,16 +624,16 @@ describe('Visitor', () => {
     });
 
     it('changes visitor id', () => {
-      return testContext.visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
-        expect(testContext.visitor.getId()).toBe('actual_visitor_id');
+      return visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
+        expect(visitor.getId()).toBe('actual_visitor_id');
       });
     });
 
     it('notifies any unsynced splits', () => {
-      return testContext.visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
+      return visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
         expect(AssignmentNotification).toHaveBeenCalledTimes(1);
         expect(AssignmentNotification).toHaveBeenCalledWith({
-          visitor: testContext.visitor,
+          visitor: visitor,
           assignment: testContext.blueButtonAssignment
         });
         expect(mockSend).toHaveBeenCalledTimes(1);
@@ -646,16 +644,16 @@ describe('Visitor', () => {
   describe('#setErrorLogger()', () => {
     it('throws an error if not provided with a function', () => {
       expect(() => {
-        testContext.visitor.setErrorLogger('teapot');
+        visitor.setErrorLogger('teapot');
       }).toThrow('must provide function for errorLogger');
     });
 
     it('sets the error logger on the visitor', () => {
       const errorLogger = function() {};
 
-      testContext.visitor.setErrorLogger(errorLogger);
+      visitor.setErrorLogger(errorLogger);
 
-      expect(testContext.visitor._errorLogger).toBe(errorLogger);
+      expect(visitor._errorLogger).toBe(errorLogger);
     });
   });
 
@@ -665,23 +663,23 @@ describe('Visitor', () => {
     });
 
     it('calls the error logger with the error message', () => {
-      testContext.visitor.setErrorLogger(testContext.errorLogger);
-      testContext.visitor.logError('something bad happened');
+      visitor.setErrorLogger(testContext.errorLogger);
+      visitor.logError('something bad happened');
 
       expect(testContext.errorLogger).toHaveBeenCalledTimes(1);
       expect(testContext.errorLogger).toHaveBeenCalledWith('something bad happened');
     });
 
     it('calls the error logger with a null context', () => {
-      testContext.visitor.setErrorLogger(testContext.errorLogger);
-      testContext.visitor.logError('something bad happened');
+      visitor.setErrorLogger(testContext.errorLogger);
+      visitor.logError('something bad happened');
 
       expect(testContext.errorLogger.mock.instances[0]).toBeNull();
     });
 
     it('does a console.error if the error logger was never set', () => {
       const consoleSpy = jest.spyOn(window.console, 'error');
-      testContext.visitor.logError('something bad happened');
+      visitor.logError('something bad happened');
 
       expect(consoleSpy).toHaveBeenCalledTimes(1);
       expect(consoleSpy).toHaveBeenCalledWith('something bad happened');
@@ -692,16 +690,16 @@ describe('Visitor', () => {
   describe('#setAnalytics()', () => {
     it('throws an error if not provided with an object', () => {
       expect(() => {
-        testContext.visitor.setAnalytics('teapot');
+        visitor.setAnalytics('teapot');
       }).toThrow('must provide object for setAnalytics');
     });
 
     it('sets the analytics object on the visitor', () => {
       const analytics = {};
 
-      testContext.visitor.setAnalytics(analytics);
+      visitor.setAnalytics(analytics);
 
-      expect(testContext.visitor.analytics).toBe(analytics);
+      expect(visitor.analytics).toBe(analytics);
     });
   });
 

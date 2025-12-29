@@ -82,51 +82,47 @@ describe('AssignmentNotification', () => {
       expect(analyticsTrackStub).toHaveBeenCalledWith('visitorId', assignment, expect.any(Function));
     });
 
-    it('notifies the test track server with an analytics success', () => {
+    it('notifies the test track server with an analytics success', async () => {
       analyticsTrackStub.mockImplementation(track(true));
 
-      return notification.send().then(() => {
-        expect(mockClient.history.post.length).toBe(2);
-        expect(mockClient.history.post[0].data).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
-        expect(mockClient.history.post[1].data).toEqual(
-          'visitor_id=visitorId&split_name=jabba&context=spec&mixpanel_result=success'
-        );
-      });
+      await notification.send();
+      expect(mockClient.history.post.length).toBe(2);
+      expect(mockClient.history.post[0].data).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
+      expect(mockClient.history.post[1].data).toEqual(
+        'visitor_id=visitorId&split_name=jabba&context=spec&mixpanel_result=success'
+      );
     });
 
-    it('notifies the test track server with an analytics failure', () => {
+    it('notifies the test track server with an analytics failure', async () => {
       analyticsTrackStub.mockImplementation(track(false));
 
-      return notification.send().then(() => {
-        expect(mockClient.history.post.length).toBe(2);
-        expect(mockClient.history.post[0].data).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
-        expect(mockClient.history.post[1].data).toEqual(
-          'visitor_id=visitorId&split_name=jabba&context=spec&mixpanel_result=failure'
-        );
-      });
+      await notification.send();
+      expect(mockClient.history.post.length).toBe(2);
+      expect(mockClient.history.post[0].data).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
+      expect(mockClient.history.post[1].data).toEqual(
+        'visitor_id=visitorId&split_name=jabba&context=spec&mixpanel_result=failure'
+      );
     });
 
-    it('logs an error on an error response', () => {
+    it('logs an error on an error response', async () => {
       analyticsTrackStub.mockImplementation(track(false));
       mockClient.reset();
       mockClient.onPost().reply(500, null);
 
-      return notification.send().then(() => {
-        expect(visitor.logError).toHaveBeenCalledTimes(2);
-        expect(visitor.logError).toHaveBeenCalledWith(
-          'test_track persistAssignment response error: 500, undefined, null'
-        );
-      });
+      await notification.send();
+      expect(visitor.logError).toHaveBeenCalledTimes(2);
+      expect(visitor.logError).toHaveBeenCalledWith(
+        'test_track persistAssignment response error: 500, undefined, null'
+      );
     });
 
-    it('logs an error on an failed request', () => {
+    it('logs an error on an failed request', async () => {
       mockClient.reset();
       mockClient.onPost().networkError();
 
-      return notification.send().then(() => {
-        expect(visitor.logError).toHaveBeenCalledTimes(2);
-        expect(visitor.logError).toHaveBeenCalledWith('test_track persistAssignment other error: Error: Network Error');
-      });
+      await notification.send();
+      expect(visitor.logError).toHaveBeenCalledTimes(2);
+      expect(visitor.logError).toHaveBeenCalledWith('test_track persistAssignment other error: Error: Network Error');
     });
   });
 });

@@ -106,18 +106,16 @@ describe('Visitor', () => {
       });
     });
 
-    it('does not hit the server when not passed a visitorId', () => {
+    it('does not hit the server when not passed a visitorId', async () => {
       jest.mocked(uuid).mockReturnValue('generated_uuid');
 
-      return Visitor.loadVisitor(undefined).then(function(visitor) {
-        expect(mockClient.history.get.length).toBe(0);
-
-        expect(visitor.getId()).toEqual('generated_uuid');
-        expect(visitor.getAssignmentRegistry()).toEqual({});
-      });
+      const visitor = await Visitor.loadVisitor(undefined);
+      expect(mockClient.history.get.length).toBe(0);
+      expect(visitor.getId()).toEqual('generated_uuid');
+      expect(visitor.getAssignmentRegistry()).toEqual({});
     });
 
-    it('does not hit the server when passed a visitorId and there are baked assignments', () => {
+    it('does not hit the server when passed a visitorId and there are baked assignments', async () => {
       const jabbaAssignment = new Assignment({
         splitName: 'jabba',
         variant: 'puppet',
@@ -132,20 +130,17 @@ describe('Visitor', () => {
 
       jest.mocked(TestTrackConfig.getAssignments).mockReturnValue([jabbaAssignment, wineAssignment]);
 
-      return Visitor.loadVisitor('baked_visitor_id').then(function(visitor) {
-        expect(mockClient.history.get.length).toBe(0);
-
-        expect(visitor.getId()).toEqual('baked_visitor_id');
-        expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
-        expect(visitor._getUnsyncedAssignments()).toEqual([]);
-
-        expect(visitor.getId()).toEqual('baked_visitor_id');
-        expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
-        expect(visitor._getUnsyncedAssignments()).toEqual([]);
-      });
+      const visitor = await Visitor.loadVisitor('baked_visitor_id');
+      expect(mockClient.history.get.length).toBe(0);
+      expect(visitor.getId()).toEqual('baked_visitor_id');
+      expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
+      expect(visitor._getUnsyncedAssignments()).toEqual([]);
+      expect(visitor.getId()).toEqual('baked_visitor_id');
+      expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
+      expect(visitor._getUnsyncedAssignments()).toEqual([]);
     });
 
-    it('loads a visitor from the server for an existing visitor if there are no baked assignments', () => {
+    it('loads a visitor from the server for an existing visitor if there are no baked assignments', async () => {
       mockClient.onGet('/v1/visitors/puppeteer_visitor_id').reply(200, {
         id: 'puppeteer_visitor_id',
         assignments: [
@@ -158,33 +153,28 @@ describe('Visitor', () => {
         ]
       });
 
-      return Visitor.loadVisitor('puppeteer_visitor_id').then(function(visitor) {
-        expect(mockClient.history.get[0].url).toEqual(expect.stringContaining('/v1/visitors/puppeteer_visitor_id'));
-
-        const jabbaAssignment = new Assignment({
-          splitName: 'jabba',
-          variant: 'puppet',
-          context: 'mos_eisley',
-          isUnsynced: false
-        });
-
-        expect(visitor.getId()).toBe('puppeteer_visitor_id');
-        expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment });
-        expect(visitor._getUnsyncedAssignments()).toEqual([]);
+      const visitor = await Visitor.loadVisitor('puppeteer_visitor_id');
+      expect(mockClient.history.get[0].url).toEqual(expect.stringContaining('/v1/visitors/puppeteer_visitor_id'));
+      const jabbaAssignment = new Assignment({
+        splitName: 'jabba',
+        variant: 'puppet',
+        context: 'mos_eisley',
+        isUnsynced: false
       });
+      expect(visitor.getId()).toBe('puppeteer_visitor_id');
+      expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment });
+      expect(visitor._getUnsyncedAssignments()).toEqual([]);
     });
 
-    it('builds a visitor in offline mode if the request fails', () => {
+    it('builds a visitor in offline mode if the request fails', async () => {
       mockClient.onGet('/v1/visitors/failed_visitor_id').timeout();
 
-      return Visitor.loadVisitor('failed_visitor_id').then(function(visitor) {
-        expect(mockClient.history.get[0].url).toEqual(expect.stringContaining('/v1/visitors/failed_visitor_id'));
-
-        expect(visitor.getId()).toEqual('failed_visitor_id');
-        expect(visitor.getAssignmentRegistry()).toEqual({});
-        // @ts-expect-error Private property
-        expect(visitor._ttOffline).toEqual(true);
-      });
+      const visitor = await Visitor.loadVisitor('failed_visitor_id');
+      expect(mockClient.history.get[0].url).toEqual(expect.stringContaining('/v1/visitors/failed_visitor_id'));
+      expect(visitor.getId()).toEqual('failed_visitor_id');
+      expect(visitor.getAssignmentRegistry()).toEqual({});
+      // @ts-expect-error Private property
+      expect(visitor._ttOffline).toEqual(true);
     });
   });
 
@@ -614,37 +604,34 @@ describe('Visitor', () => {
       expect(mockSave).toHaveBeenCalledTimes(1);
     });
 
-    it('overrides assignments that exist in the other visitor', () => {
+    it('overrides assignments that exist in the other visitor', async () => {
       const jabbaPuppetAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: true });
       const wineAssignment = new Assignment({ splitName: 'wine', variant: 'white', isUnsynced: true });
 
       // @ts-expect-error Private property
       visitor._assignments = [jabbaPuppetAssignment, wineAssignment];
 
-      return visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
-        expect(visitor.getAssignmentRegistry()).toEqual({
-          jabba: jabbaCGIAssignment,
-          wine: wineAssignment,
-          blue_button: blueButtonAssignment
-        });
+      await visitor.linkIdentifier('myappdb_user_id', 444);
+      expect(visitor.getAssignmentRegistry()).toEqual({
+        jabba: jabbaCGIAssignment,
+        wine: wineAssignment,
+        blue_button: blueButtonAssignment
       });
     });
 
-    it('changes visitor id', () => {
-      return visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
-        expect(visitor.getId()).toBe('actual_visitor_id');
-      });
+    it('changes visitor id', async () => {
+      await visitor.linkIdentifier('myappdb_user_id', 444);
+      expect(visitor.getId()).toBe('actual_visitor_id');
     });
 
-    it('notifies any unsynced splits', () => {
-      return visitor.linkIdentifier('myappdb_user_id', 444).then(() => {
-        expect(AssignmentNotification).toHaveBeenCalledTimes(1);
-        expect(AssignmentNotification).toHaveBeenCalledWith({
-          visitor: visitor,
-          assignment: blueButtonAssignment
-        });
-        expect(mockSend).toHaveBeenCalledTimes(1);
+    it('notifies any unsynced splits', async () => {
+      await visitor.linkIdentifier('myappdb_user_id', 444);
+      expect(AssignmentNotification).toHaveBeenCalledTimes(1);
+      expect(AssignmentNotification).toHaveBeenCalledWith({
+        visitor: visitor,
+        assignment: blueButtonAssignment
       });
+      expect(mockSend).toHaveBeenCalledTimes(1);
     });
   });
 

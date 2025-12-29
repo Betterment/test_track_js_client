@@ -75,17 +75,16 @@ describe('Identifier', () => {
   });
 
   describe('#save()', () => {
-    it('hits the test track server with the correct parameters', () => {
-      return identifier.save().then(function() {
-        expect(mockClient.history.post.length).toBe(1);
-        expect(mockClient.history.post[0].url).toEqual(expect.stringContaining('/v1/identifier'));
-        expect(mockClient.history.post[0].data).toEqual(
-          'identifier_type=myappdb_user_id&value=444&visitor_id=transient_visitor_id'
-        );
-      });
+    it('hits the test track server with the correct parameters', async () => {
+      await identifier.save();
+      expect(mockClient.history.post.length).toBe(1);
+      expect(mockClient.history.post[0].url).toEqual(expect.stringContaining('/v1/identifier'));
+      expect(mockClient.history.post[0].data).toEqual(
+        'identifier_type=myappdb_user_id&value=444&visitor_id=transient_visitor_id'
+      );
     });
 
-    it('responds with a Visitor instance with the attributes from the server', () => {
+    it('responds with a Visitor instance with the attributes from the server', async () => {
       const jabbaAssignment = new Assignment({
           splitName: 'jabba',
           variant: 'puppet',
@@ -94,12 +93,11 @@ describe('Identifier', () => {
         }),
         wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', context: 'napa', isUnsynced: false });
 
-      return identifier.save().then(function() {
-        expect(Visitor).toHaveBeenCalledTimes(1);
-        expect(Visitor).toHaveBeenCalledWith({
-          id: 'actual_visitor_id',
-          assignments: [jabbaAssignment, wineAssignment]
-        });
+      await identifier.save();
+      expect(Visitor).toHaveBeenCalledTimes(1);
+      expect(Visitor).toHaveBeenCalledWith({
+        id: 'actual_visitor_id',
+        assignments: [jabbaAssignment, wineAssignment]
       });
     });
   });

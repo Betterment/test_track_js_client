@@ -77,40 +77,37 @@ describe('AssignmentOverride', () => {
   });
 
   describe('#persistAssignment()', () => {
-    it('creates an assignment on the test track server', () => {
-      return override.persistAssignment().then(() => {
-        expect(mockClient.history.post.length).toBe(1);
-        expect(mockClient.history.post[0].url).toEqual(expect.stringContaining('/v1/assignment_override'));
-        expect(mockClient.history.post[0].data).toEqual(
-          'visitor_id=visitorId&split_name=jabba&variant=cgi&context=spec&mixpanel_result=success'
-        );
-        expect(mockClient.history.post[0].auth).toEqual({
-          username: 'the_username',
-          password: 'the_password'
-        });
+    it('creates an assignment on the test track server', async () => {
+      await override.persistAssignment();
+      expect(mockClient.history.post.length).toBe(1);
+      expect(mockClient.history.post[0].url).toEqual(expect.stringContaining('/v1/assignment_override'));
+      expect(mockClient.history.post[0].data).toEqual(
+        'visitor_id=visitorId&split_name=jabba&variant=cgi&context=spec&mixpanel_result=success'
+      );
+      expect(mockClient.history.post[0].auth).toEqual({
+        username: 'the_username',
+        password: 'the_password'
       });
     });
 
-    it('logs an error on an error response', () => {
+    it('logs an error on an error response', async () => {
       mockClient.reset();
       mockClient.onPost().reply(500);
 
-      return override.persistAssignment().then(() => {
-        expect(visitor.logError).toHaveBeenCalledTimes(1);
-        expect(visitor.logError).toHaveBeenCalledWith(
-          'test_track persistAssignment response error: 500, undefined, undefined'
-        );
-      });
+      await override.persistAssignment();
+      expect(visitor.logError).toHaveBeenCalledTimes(1);
+      expect(visitor.logError).toHaveBeenCalledWith(
+        'test_track persistAssignment response error: 500, undefined, undefined'
+      );
     });
 
-    it('logs an error on a network error', () => {
+    it('logs an error on a network error', async () => {
       mockClient.reset();
       mockClient.onPost().networkError();
 
-      return override.persistAssignment().then(() => {
-        expect(visitor.logError).toHaveBeenCalledTimes(1);
-        expect(visitor.logError).toHaveBeenCalledWith('test_track persistAssignment other error: Error: Network Error');
-      });
+      await override.persistAssignment();
+      expect(visitor.logError).toHaveBeenCalledTimes(1);
+      expect(visitor.logError).toHaveBeenCalledWith('test_track persistAssignment other error: Error: Network Error');
     });
   });
 });

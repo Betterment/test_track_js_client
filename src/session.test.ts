@@ -30,10 +30,17 @@ jest.mock('./configParser', () => {
 
 jest.mock('js-cookie');
 
+type TestContext = {
+  jabbaAssignment: Assignment;
+  visitor: visitor.default;
+  session: any;
+  publicApi: any;
+};
+
 describe('Session', () => {
-  let testContext;
+  let testContext: TestContext;
   beforeEach(() => {
-    testContext = {};
+    testContext = {} as TestContext;
     Cookies.get.mockReturnValue('existing_visitor_id');
   });
 

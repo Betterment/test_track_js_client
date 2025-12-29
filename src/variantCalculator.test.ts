@@ -6,15 +6,20 @@ import { mockSplitRegistry } from './test-utils';
 
 jest.mock('./testTrackConfig');
 
+type TestContext = {
+  visitor: Visitor;
+  calculator: VariantCalculator;
+};
+
 describe('VariantCalculator', () => {
   let calculatorOptions;
   function createCalculator() {
     return new VariantCalculator(calculatorOptions);
   }
 
-  let testContext;
+  let testContext: TestContext;
   beforeEach(() => {
-    testContext = {};
+    testContext = {} as TestContext;
     testContext.visitor = new Visitor({
       id: '00000000-0000-0000-0000-000000000000',
       assignments: []

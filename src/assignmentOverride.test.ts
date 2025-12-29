@@ -12,15 +12,21 @@ jest.mock('./testTrackConfig', () => {
 
 const mockClient = new MockAdapter(client);
 
+type TestContext = {
+  visitor: Visitor;
+  assignment: Assignment;
+  override: AssignmentOverride;
+};
+
 describe('AssignmentOverride', () => {
   let overrideOptions;
   function createOverride() {
     return new AssignmentOverride(overrideOptions);
   }
 
-  let testContext;
+  let testContext: TestContext;
   beforeEach(() => {
-    testContext = {};
+    testContext = {} as TestContext;
     mockClient.onPost('/v1/assignment_override').reply(200);
 
     testContext.visitor = new Visitor({

@@ -14,15 +14,22 @@ const mockClient = new MockAdapter(client);
 
 const track = success => (_, __, callback) => callback(success);
 
+type TestContext = {
+  visitor: Visitor;
+  analyticsTrackStub: jest.Mock;
+  assignment: Assignment;
+  notification: AssignmentNotification;
+};
+
 describe('AssignmentNotification', () => {
   let notificationOptions;
   function createNotification() {
     return new AssignmentNotification(notificationOptions);
   }
 
-  let testContext;
+  let testContext: TestContext;
   beforeEach(() => {
-    testContext = {};
+    testContext = {} as TestContext;
     mockClient.onPost().reply(200);
 
     testContext.visitor = new Visitor({

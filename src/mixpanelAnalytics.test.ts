@@ -1,10 +1,14 @@
 import Assignment from './assignment';
 import MixpanelAnalytics from './mixpanelAnalytics';
 
+type TestContext = {
+  mixpanelAnalytics: MixpanelAnalytics;
+};
+
 describe('MixpanelAnalytics', () => {
-  let testContext;
+  let testContext: TestContext;
   beforeEach(() => {
-    testContext = {};
+    testContext = {} as TestContext;
     window.mixpanel = {
       track: jest.fn(),
       alias: jest.fn(),

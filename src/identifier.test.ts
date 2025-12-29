@@ -14,15 +14,19 @@ jest.mock('./visitor');
 
 const mockClient = new MockAdapter(client);
 
+type TestContext = {
+  identifier: Identifier;
+};
+
 describe('Identifier', () => {
   let identifierOptions;
   function createIdentifier() {
     return new Identifier(identifierOptions);
   }
 
-  let testContext;
+  let testContext: TestContext;
   beforeEach(() => {
-    testContext = {};
+    testContext = {} as TestContext;
     mockClient.onPost('/v1/identifier').reply(200, {
       visitor: {
         id: 'actual_visitor_id',

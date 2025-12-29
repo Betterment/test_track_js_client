@@ -41,10 +41,24 @@ jest.mock('./identifier', () => {
 
 const mockClient = new MockAdapter(client);
 
+type TestContext = {
+  visitor: Visitor;
+  vary_jabba_split?: (visitor: Visitor) => void;
+  vary_wine_split?: (visitor: Visitor) => void;
+  offlineVisitor?: Visitor;
+  trueHandler?: jest.Mock;
+  falseHandler?: jest.Mock;
+  vary_blue_button_split?: () => void;
+  jabbaCGIAssignment?: Assignment;
+  blueButtonAssignment?: Assignment;
+  actualVisitor?: Visitor;
+  errorLogger?: jest.Mock;
+};
+
 describe('Visitor', () => {
-  let testContext;
+  let testContext: TestContext;
   beforeEach(() => {
-    testContext = {};
+    testContext = {} as TestContext;
     testContext.visitor = existingVisitor();
     TestTrackConfig.getAssignments.mockReset();
     TestTrackConfig.getSplitRegistry = mockSplitRegistry({

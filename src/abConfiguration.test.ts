@@ -6,11 +6,15 @@ import { mockSplitRegistry } from './test-utils';
 
 jest.mock('./testTrackConfig');
 
+type TestContext = {
+  visitor: Visitor;
+};
+
 describe('ABConfiguration', () => {
-  let testContext;
+  let testContext: TestContext;
 
   beforeEach(() => {
-    testContext = {};
+    testContext = {} as TestContext;
 
     TestTrackConfig.getSplitRegistry = mockSplitRegistry({
       element: {

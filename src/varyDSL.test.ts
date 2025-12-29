@@ -7,10 +7,18 @@ import { mockSplitRegistry } from './test-utils';
 
 jest.mock('./testTrackConfig');
 
+type TestContext = {
+  assignment: Assignment;
+  visitor: Visitor;
+  vary: VaryDSL;
+  whenHandler?: jest.Mock;
+  defaultHandler?: jest.Mock;
+};
+
 describe('VaryDSL', () => {
-  let testContext;
+  let testContext: TestContext;
   beforeEach(() => {
-    testContext = {};
+    testContext = {} as TestContext;
     TestTrackConfig.getSplitRegistry = mockSplitRegistry({
       element: {
         earth: 25,

@@ -1,5 +1,5 @@
 import Assignment from './assignment';
-import AssignmentOverride from './assignmentOverride';
+import AssignmentOverride, { AssignmentOverrideOptions } from './assignmentOverride';
 import Visitor from './visitor';
 import client from './api';
 import MockAdapter from 'axios-mock-adapter';
@@ -16,7 +16,7 @@ describe('AssignmentOverride', () => {
   let visitor: Visitor;
   let assignment: Assignment;
   let override: AssignmentOverride;
-  let overrideOptions;
+  let overrideOptions: AssignmentOverrideOptions;
 
   function createOverride() {
     return new AssignmentOverride(overrideOptions);
@@ -113,9 +113,7 @@ describe('AssignmentOverride', () => {
 
       return override.persistAssignment().then(() => {
         expect(visitor.logError).toHaveBeenCalledTimes(1);
-        expect(visitor.logError).toHaveBeenCalledWith(
-          'test_track persistAssignment other error: Error: Network Error'
-        );
+        expect(visitor.logError).toHaveBeenCalledWith('test_track persistAssignment other error: Error: Network Error');
       });
     });
   });

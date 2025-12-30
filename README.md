@@ -24,16 +24,7 @@ pnpm add test_track_js_client
 
 You can find the latest version of the test track JS client [here](https://github.com/Betterment/test_track_js_client/releases).
 
-The test track JS client currently has the following dependencies: [`blueimp-md5`](https://github.com/blueimp/JavaScript-MD5), [`uuid`](https://www.npmjs.com/package/uuid), [`axios`](https://www.npmjs.com/package/axios) and [`js-cookie`](https://www.npmjs.com/package/uuid).
-
-The client is distributed with two artifacts:
-
-- `testTrack.js` is an ES6 module with no bundled dependencies.
-- `testTrack.bundle.js` is a UMD-style module, bundled with `blueimp-md5`, `uuid`, `axios`, and `js-cookie`.
-
-If you're using a fancy build pipeline ([grunt](https://gruntjs.com/), [gulp](https://gulpjs.com/), [webpack](https://webpack.js.org/)), then you are all set. If not, you have a few other [options](#alternative-setup) for loading the client into your page.
-
-Note: test track JS client makes use of `bind`, so you may need a [polyfill](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#Polyfill) to support older browsers.
+The client is distributed as an ES module with no bundled dependencies.
 
 ## Configuration
 
@@ -154,32 +145,6 @@ TestTrack.initialize({
     // callback that will run after the test track visitor has loaded, but before any analytics events have fired
   }
 });
-```
-
-## Alternative Setup
-
-**This is only if you're not using a build pipeline**
-
-### Simple HTML setup
-
-You can load the bundled and minified version of the client that includes all of the dependencies for you, like this:
-
-```html
-<script type="text/javascript" src="path/to/deps/test_track_js_client/dist/testTrack.bundle.js"></script>
-```
-
-### RequireJS setup
-
-You can require the test track client anywhere you need it in classic requirejs style:
-
-```js
-var TestTrack = require('path/to/deps/test_track_js_client/dist/testTrack');
-```
-
-OR
-
-```js
-define(['path/to/deps/test_track_js_client/dist/testTrack'], function (TestTrack) {});
 ```
 
 ## How to Contribute

@@ -4,12 +4,6 @@ import { server } from './setupTests';
 
 const url = 'https://testtrack.dev/api/v1/test';
 
-vi.mock('./testTrackConfig', () => ({
-  default: {
-    getUrl: vi.fn(() => 'http://testtrack.dev')
-  }
-}));
-
 describe('toSearchParams', () => {
   it('constructs URLSearchParams without empty values', () => {
     expect(toSearchParams({ a: '1', b: '2', c: '3' }).toString()).toEqual('a=1&b=2&c=3');

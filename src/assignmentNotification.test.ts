@@ -5,17 +5,6 @@ import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 import { createConfig } from './test-utils';
 
-vi.mock(import('./testTrackConfig'), async importOriginal => {
-  const original = await importOriginal();
-  const config = new original.Config({
-    url: 'http://testtrack.dev',
-    cookieDomain: '.example.org',
-    experienceSamplingWeight: 1
-  });
-
-  return { ...original, default: config };
-});
-
 function createVisitor(options: { trackSuccess: boolean }) {
   const visitor = new Visitor({ config: createConfig(), id: 'visitorId', assignments: [] });
 

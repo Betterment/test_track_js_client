@@ -1,4 +1,4 @@
-import client, { toSearchParams } from './api';
+import { post, toSearchParams } from './api';
 import Visitor from './visitor';
 import Assignment from './assignment';
 
@@ -40,24 +40,22 @@ class AssignmentNotification {
   }
 
   _persistAssignment(trackResult?: 'success' | 'failure') {
-    return client
-      .post(
-        '/v1/assignment_event',
-        toSearchParams({
-          visitor_id: this._visitor.getId(),
-          split_name: this._assignment.getSplitName(),
-          context: this._assignment.getContext(),
-          mixpanel_result: trackResult
-        })
-      )
-      .catch(error => {
-        if (error.response) {
-          const { status, statusText, data } = error.response;
-          this._visitor.logError(`test_track persistAssignment response error: ${status}, ${statusText}, ${data}`);
-        } else {
-          this._visitor.logError(`test_track persistAssignment other error: ${error}`);
-        }
-      });
+    return post({
+      url: '/v1/assignment_event',
+      body: toSearchParams({
+        visitor_id: this._visitor.getId(),
+        split_name: this._assignment.getSplitName(),
+        context: this._assignment.getContext(),
+        mixpanel_result: trackResult
+      })
+    }).catch(error => {
+      if (error.response) {
+        const { status, statusText, data } = error.response;
+        this._visitor.logError(`test_track persistAssignment response error: ${status}, ${statusText}, ${data}`);
+      } else {
+        this._visitor.logError(`test_track persistAssignment other error: ${error}`);
+      }
+    });
   }
 }
 

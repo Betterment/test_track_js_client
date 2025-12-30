@@ -1,4 +1,4 @@
-import client from './api';
+import { get } from './api';
 import ABConfiguration from './abConfiguration';
 import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
@@ -48,8 +48,7 @@ class Visitor {
           })
         );
       } else {
-        return client
-          .get('/v1/visitors/' + visitorId, { timeout: 5000 })
+        return get({ url: '/v1/visitors/' + visitorId, timeout: 5000 })
           .then(({ data }) => {
             return new Visitor({
               id: data.id,

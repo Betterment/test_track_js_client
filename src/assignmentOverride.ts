@@ -1,4 +1,4 @@
-import client, { toSearchParams } from './api';
+import { post, toSearchParams } from './api';
 import Assignment from './assignment';
 import Visitor from './visitor';
 
@@ -33,31 +33,27 @@ class AssignmentOverride {
   }
 
   persistAssignment() {
-    return client
-      .post(
-        '/v1/assignment_override',
-        toSearchParams({
-          visitor_id: this._visitor.getId(),
-          split_name: this._assignment.getSplitName(),
-          variant: this._assignment.getVariant(),
-          context: this._assignment.getContext(),
-          mixpanel_result: 'success' // we don't want to track overrides
-        }),
-        {
-          auth: {
-            username: this._username,
-            password: this._password
-          }
-        }
-      )
-      .catch(error => {
-        if (error.response) {
-          const { status, statusText, data } = error.response;
-          this._visitor.logError(`test_track persistAssignment response error: ${status}, ${statusText}, ${data}`);
-        } else {
-          this._visitor.logError(`test_track persistAssignment other error: ${error}`);
-        }
-      });
+    return post({
+      url: '/v1/assignment_override',
+      body: toSearchParams({
+        visitor_id: this._visitor.getId(),
+        split_name: this._assignment.getSplitName(),
+        variant: this._assignment.getVariant(),
+        context: this._assignment.getContext(),
+        mixpanel_result: 'success' // we don't want to track overrides
+      }),
+      auth: {
+        username: this._username,
+        password: this._password
+      }
+    }).catch(error => {
+      if (error.response) {
+        const { status, statusText, data } = error.response;
+        this._visitor.logError(`test_track persistAssignment response error: ${status}, ${statusText}, ${data}`);
+      } else {
+        this._visitor.logError(`test_track persistAssignment other error: ${error}`);
+      }
+    });
   }
 }
 

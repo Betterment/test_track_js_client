@@ -1,4 +1,4 @@
-import client, { toSearchParams } from './api';
+import { post, toSearchParams } from './api';
 import Assignment, { type AssignmentData } from './assignment';
 import Visitor from './visitor';
 
@@ -37,21 +37,19 @@ class Identifier {
   }
 
   save() {
-    return client
-      .post(
-        '/v1/identifier',
-        toSearchParams({
-          identifier_type: this.identifierType,
-          value: this.value.toString(),
-          visitor_id: this.visitorId
-        })
-      )
-      .then(({ data }: IdentifierResponse) => {
-        return new Visitor({
-          id: data.visitor.id,
-          assignments: Assignment.fromJsonArray(data.visitor.assignments)
-        });
+    return post({
+      url: '/v1/identifier',
+      body: toSearchParams({
+        identifier_type: this.identifierType,
+        value: this.value.toString(),
+        visitor_id: this.visitorId
+      })
+    }).then(({ data }: IdentifierResponse) => {
+      return new Visitor({
+        id: data.visitor.id,
+        assignments: Assignment.fromJsonArray(data.visitor.assignments)
       });
+    });
   }
 }
 

@@ -62,7 +62,7 @@ describe('Identifier', () => {
   it('requires a value', () => {
     // @ts-expect-error Testing missing required property
     expect(() => new Identifier({ visitorId: 'visitorId', identifierType: 'myappdb_user_id' })).toThrow(
-      'must provide identifierType'
+      'must provide value'
     );
   });
 

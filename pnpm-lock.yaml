@@ -60,9 +60,6 @@ importers:
       '@types/js-cookie':
         specifier: ^3.0.3
         version: 3.0.6
-      '@types/node':
-        specifier: ^20.5.7
-        version: 20.17.44
       '@types/qs':
         specifier: ^6.9.7
         version: 6.9.18
@@ -75,12 +72,9 @@ importers:
       jsdom:
         specifier: ^27.4.0
         version: 27.4.0
-      lodash.omit:
-        specifier: ^4.5.0
-        version: 4.5.0
       msw:
         specifier: ^2.12.7
-        version: 2.12.7(@types/node@20.17.44)(typescript@5.8.3)
+        version: 2.12.7(typescript@5.8.3)
       prettier:
         specifier: 1.17.1
         version: 1.17.1
@@ -104,7 +98,7 @@ importers:
         version: 8.34.0(eslint@9.28.0(jiti@2.4.2))(typescript@5.8.3)
       vitest:
         specifier: ^4.0.16
-        version: 4.0.16(@types/node@20.17.44)(jiti@2.4.2)(jsdom@27.4.0)(msw@2.12.7(@types/node@20.17.44)(typescript@5.8.3))(terser@5.39.0)
+        version: 4.0.16(jiti@2.4.2)(jsdom@27.4.0)(msw@2.12.7(typescript@5.8.3))(terser@5.39.0)
 
 packages:
 
@@ -1269,9 +1263,6 @@ packages:
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
-
-  '@types/node@20.17.44':
-    resolution: {integrity: sha512-50sE4Ibb4BgUMxHrcJQSAU0Fu7fLcTdwcXwRzEF7wnVMWvImFLg2Rxc7SW0vpvaJm4wvhoWEZaQiPpBpocZiUA==}
 
   '@types/qs@6.9.18':
     resolution: {integrity: sha512-kK7dgTYDyGqS+e2Q4aK9X3D7q234CIZ1Bv0q/7Z5IwRDoADNU81xXJK/YVyLbLTZCoIwUoDoffFeF+p/eIklAA==}
@@ -2552,10 +2543,6 @@ packages:
   lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
 
-  lodash.omit@4.5.0:
-    resolution: {integrity: sha512-XeqSp49hNGmlkj2EJlfrQFIzQ6lXdNro9sddtQzcJY8QaoC2GO0DT7xaIokHeyM+mIT0mPMlPvkYzg2xCuHdZg==}
-    deprecated: This package is deprecated. Use destructuring assignment syntax instead.
-
   lodash.uniqby@4.7.0:
     resolution: {integrity: sha512-e/zcLx6CSbmaEgFHCA7BnoQKyCtKMxnuWrJygbwPs/AIn+IMKl66L8/s+wBUn5LRw2pZx3bUHibiV1b6aTWIww==}
 
@@ -3374,9 +3361,6 @@ packages:
   unbox-primitive@1.1.0:
     resolution: {integrity: sha512-nWJ91DjeOkej/TA8pXQ3myruKpKEYgqvpw9lz4OPHj/NWFNluYrjbz9j01CJ8yKQd2g4jFoOkINCTW2I5LEEyw==}
     engines: {node: '>= 0.4'}
-
-  undici-types@6.19.8:
-    resolution: {integrity: sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==}
 
   unicode-canonical-property-names-ecmascript@2.0.1:
     resolution: {integrity: sha512-dA8WbNeb2a6oQzAQ55YlT5vQAWGV9WXOsi3SskE3bcCdM0P4SDd+24zS/OCacdRq5BkdsRj9q3Pg6YyQoxIGqg==}
@@ -4504,31 +4488,25 @@ snapshots:
 
   '@inquirer/ansi@1.0.2': {}
 
-  '@inquirer/confirm@5.1.21(@types/node@20.17.44)':
+  '@inquirer/confirm@5.1.21':
     dependencies:
-      '@inquirer/core': 10.3.2(@types/node@20.17.44)
-      '@inquirer/type': 3.0.10(@types/node@20.17.44)
-    optionalDependencies:
-      '@types/node': 20.17.44
+      '@inquirer/core': 10.3.2
+      '@inquirer/type': 3.0.10
 
-  '@inquirer/core@10.3.2(@types/node@20.17.44)':
+  '@inquirer/core@10.3.2':
     dependencies:
       '@inquirer/ansi': 1.0.2
       '@inquirer/figures': 1.0.15
-      '@inquirer/type': 3.0.10(@types/node@20.17.44)
+      '@inquirer/type': 3.0.10
       cli-width: 4.1.0
       mute-stream: 2.0.0
       signal-exit: 4.1.0
       wrap-ansi: 6.2.0
       yoctocolors-cjs: 2.1.3
-    optionalDependencies:
-      '@types/node': 20.17.44
 
   '@inquirer/figures@1.0.15': {}
 
-  '@inquirer/type@3.0.10(@types/node@20.17.44)':
-    optionalDependencies:
-      '@types/node': 20.17.44
+  '@inquirer/type@3.0.10': {}
 
   '@jridgewell/gen-mapping@0.3.8':
     dependencies:
@@ -4858,10 +4836,6 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
-  '@types/node@20.17.44':
-    dependencies:
-      undici-types: 6.19.8
-
   '@types/qs@6.9.18': {}
 
   '@types/resolve@1.20.2': {}
@@ -4971,14 +4945,14 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.0.3
 
-  '@vitest/mocker@4.0.16(msw@2.12.7(@types/node@20.17.44)(typescript@5.8.3))(vite@7.3.0(@types/node@20.17.44)(jiti@2.4.2)(terser@5.39.0))':
+  '@vitest/mocker@4.0.16(msw@2.12.7(typescript@5.8.3))(vite@7.3.0(jiti@2.4.2)(terser@5.39.0))':
     dependencies:
       '@vitest/spy': 4.0.16
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      msw: 2.12.7(@types/node@20.17.44)(typescript@5.8.3)
-      vite: 7.3.0(@types/node@20.17.44)(jiti@2.4.2)(terser@5.39.0)
+      msw: 2.12.7(typescript@5.8.3)
+      vite: 7.3.0(jiti@2.4.2)(terser@5.39.0)
 
   '@vitest/pretty-format@4.0.16':
     dependencies:
@@ -6312,8 +6286,6 @@ snapshots:
 
   lodash.merge@4.6.2: {}
 
-  lodash.omit@4.5.0: {}
-
   lodash.uniqby@4.7.0: {}
 
   lodash@4.17.21: {}
@@ -6395,9 +6367,9 @@ snapshots:
 
   ms@2.1.3: {}
 
-  msw@2.12.7(@types/node@20.17.44)(typescript@5.8.3):
+  msw@2.12.7(typescript@5.8.3):
     dependencies:
-      '@inquirer/confirm': 5.1.21(@types/node@20.17.44)
+      '@inquirer/confirm': 5.1.21
       '@mswjs/interceptors': 0.40.0
       '@open-draft/deferred-promise': 2.2.0
       '@types/statuses': 2.0.6
@@ -7213,8 +7185,6 @@ snapshots:
       has-symbols: 1.1.0
       which-boxed-primitive: 1.1.1
 
-  undici-types@6.19.8: {}
-
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 
   unicode-match-property-ecmascript@2.0.0:
@@ -7269,7 +7239,7 @@ snapshots:
 
   uuid@9.0.1: {}
 
-  vite@7.3.0(@types/node@20.17.44)(jiti@2.4.2)(terser@5.39.0):
+  vite@7.3.0(jiti@2.4.2)(terser@5.39.0):
     dependencies:
       esbuild: 0.27.2
       fdir: 6.5.0(picomatch@4.0.3)
@@ -7278,15 +7248,14 @@ snapshots:
       rollup: 4.54.0
       tinyglobby: 0.2.15
     optionalDependencies:
-      '@types/node': 20.17.44
       fsevents: 2.3.3
       jiti: 2.4.2
       terser: 5.39.0
 
-  vitest@4.0.16(@types/node@20.17.44)(jiti@2.4.2)(jsdom@27.4.0)(msw@2.12.7(@types/node@20.17.44)(typescript@5.8.3))(terser@5.39.0):
+  vitest@4.0.16(jiti@2.4.2)(jsdom@27.4.0)(msw@2.12.7(typescript@5.8.3))(terser@5.39.0):
     dependencies:
       '@vitest/expect': 4.0.16
-      '@vitest/mocker': 4.0.16(msw@2.12.7(@types/node@20.17.44)(typescript@5.8.3))(vite@7.3.0(@types/node@20.17.44)(jiti@2.4.2)(terser@5.39.0))
+      '@vitest/mocker': 4.0.16(msw@2.12.7(typescript@5.8.3))(vite@7.3.0(jiti@2.4.2)(terser@5.39.0))
       '@vitest/pretty-format': 4.0.16
       '@vitest/runner': 4.0.16
       '@vitest/snapshot': 4.0.16
@@ -7303,10 +7272,9 @@ snapshots:
       tinyexec: 1.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vite: 7.3.0(@types/node@20.17.44)(jiti@2.4.2)(terser@5.39.0)
+      vite: 7.3.0(jiti@2.4.2)(terser@5.39.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 20.17.44
       jsdom: 27.4.0
     transitivePeerDependencies:
       - jiti

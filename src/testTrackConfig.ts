@@ -104,4 +104,6 @@ const TestTrackConfig = {
   }
 };
 
+type TestTrackConfig = typeof TestTrackConfig;
+
 export default TestTrackConfig;

@@ -15,18 +15,18 @@ const createConfig = (cookieName: string | undefined): RawConfig => ({
 
 describe('TestTrackConfig', () => {
   beforeEach(() => {
-    window.TT = btoa(JSON.stringify(createConfig('custom_cookie_name')));
     TestTrackConfig._clear();
+    window.TT = btoa(JSON.stringify(createConfig('custom_cookie_name')));
   });
 
   describe('.getUrl()', () => {
-    it('grabs the correct value from the ConfigParser', () => {
+    it('grabs the correct value', () => {
       expect(TestTrackConfig.getUrl()).toBe('http://testtrack.dev');
     });
   });
 
   describe('.getCookieDomain()', () => {
-    it('grabs the correct value from the ConfigParser', () => {
+    it('grabs the correct value', () => {
       expect(TestTrackConfig.getCookieDomain()).toBe('.example.com');
     });
   });
@@ -35,10 +35,9 @@ describe('TestTrackConfig', () => {
     describe('when there is a configured cookie name', () => {
       beforeEach(() => {
         window.TT = btoa(JSON.stringify(createConfig('custom_cookie_name')));
-        TestTrackConfig._clear();
       });
 
-      it('grabs the correct value from the ConfigParser', () => {
+      it('grabs the correct value', () => {
         expect(TestTrackConfig.getCookieName()).toBe('custom_cookie_name');
       });
     });
@@ -46,7 +45,6 @@ describe('TestTrackConfig', () => {
     describe('when there is no configured cookie name', () => {
       beforeEach(() => {
         window.TT = btoa(JSON.stringify(createConfig(undefined)));
-        TestTrackConfig._clear();
       });
 
       it('uses the default cookie name', () => {
@@ -56,7 +54,7 @@ describe('TestTrackConfig', () => {
   });
 
   describe('.getSplitRegistry()', () => {
-    it('grabs the correct value from the ConfigParser', () => {
+    it('grabs the correct value', () => {
       const splitRegistry = TestTrackConfig.getSplitRegistry();
 
       const jabba = splitRegistry.getSplit('jabba');
@@ -70,7 +68,7 @@ describe('TestTrackConfig', () => {
   });
 
   describe('.getAssignments()', () => {
-    it('grabs the correct value from the ConfigParser', () => {
+    it('grabs the correct value', () => {
       expect(TestTrackConfig.getAssignments()).toEqual([
         new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: false }),
         new Assignment({ splitName: 'wine', variant: 'rose', isUnsynced: false })
@@ -87,7 +85,6 @@ describe('TestTrackConfig', () => {
   describe('when window.TT is not decodable', () => {
     beforeEach(() => {
       window.TT = 'someNonesense';
-      TestTrackConfig._clear();
     });
 
     it('throws an error', () => {

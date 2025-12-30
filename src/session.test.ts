@@ -4,34 +4,28 @@ import Cookies from 'js-cookie';
 import Session from './session';
 import Visitor from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
+import type { RawConfig } from './testTrackConfig';
+
+const config: RawConfig = {
+  url: 'http://testtrack.dev',
+  cookieDomain: '.example.com',
+  cookieName: 'custom_cookie_name',
+  experienceSamplingWeight: 1,
+  assignments: { jabba: 'puppet', wine: 'rose' },
+  splits: {
+    jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
+    wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
+  }
+};
 
 vi.mock('./assignmentOverride');
-
-vi.mock('./configParser', () => {
-  class MockConfigParser {
-    getConfig() {
-      return {
-        url: 'http://testtrack.dev',
-        cookieDomain: '.example.com',
-        cookieName: 'custom_cookie_name',
-        splits: {
-          jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
-          wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
-        },
-        assignments: {
-          jabba: 'puppet',
-          wine: 'rose'
-        }
-      };
-    }
-  }
-
-  return { default: MockConfigParser };
-});
-
 vi.mock('js-cookie');
 
 describe('Session', () => {
+  beforeAll(() => {
+    window.TT = btoa(JSON.stringify(config));
+  });
+
   beforeEach(() => {
     // @ts-expect-error Cookies.get returns different types in practice
     vi.mocked(Cookies.get).mockReturnValue('existing_visitor_id');

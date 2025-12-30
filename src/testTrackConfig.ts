@@ -25,40 +25,32 @@ export type RawConfig = {
 };
 
 export class Config {
-  #config?: RawConfig;
+  #config: RawConfig;
   #assignments?: Assignment[];
   #splitRegistry?: SplitRegistry;
 
-  constructor(config?: RawConfig) {
+  constructor(config: RawConfig) {
     this.#config = config;
   }
 
-  #load(): RawConfig {
-    try {
-      return (this.#config ??= JSON.parse(atob(window.TT)));
-    } catch {
-      throw new Error('Unable to parse configuration');
-    }
-  }
-
   urlFor(path: string): URL {
-    return new URL(path, this.#load().url);
+    return new URL(path, this.#config.url);
   }
 
   getCookieDomain(): string {
-    return this.#load().cookieDomain;
+    return this.#config.cookieDomain;
   }
 
   getCookieName(): string {
-    return this.#load().cookieName || DEFAULT_VISITOR_COOKIE_NAME;
+    return this.#config.cookieName || DEFAULT_VISITOR_COOKIE_NAME;
   }
 
   getExperienceSamplingWeight(): number {
-    return this.#load().experienceSamplingWeight;
+    return this.#config.experienceSamplingWeight;
   }
 
   getSplitRegistry(): SplitRegistry {
-    const rawRegistry = this.#load().splits;
+    const rawRegistry = this.#config.splits;
     if (!rawRegistry) {
       return new SplitRegistry(null);
     }
@@ -75,7 +67,7 @@ export class Config {
   }
 
   getAssignments(): Assignment[] | null {
-    const rawAssignments = this.#load().assignments;
+    const rawAssignments = this.#config.assignments;
     if (!rawAssignments) {
       return null;
     }
@@ -90,4 +82,10 @@ export class Config {
   }
 }
 
-export default new Config();
+export function loadConfig(): Config {
+  try {
+    return new Config(JSON.parse(atob(window.TT)));
+  } catch {
+    throw new Error('Unable to parse configuration');
+  }
+}

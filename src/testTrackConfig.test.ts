@@ -1,5 +1,5 @@
 import Assignment from './assignment';
-import { Config, type RawConfig } from './testTrackConfig';
+import { loadConfig, type RawConfig } from './testTrackConfig';
 
 const createConfig = (cookieName: string | undefined): RawConfig => ({
   url: 'http://testtrack.dev',
@@ -20,13 +20,13 @@ describe('TestTrackConfig', () => {
 
   describe('.urlFor()', () => {
     it('grabs the correct value', () => {
-      expect(new Config().urlFor('/api/v1/foo')).toEqual(new URL('http://testtrack.dev/api/v1/foo'));
+      expect(loadConfig().urlFor('/api/v1/foo')).toEqual(new URL('http://testtrack.dev/api/v1/foo'));
     });
   });
 
   describe('.getCookieDomain()', () => {
     it('grabs the correct value', () => {
-      expect(new Config().getCookieDomain()).toBe('.example.com');
+      expect(loadConfig().getCookieDomain()).toBe('.example.com');
     });
   });
 
@@ -37,7 +37,7 @@ describe('TestTrackConfig', () => {
       });
 
       it('grabs the correct value', () => {
-        expect(new Config().getCookieName()).toBe('custom_cookie_name');
+        expect(loadConfig().getCookieName()).toBe('custom_cookie_name');
       });
     });
 
@@ -47,14 +47,14 @@ describe('TestTrackConfig', () => {
       });
 
       it('uses the default cookie name', () => {
-        expect(new Config().getCookieName()).toBe('tt_visitor_id');
+        expect(loadConfig().getCookieName()).toBe('tt_visitor_id');
       });
     });
   });
 
   describe('.getSplitRegistry()', () => {
     it('grabs the correct value', () => {
-      const splitRegistry = new Config().getSplitRegistry();
+      const splitRegistry = loadConfig().getSplitRegistry();
 
       const jabba = splitRegistry.getSplit('jabba');
       expect(jabba.getWeighting()).toEqual({ cgi: 50, puppet: 50 });
@@ -68,7 +68,7 @@ describe('TestTrackConfig', () => {
 
   describe('.getAssignments()', () => {
     it('grabs the correct value', () => {
-      expect(new Config().getAssignments()).toEqual([
+      expect(loadConfig().getAssignments()).toEqual([
         new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: false }),
         new Assignment({ splitName: 'wine', variant: 'rose', isUnsynced: false })
       ]);
@@ -77,7 +77,7 @@ describe('TestTrackConfig', () => {
 
   describe('.getExperienceSamplingWeight()', () => {
     it('returns the provided sampling weight', () => {
-      expect(new Config().getExperienceSamplingWeight()).toEqual(1);
+      expect(loadConfig().getExperienceSamplingWeight()).toEqual(1);
     });
   });
 
@@ -87,7 +87,7 @@ describe('TestTrackConfig', () => {
     });
 
     it('throws an error', () => {
-      expect(() => new Config().getCookieDomain()).toThrow('Unable to parse configuration');
+      expect(() => loadConfig().getCookieDomain()).toThrow('Unable to parse configuration');
     });
   });
 });

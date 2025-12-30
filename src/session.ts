@@ -1,7 +1,7 @@
 import Cookies from 'js-cookie';
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
-import TestTrackConfig from './testTrackConfig';
+import { Config, loadConfig } from './testTrackConfig';
 import Visitor, { type VaryOptions, type AbOptions } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 
@@ -18,6 +18,7 @@ export type Registry = {
 };
 
 class Session {
+  private _config!: Config;
   private _visitorLoaded: PromiseLike<Visitor>;
 
   constructor() {
@@ -25,9 +26,11 @@ class Session {
   }
 
   initialize(options: SessionOptions) {
-    const visitorId = Cookies.get(TestTrackConfig.getCookieName());
+    this._config = loadConfig();
 
-    Visitor.loadVisitor(TestTrackConfig, visitorId).then(visitor => {
+    const visitorId = Cookies.get(this._config.getCookieName());
+
+    Visitor.loadVisitor(this._config, visitorId).then(visitor => {
       if (options && options.analytics) {
         visitor.setAnalytics(options.analytics);
       }
@@ -83,11 +86,11 @@ class Session {
   }
 
   _setCookie() {
-    return this._visitorLoaded.then(function (visitor) {
-      Cookies.set(TestTrackConfig.getCookieName(), visitor.getId(), {
+    return this._visitorLoaded.then(visitor => {
+      Cookies.set(this._config.getCookieName(), visitor.getId(), {
         expires: 365,
         path: '/',
-        domain: TestTrackConfig.getCookieDomain()
+        domain: this._config.getCookieDomain()
       });
     });
   }
@@ -101,7 +104,7 @@ class Session {
       initialize: this.initialize.bind(this),
       _crx: {
         loadInfo: () =>
-          this._visitorLoaded.then(function (visitor) {
+          this._visitorLoaded.then(visitor => {
             const assignmentRegistry: Registry = {};
             for (const splitName in visitor.getAssignmentRegistry()) {
               assignmentRegistry[splitName] = visitor.getAssignmentRegistry()[splitName].getVariant();
@@ -109,7 +112,7 @@ class Session {
 
             return {
               visitorId: visitor.getId(),
-              splitRegistry: TestTrackConfig.getSplitRegistry().asV1Hash(),
+              splitRegistry: this._config.getSplitRegistry().asV1Hash(),
               assignmentRegistry: assignmentRegistry
             };
           }),

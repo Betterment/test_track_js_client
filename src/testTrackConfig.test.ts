@@ -1,5 +1,5 @@
 import Assignment from './assignment';
-import TestTrackConfig, { type RawConfig } from './testTrackConfig';
+import { Config, type RawConfig } from './testTrackConfig';
 
 const createConfig = (cookieName: string | undefined): RawConfig => ({
   url: 'http://testtrack.dev',
@@ -15,19 +15,18 @@ const createConfig = (cookieName: string | undefined): RawConfig => ({
 
 describe('TestTrackConfig', () => {
   beforeEach(() => {
-    TestTrackConfig._clear();
     window.TT = btoa(JSON.stringify(createConfig('custom_cookie_name')));
   });
 
   describe('.getUrl()', () => {
     it('grabs the correct value', () => {
-      expect(TestTrackConfig.getUrl()).toBe('http://testtrack.dev');
+      expect(new Config().getUrl()).toBe('http://testtrack.dev');
     });
   });
 
   describe('.getCookieDomain()', () => {
     it('grabs the correct value', () => {
-      expect(TestTrackConfig.getCookieDomain()).toBe('.example.com');
+      expect(new Config().getCookieDomain()).toBe('.example.com');
     });
   });
 
@@ -38,7 +37,7 @@ describe('TestTrackConfig', () => {
       });
 
       it('grabs the correct value', () => {
-        expect(TestTrackConfig.getCookieName()).toBe('custom_cookie_name');
+        expect(new Config().getCookieName()).toBe('custom_cookie_name');
       });
     });
 
@@ -48,14 +47,14 @@ describe('TestTrackConfig', () => {
       });
 
       it('uses the default cookie name', () => {
-        expect(TestTrackConfig.getCookieName()).toBe('tt_visitor_id');
+        expect(new Config().getCookieName()).toBe('tt_visitor_id');
       });
     });
   });
 
   describe('.getSplitRegistry()', () => {
     it('grabs the correct value', () => {
-      const splitRegistry = TestTrackConfig.getSplitRegistry();
+      const splitRegistry = new Config().getSplitRegistry();
 
       const jabba = splitRegistry.getSplit('jabba');
       expect(jabba.getWeighting()).toEqual({ cgi: 50, puppet: 50 });
@@ -69,7 +68,7 @@ describe('TestTrackConfig', () => {
 
   describe('.getAssignments()', () => {
     it('grabs the correct value', () => {
-      expect(TestTrackConfig.getAssignments()).toEqual([
+      expect(new Config().getAssignments()).toEqual([
         new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: false }),
         new Assignment({ splitName: 'wine', variant: 'rose', isUnsynced: false })
       ]);
@@ -78,7 +77,7 @@ describe('TestTrackConfig', () => {
 
   describe('.getExperienceSamplingWeight()', () => {
     it('returns the provided sampling weight', () => {
-      expect(TestTrackConfig.getExperienceSamplingWeight()).toEqual(1);
+      expect(new Config().getExperienceSamplingWeight()).toEqual(1);
     });
   });
 
@@ -88,7 +87,7 @@ describe('TestTrackConfig', () => {
     });
 
     it('throws an error', () => {
-      expect(() => TestTrackConfig.getUrl()).toThrow('The string to be decoded is not correctly encoded');
+      expect(() => new Config().getUrl()).toThrow('Unable to parse configuration');
     });
   });
 });

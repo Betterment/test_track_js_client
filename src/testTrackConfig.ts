@@ -3,9 +3,6 @@ import Split from './split';
 import SplitRegistry from './splitRegistry';
 
 const DEFAULT_VISITOR_COOKIE_NAME = 'tt_visitor_id';
-let config: RawConfig | null = null;
-let assignments: Assignment[] | null = null;
-let registry: SplitRegistry | null = null;
 
 declare global {
   interface Window {
@@ -14,96 +11,83 @@ declare global {
 }
 
 export type RawConfig = {
-  assignments: {
-    [splitName: string]: string;
-  };
+  url: string;
   cookieDomain: string;
   cookieName?: string;
   experienceSamplingWeight: number;
-  splits: {
+  assignments?: { [splitName: string]: string };
+  splits?: {
     [splitName: string]: {
       feature_gate: boolean;
-      weights: {
-        [variant: string]: number;
-      };
+      weights: { [variant: string]: number };
     };
   };
-  url: string;
 };
 
-const getConfig = function (): RawConfig {
-  if (!config) {
-    const decodedConfig = atob(window.TT);
-    if (decodedConfig) return JSON.parse(decodedConfig);
-    throw new Error('Unable to parse configuration');
+export class Config {
+  #config?: RawConfig;
+  #assignments?: Assignment[];
+  #splitRegistry?: SplitRegistry;
+
+  constructor(config?: RawConfig) {
+    this.#config = config;
   }
-  return config;
-};
 
-const TestTrackConfig = {
-  _clear: function () {
-    config = null;
-  },
+  #load(): RawConfig {
+    try {
+      return (this.#config ??= JSON.parse(atob(window.TT)));
+    } catch {
+      throw new Error('Unable to parse configuration');
+    }
+  }
 
-  getUrl: function () {
-    return getConfig().url;
-  },
+  getUrl(): string {
+    return this.#load().url;
+  }
 
-  getCookieDomain: function () {
-    return getConfig().cookieDomain;
-  },
+  getCookieDomain(): string {
+    return this.#load().cookieDomain;
+  }
 
-  getCookieName: function () {
-    return getConfig().cookieName || DEFAULT_VISITOR_COOKIE_NAME;
-  },
+  getCookieName(): string {
+    return this.#load().cookieName || DEFAULT_VISITOR_COOKIE_NAME;
+  }
 
-  getExperienceSamplingWeight: function () {
-    return getConfig().experienceSamplingWeight;
-  },
+  getExperienceSamplingWeight(): number {
+    return this.#load().experienceSamplingWeight;
+  }
 
-  getSplitRegistry: function () {
-    const rawRegistry = getConfig().splits;
-
+  getSplitRegistry(): SplitRegistry {
+    const rawRegistry = this.#load().splits;
     if (!rawRegistry) {
       return new SplitRegistry(null);
     }
 
-    if (!registry) {
-      const splits = Object.keys(rawRegistry).map(function (splitName) {
-        const rawSplit = rawRegistry[splitName];
+    if (!this.#splitRegistry) {
+      const splits = Object.entries(rawRegistry).map(([splitName, rawSplit]) => {
         return new Split(splitName, rawSplit['feature_gate'], rawSplit['weights']);
       });
 
-      registry = new SplitRegistry(splits);
+      this.#splitRegistry = new SplitRegistry(splits);
     }
 
-    return registry;
-  },
+    return this.#splitRegistry;
+  }
 
-  getAssignments: function () {
-    const rawAssignments = getConfig().assignments;
-
+  getAssignments(): Assignment[] | null {
+    const rawAssignments = this.#load().assignments;
     if (!rawAssignments) {
       return null;
     }
 
-    if (!assignments) {
-      assignments = [];
-      for (const splitName in rawAssignments) {
-        assignments.push(
-          new Assignment({
-            splitName,
-            variant: rawAssignments[splitName],
-            isUnsynced: false
-          })
-        );
-      }
+    if (!this.#assignments) {
+      this.#assignments = Object.entries(rawAssignments).map(([splitName, variant]) => {
+        return new Assignment({ splitName, variant, isUnsynced: false });
+      });
     }
 
-    return assignments;
+    return this.#assignments;
   }
-};
+}
 
-type TestTrackConfig = typeof TestTrackConfig;
-
-export default TestTrackConfig;
+export default new Config();

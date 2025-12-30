@@ -1,4 +1,4 @@
-import { post, toSearchParams } from './api';
+import { request, toSearchParams } from './api';
 import Assignment, { type AssignmentData } from './assignment';
 import Visitor from './visitor';
 
@@ -37,7 +37,8 @@ class Identifier {
   }
 
   save() {
-    return post({
+    return request({
+      method: 'POST',
       url: '/api/v1/identifier',
       body: toSearchParams({
         identifier_type: this.identifierType,

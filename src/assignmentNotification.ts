@@ -1,4 +1,4 @@
-import { post, toSearchParams } from './api';
+import { request, toSearchParams } from './api';
 import Visitor from './visitor';
 import Assignment from './assignment';
 
@@ -40,7 +40,8 @@ class AssignmentNotification {
   }
 
   _persistAssignment(trackResult?: 'success' | 'failure') {
-    return post({
+    return request({
+      method: 'POST',
       url: '/api/v1/assignment_event',
       body: toSearchParams({
         visitor_id: this._visitor.getId(),

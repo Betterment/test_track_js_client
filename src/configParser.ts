@@ -1,5 +1,3 @@
-import { atob } from 'abab';
-
 declare global {
   interface Window {
     TT: string;

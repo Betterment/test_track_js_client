@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      abab:
-        specifier: ^2.0.3
-        version: 2.0.6
       axios:
         specifier: ^1.5.0
         version: 1.9.0
@@ -871,10 +868,6 @@ packages:
 
   '@vitest/utils@4.0.16':
     resolution: {integrity: sha512-h8z9yYhV3e1LEfaQ3zdypIrnAg/9hguReGZoS7Gl0aBG5xgA410zBqECqmaF/+RkTggRsfnzc1XaAHA6bmUufA==}
-
-  abab@2.0.6:
-    resolution: {integrity: sha512-j2afSsaIENvHZN2B8GOpF566vZ5WVk5opAiMTvWgaQT8DkbOqsTfvNAvHoRGU2zzP8cPoqys+xHTRDWW8L+/BA==}
-    deprecated: Use your platform's native atob() and btoa() methods instead
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -3774,8 +3767,6 @@ snapshots:
     dependencies:
       '@vitest/pretty-format': 4.0.16
       tinyrainbow: 3.0.3
-
-  abab@2.0.6: {}
 
   acorn-jsx@5.3.2(acorn@8.15.0):
     dependencies:

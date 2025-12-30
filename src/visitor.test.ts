@@ -2,27 +2,17 @@ import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
 import Identifier from './identifier';
 import MixpanelAnalytics from './mixpanelAnalytics';
-import TestTrackConfig from './testTrackConfig';
+import type { Config } from './testTrackConfig';
 import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
 import { v4 as uuid } from 'uuid';
-import { mockSplitRegistry } from './test-utils';
+import { mockSplitRegistry, createConfig } from './test-utils';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 
+let config: Config;
+
 vi.mock('uuid');
-
-vi.mock(import('./testTrackConfig'), async importOriginal => {
-  const original = await importOriginal();
-  const config = new original.Config({
-    url: 'http://testtrack.dev',
-    cookieDomain: '.example.org',
-    experienceSamplingWeight: 1
-  });
-
-  vi.spyOn(config, 'getAssignments');
-  return { ...original, default: config };
-});
 
 const mockGetVariant = vi.fn();
 vi.mock('./variantCalculator', () => {
@@ -53,6 +43,7 @@ vi.mock('./identifier', () => {
 
 function createVisitor() {
   return new Visitor({
+    config,
     id: 'EXISTING_VISITOR_ID',
     assignments: [
       new Assignment({
@@ -66,8 +57,9 @@ function createVisitor() {
 
 describe('Visitor', () => {
   beforeEach(() => {
-    vi.mocked(TestTrackConfig.getAssignments).mockReset();
-    TestTrackConfig.getSplitRegistry = mockSplitRegistry({
+    config = createConfig();
+    vi.spyOn(config, 'getAssignments').mockReset();
+    config.getSplitRegistry = mockSplitRegistry({
       element: {
         earth: 25,
         wind: 25,
@@ -132,7 +124,7 @@ describe('Visitor', () => {
       // @ts-expect-error `uuid` has overloads
       vi.mocked(uuid).mockReturnValue('generated_uuid');
 
-      const visitor = await Visitor.loadVisitor(undefined);
+      const visitor = await Visitor.loadVisitor(config, undefined);
       expect(requests.length).toBe(0);
       expect(visitor.getId()).toEqual('generated_uuid');
       expect(visitor.getAssignmentRegistry()).toEqual({});
@@ -151,9 +143,9 @@ describe('Visitor', () => {
         isUnsynced: false
       });
 
-      vi.mocked(TestTrackConfig.getAssignments).mockReturnValue([jabbaAssignment, wineAssignment]);
+      vi.mocked(config.getAssignments).mockReturnValue([jabbaAssignment, wineAssignment]);
 
-      const visitor = await Visitor.loadVisitor('baked_visitor_id');
+      const visitor = await Visitor.loadVisitor(config, 'baked_visitor_id');
       expect(requests.length).toBe(0);
       expect(visitor.getId()).toEqual('baked_visitor_id');
       expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
@@ -164,7 +156,7 @@ describe('Visitor', () => {
     });
 
     it('loads a visitor from the server for an existing visitor if there are no baked assignments', async () => {
-      const visitor = await Visitor.loadVisitor('puppeteer_visitor_id');
+      const visitor = await Visitor.loadVisitor(config, 'puppeteer_visitor_id');
       expect(requests.length).toBe(1);
       expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id');
       const jabbaAssignment = new Assignment({
@@ -185,7 +177,7 @@ describe('Visitor', () => {
         })
       );
 
-      const visitor = await Visitor.loadVisitor('failed_visitor_id');
+      const visitor = await Visitor.loadVisitor(config, 'failed_visitor_id');
       expect(requests.length).toBe(1);
       expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/visitors/failed_visitor_id');
       expect(visitor.getId()).toEqual('failed_visitor_id');
@@ -403,6 +395,7 @@ describe('Visitor', () => {
     describe('Offline Visitor', () => {
       function createOfflineVisitor() {
         return new Visitor({
+          config: createConfig(),
           id: 'offline_visitor_id',
           assignments: [],
           ttOffline: true
@@ -606,6 +599,7 @@ describe('Visitor', () => {
       // @ts-expect-error Testing with boolean variant
       const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: true, isUnsynced: true });
       const actualVisitor = new Visitor({
+        config: createConfig(),
         id: 'actual_visitor_id',
         assignments: [jabbaCGIAssignment, blueButtonAssignment]
       });
@@ -622,7 +616,7 @@ describe('Visitor', () => {
 
       expect(Identifier).toHaveBeenCalledTimes(1);
       expect(Identifier).toHaveBeenCalledWith({
-        config: TestTrackConfig,
+        config: visitor.config,
         visitorId: 'EXISTING_VISITOR_ID',
         identifierType: 'myappdb_user_id',
         value: 444
@@ -744,6 +738,7 @@ describe('Visitor', () => {
       const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: 'true', isUnsynced: true });
 
       const visitor = new Visitor({
+        config: createConfig(),
         id: 'unsynced_visitor_id',
         assignments: [wineAssignment, blueButtonAssignment]
       });

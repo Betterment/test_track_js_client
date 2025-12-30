@@ -1,11 +1,11 @@
 import Assignment from './assignment';
 import SplitRegistry from './splitRegistry';
-import TestTrackConfig from './testTrackConfig';
 import VaryDSL from './varyDSL';
 import Visitor from './visitor';
-import { mockSplitRegistry } from './test-utils';
+import { mockSplitRegistry, createConfig } from './test-utils';
+import type { Config } from './testTrackConfig';
 
-vi.mock('./testTrackConfig');
+let config: Config;
 
 function createAssignment() {
   return new Assignment({ splitName: 'element', variant: 'earth', isUnsynced: true });
@@ -13,14 +13,15 @@ function createAssignment() {
 
 function createVisitor() {
   const assignment = createAssignment();
-  const visitor = new Visitor({ id: 'visitor_id', assignments: [assignment] });
+  const visitor = new Visitor({ config, id: 'visitor_id', assignments: [assignment] });
   visitor.logError = vi.fn();
   return visitor;
 }
 
 describe('VaryDSL', () => {
   beforeEach(() => {
-    TestTrackConfig.getSplitRegistry = mockSplitRegistry({
+    config = createConfig();
+    config.getSplitRegistry = mockSplitRegistry({
       element: { earth: 25, wind: 25, fire: 25, water: 25 }
     });
   });
@@ -93,7 +94,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
-      vi.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      vi.mocked(config.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       const assignment = createAssignment();
       const visitor = createVisitor();
@@ -105,7 +106,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error for a variant with a 0 weight', () => {
-      TestTrackConfig.getSplitRegistry = mockSplitRegistry({
+      config.getSplitRegistry = mockSplitRegistry({
         element: {
           earth: 25,
           wind: 25,
@@ -190,7 +191,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
-      vi.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      vi.mocked(config.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       const assignment = createAssignment();
       const visitor = createVisitor();
@@ -202,7 +203,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error for a variant with a 0 weight', () => {
-      TestTrackConfig.getSplitRegistry = mockSplitRegistry({
+      config.getSplitRegistry = mockSplitRegistry({
         element: {
           earth: 25,
           wind: 25,
@@ -304,7 +305,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
-      vi.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      vi.mocked(config.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       const assignment = createAssignment();
       const visitor = createVisitor();

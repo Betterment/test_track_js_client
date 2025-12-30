@@ -1,12 +1,11 @@
 import SplitRegistry from './splitRegistry';
-import TestTrackConfig from './testTrackConfig';
 import VariantCalculator, { type VariantCalculatorOptions } from './variantCalculator';
 import Visitor from './visitor';
-import { mockSplitRegistry } from './test-utils';
-
-vi.mock('./testTrackConfig');
+import { mockSplitRegistry, createConfig } from './test-utils';
+import type { Config } from './testTrackConfig';
 
 describe('VariantCalculator', () => {
+  let config: Config;
   let visitor: Visitor;
   let calculator: VariantCalculator;
   let calculatorOptions: VariantCalculatorOptions;
@@ -16,7 +15,9 @@ describe('VariantCalculator', () => {
   }
 
   beforeEach(() => {
+    config = createConfig();
     visitor = new Visitor({
+      config,
       id: '00000000-0000-0000-0000-000000000000',
       assignments: []
     });
@@ -29,7 +30,7 @@ describe('VariantCalculator', () => {
 
     calculator = createCalculator();
 
-    TestTrackConfig.getSplitRegistry = mockSplitRegistry({
+    config.getSplitRegistry = mockSplitRegistry({
       logoSize: {
         extraGiant: 0,
         giant: 80,
@@ -157,13 +158,13 @@ describe('VariantCalculator', () => {
     });
 
     it('returns null if there is no split registry', () => {
-      vi.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      vi.mocked(config.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       expect(calculator.getVariant()).toBeNull();
     });
 
     it('throws an error with an incomplete weighting', () => {
-      TestTrackConfig.getSplitRegistry = mockSplitRegistry({
+      config.getSplitRegistry = mockSplitRegistry({
         invalidWeighting: {
           yes: 33,
           no: 33,

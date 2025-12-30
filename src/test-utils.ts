@@ -5,7 +5,7 @@ import { Config } from './testTrackConfig';
 
 export function createConfig(): Config {
   return new Config({
-    url: 'https://testtrack.dev',
+    url: 'http://testtrack.dev',
     cookieDomain: '.example.org',
     experienceSamplingWeight: 1
   });

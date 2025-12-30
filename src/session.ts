@@ -27,7 +27,7 @@ class Session {
   initialize(options: SessionOptions) {
     const visitorId = Cookies.get(TestTrackConfig.getCookieName());
 
-    Visitor.loadVisitor(visitorId).then(visitor => {
+    Visitor.loadVisitor(TestTrackConfig, visitorId).then(visitor => {
       if (options && options.analytics) {
         visitor.setAnalytics(options.analytics);
       }

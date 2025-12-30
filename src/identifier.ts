@@ -51,6 +51,7 @@ class Identifier {
       })
     }).then(({ data }: IdentifierResponse) => {
       return new Visitor({
+        config: this.config,
         id: data.visitor.id,
         assignments: Assignment.fromJsonArray(data.visitor.assignments)
       });

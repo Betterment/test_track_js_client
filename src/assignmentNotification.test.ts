@@ -3,6 +3,7 @@ import AssignmentNotification from './assignmentNotification';
 import Visitor from './visitor';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
+import { createConfig } from './test-utils';
 
 vi.mock(import('./testTrackConfig'), async importOriginal => {
   const original = await importOriginal();
@@ -16,7 +17,7 @@ vi.mock(import('./testTrackConfig'), async importOriginal => {
 });
 
 function createVisitor(options: { trackSuccess: boolean }) {
-  const visitor = new Visitor({ id: 'visitorId', assignments: [] });
+  const visitor = new Visitor({ config: createConfig(), id: 'visitorId', assignments: [] });
 
   visitor.setAnalytics({
     identify: vi.fn(),

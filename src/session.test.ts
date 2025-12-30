@@ -5,8 +5,9 @@ import Session from './session';
 import Visitor from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { RawConfig } from './testTrackConfig';
+import { Config } from './testTrackConfig';
 
-const config: RawConfig = {
+const rawConfig: RawConfig = {
   url: 'http://testtrack.dev',
   cookieDomain: '.example.com',
   cookieName: 'custom_cookie_name',
@@ -18,12 +19,14 @@ const config: RawConfig = {
   }
 };
 
+const config = new Config(rawConfig);
+
 vi.mock('./assignmentOverride');
 vi.mock('js-cookie');
 
 describe('Session', () => {
   beforeAll(() => {
-    window.TT = btoa(JSON.stringify(config));
+    window.TT = btoa(JSON.stringify(rawConfig));
   });
 
   beforeEach(() => {
@@ -33,11 +36,11 @@ describe('Session', () => {
 
   describe('Cookie behavior', () => {
     it('reads the visitor id from a cookie and sets it back in the cookie', async () => {
-      const v = new Visitor({ id: 'existing_visitor_id', assignments: [] });
+      const v = new Visitor({ config, id: 'existing_visitor_id', assignments: [] });
       Visitor.loadVisitor = vi.fn().mockResolvedValue(v);
 
       await new Session().getPublicAPI().initialize({});
-      expect(Visitor.loadVisitor).toHaveBeenCalledWith('existing_visitor_id');
+      expect(Visitor.loadVisitor).toHaveBeenCalledWith(expect.any(Object), 'existing_visitor_id');
       expect(Cookies.get).toHaveBeenCalledTimes(1);
       expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
       expect(Cookies.set).toHaveBeenCalledTimes(1);
@@ -52,11 +55,11 @@ describe('Session', () => {
       // @ts-expect-error Cookies.get returns different types depending on arguments
       vi.mocked(Cookies.get).mockReturnValue(undefined);
 
-      const v = new Visitor({ id: 'generated_visitor_id', assignments: [] });
+      const v = new Visitor({ config, id: 'generated_visitor_id', assignments: [] });
       Visitor.loadVisitor = vi.fn().mockResolvedValue(v);
 
       await new Session().getPublicAPI().initialize({});
-      expect(Visitor.loadVisitor).toHaveBeenCalledWith(undefined);
+      expect(Visitor.loadVisitor).toHaveBeenCalledWith(expect.any(Object), undefined);
       expect(Cookies.get).toHaveBeenCalledTimes(1);
       expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
       expect(Cookies.set).toHaveBeenCalledTimes(1);
@@ -81,6 +84,7 @@ describe('Session', () => {
       });
 
       visitorInstance = new Visitor({
+        config,
         id: 'dummy_visitor_id',
         assignments: [jabbaAssignment]
       });

@@ -19,7 +19,7 @@ function createIdentifier() {
 describe('Identifier', () => {
   beforeEach(() => {
     server.use(
-      http.post('https://testtrack.dev/api/v1/identifier', () => {
+      http.post('http://testtrack.dev/api/v1/identifier', () => {
         return HttpResponse.json({
           visitor: {
             id: 'actual_visitor_id',
@@ -69,7 +69,7 @@ describe('Identifier', () => {
       const identifier = createIdentifier();
       await identifier.save();
       expect(requests.length).toBe(1);
-      expect(requests[0].url).toEqual('https://testtrack.dev/api/v1/identifier');
+      expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/identifier');
       expect(await requests[0].text()).toEqual(
         'identifier_type=myappdb_user_id&value=444&visitor_id=transient_visitor_id'
       );
@@ -88,6 +88,7 @@ describe('Identifier', () => {
       await identifier.save();
       expect(Visitor).toHaveBeenCalledTimes(1);
       expect(Visitor).toHaveBeenCalledWith({
+        config: identifier.config,
         id: 'actual_visitor_id',
         assignments: [jabbaAssignment, wineAssignment]
       });

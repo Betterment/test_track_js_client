@@ -1,4 +1,3 @@
-import { Mock } from 'vitest';
 import Assignment from './assignment';
 import SplitRegistry from './splitRegistry';
 import TestTrackConfig from './testTrackConfig';

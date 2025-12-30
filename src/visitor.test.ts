@@ -1,4 +1,3 @@
-import { Mock } from 'vitest';
 import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
 import Identifier from './identifier';

@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import Session from './session';
 import Visitor from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
-import type { RawConfig } from './testTrackConfig';
+import type { RawConfig } from './config';
 import { v4 as uuid } from 'uuid';
 import { http, HttpResponse } from 'msw';
 import { server } from './setupTests';

@@ -1,7 +1,7 @@
 import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
 import { createConfig } from './test-utils';
-import type { Config } from './testTrackConfig';
+import type { Config } from './config';
 
 function setupConfig() {
   return createConfig({

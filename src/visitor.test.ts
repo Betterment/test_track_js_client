@@ -2,7 +2,7 @@ import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
 import Identifier from './identifier';
 import MixpanelAnalytics from './mixpanelAnalytics';
-import type { Config } from './testTrackConfig';
+import type { Config } from './config';
 import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
 import { v4 as uuid } from 'uuid';

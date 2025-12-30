@@ -1,7 +1,7 @@
 import Cookies from 'js-cookie';
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
-import { Config, loadConfig, type RawConfig } from './testTrackConfig';
+import { Config, loadConfig, type RawConfig } from './config';
 import Visitor, { type VaryOptions, type AbOptions } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 

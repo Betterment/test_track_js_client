@@ -1,6 +1,6 @@
 import SplitRegistry from './splitRegistry';
 import Split, { type Weighting } from './split';
-import { Config, type RawConfig } from './testTrackConfig';
+import { Config, type RawConfig } from './config';
 
 export function createConfig(options: Partial<RawConfig> = {}): Config {
   return new Config({

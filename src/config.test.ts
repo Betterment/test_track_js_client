@@ -1,5 +1,5 @@
 import Assignment from './assignment';
-import { loadConfig, type RawConfig } from './testTrackConfig';
+import { loadConfig, type RawConfig } from './config';
 
 const createConfig = (cookieName: string | undefined): RawConfig => ({
   url: 'http://testtrack.dev',

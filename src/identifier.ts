@@ -1,7 +1,7 @@
 import { request, toSearchParams } from './api';
 import Assignment, { type AssignmentData } from './assignment';
 import Visitor from './visitor';
-import type { Config } from './testTrackConfig';
+import type { Config } from './config';
 
 type IdentifierOptions = {
   config: Config;

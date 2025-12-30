@@ -2,7 +2,7 @@ import Assignment from './assignment';
 import VaryDSL from './varyDSL';
 import Visitor from './visitor';
 import { createConfig } from './test-utils';
-import type { Config } from './testTrackConfig';
+import type { Config } from './config';
 
 function setupConfig() {
   return createConfig({
@@ -27,7 +27,6 @@ function createVisitor(config: Config) {
 }
 
 describe('VaryDSL', () => {
-
   it('requires an assignment', () => {
     const config = setupConfig();
     const visitor = createVisitor(config);

@@ -7,7 +7,7 @@ import MixpanelAnalytics from './mixpanelAnalytics';
 import { v4 as uuid } from 'uuid';
 import VariantCalculator from './variantCalculator';
 import VaryDSL from './varyDSL';
-import type { Config } from './testTrackConfig';
+import type { Config } from './config';
 
 type Variants = {
   [key: string]: () => void;

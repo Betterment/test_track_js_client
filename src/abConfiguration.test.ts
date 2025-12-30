@@ -1,7 +1,7 @@
 import ABConfiguration from './abConfiguration';
 import Visitor from './visitor';
 import { createConfig } from './test-utils';
-import type { Config } from './testTrackConfig';
+import type { Config } from './config';
 
 function setupConfig() {
   return createConfig({
@@ -29,7 +29,6 @@ function createVisitor(config: Config) {
 }
 
 describe('ABConfiguration', () => {
-
   it('requires a splitName', () => {
     const config = setupConfig();
     const visitor = createVisitor(config);

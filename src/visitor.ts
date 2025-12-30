@@ -36,7 +36,7 @@ type AssignmentRegistry = {
 };
 
 class Visitor {
-  static loadVisitor(visitorId?: string) {
+  static loadVisitor(visitorId: string | undefined) {
     if (visitorId) {
       const assignments = TestTrackConfig.getAssignments();
       if (assignments) {

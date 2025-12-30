@@ -50,13 +50,13 @@ describe('Session', () => {
 
     it('saves the visitor id in a cookie', async () => {
       // @ts-expect-error Cookies.get returns different types depending on arguments
-      vi.mocked(Cookies.get).mockReturnValue(null);
+      vi.mocked(Cookies.get).mockReturnValue(undefined);
 
       const v = new Visitor({ id: 'generated_visitor_id', assignments: [] });
       Visitor.loadVisitor = vi.fn().mockResolvedValue(v);
 
       await new Session().getPublicAPI().initialize({});
-      expect(Visitor.loadVisitor).toHaveBeenCalledWith(null);
+      expect(Visitor.loadVisitor).toHaveBeenCalledWith(undefined);
       expect(Cookies.get).toHaveBeenCalledTimes(1);
       expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
       expect(Cookies.set).toHaveBeenCalledTimes(1);

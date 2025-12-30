@@ -3,7 +3,7 @@ import AssignmentOverride from './assignmentOverride';
 import Cookies from 'js-cookie';
 import Session from './session';
 import Visitor from './visitor';
-import { AnalyticsProvider } from './analyticsProvider';
+import type { AnalyticsProvider } from './analyticsProvider';
 
 vi.mock('./assignmentOverride');
 

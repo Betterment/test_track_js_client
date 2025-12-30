@@ -1,6 +1,6 @@
 import qs from 'qs';
 import client from './api';
-import Assignment, { AssignmentData } from './assignment';
+import Assignment, { type AssignmentData } from './assignment';
 import Visitor from './visitor';
 
 type IdentifierOptions = {

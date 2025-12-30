@@ -28,8 +28,7 @@
     // "noUncheckedIndexedAccess": true,
 
     /* Interop */
-    "erasableSyntaxOnly": true
-    // FIXME - Enable this setting:
-    // "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true
   }
 }

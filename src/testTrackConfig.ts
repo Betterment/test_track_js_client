@@ -1,5 +1,5 @@
 import Assignment from './assignment';
-import ConfigParser, { Config } from './configParser';
+import ConfigParser, { type Config } from './configParser';
 import Split from './split';
 import SplitRegistry from './splitRegistry';
 

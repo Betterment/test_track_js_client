@@ -1,6 +1,6 @@
 import SplitRegistry from './splitRegistry';
 import TestTrackConfig from './testTrackConfig';
-import VariantCalculator, { VariantCalculatorOptions } from './variantCalculator';
+import VariantCalculator, { type VariantCalculatorOptions } from './variantCalculator';
 import Visitor from './visitor';
 import { mockSplitRegistry } from './test-utils';
 

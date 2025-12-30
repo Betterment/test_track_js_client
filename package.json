@@ -1,13 +1,17 @@
 {
   "name": "test_track_js_client",
+  "type": "module",
   "version": "2.1.3",
   "description": "Javascript Client for Test Track",
   "license": "MIT",
-  "main": "dist/testTrack.bundle.js",
-  "module": "dist/testTrack.js",
-  "typings": "dist/testTrack.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "build": "rollup -c",
+    "build": "tsdown src/testTrack.ts --dts --sourcemap --platform neutral",
     "typecheck": "tsc",
     "lint": "eslint",
     "format": "prettier --write .",
@@ -32,6 +36,7 @@
     "msw": "^2.12.7",
     "prettier": "3.7.4",
     "release-it": "^16.1.2",
+    "tsdown": "^0.18.3",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.34.0",
     "vitest": "^4.0.16"

@@ -25,7 +25,7 @@ function createAssignment() {
 describe('AssignmentOverride', () => {
   beforeEach(() => {
     server.use(
-      http.post('http://testtrack.dev/api/v1/assignment_override',() => {
+      http.post('http://testtrack.dev/api/v1/assignment_override', () => {
         return HttpResponse.json(null, { status: 200 });
       })
     );
@@ -83,7 +83,7 @@ describe('AssignmentOverride', () => {
 
     it('logs an error on an error response', async () => {
       server.use(
-        http.post('http://testtrack.dev/api/v1/assignment_override',() => {
+        http.post('http://testtrack.dev/api/v1/assignment_override', () => {
           return HttpResponse.json(null, { status: 500 });
         })
       );
@@ -106,7 +106,7 @@ describe('AssignmentOverride', () => {
 
     it('logs an error on a network error', async () => {
       server.use(
-        http.post('http://testtrack.dev/api/v1/assignment_override',() => {
+        http.post('http://testtrack.dev/api/v1/assignment_override', () => {
           return HttpResponse.error();
         })
       );
@@ -122,7 +122,9 @@ describe('AssignmentOverride', () => {
 
       await override.persistAssignment();
       expect(visitor.logError).toHaveBeenCalledTimes(1);
-      expect(visitor.logError).toHaveBeenCalledWith(expect.stringContaining('test_track persistAssignment other error'));
+      expect(visitor.logError).toHaveBeenCalledWith(
+        expect.stringContaining('test_track persistAssignment other error')
+      );
     });
   });
 });

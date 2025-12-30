@@ -119,7 +119,9 @@ describe('AssignmentNotification', () => {
 
       await notification.send();
       expect(visitor.logError).toHaveBeenCalledTimes(2);
-      expect(visitor.logError).toHaveBeenCalledWith(expect.stringContaining('test_track persistAssignment other error'));
+      expect(visitor.logError).toHaveBeenCalledWith(
+        expect.stringContaining('test_track persistAssignment other error')
+      );
     });
   });
 });

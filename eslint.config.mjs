@@ -1,10 +1,15 @@
 import eslint from '@eslint/js';
-import { defineConfig } from 'eslint/config';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
-export default defineConfig(eslint.configs.recommended, tseslint.configs.recommended, {
-  files: ['src/**/*.ts'],
-  rules: {
-    'no-prototype-builtins': 'off'
+export default defineConfig([
+  globalIgnores(['dist/**/*']),
+  eslint.configs.recommended,
+  tseslint.configs.recommended,
+  {
+    files: ['src/**/*.ts'],
+    rules: {
+      'no-prototype-builtins': 'off'
+    }
   }
-});
+]);

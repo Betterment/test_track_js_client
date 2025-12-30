@@ -177,7 +177,7 @@ describe('VariantCalculator', () => {
       const visitor = createVisitor(config);
       const calculator = setupCalculator(visitor);
 
-      calculator.getAssignmentBucket = vi.fn().mockReturnValue(0);
+      vi.spyOn(calculator, 'getAssignmentBucket').mockReturnValue(0);
       expect(calculator.getVariant()).toBe('giant');
     });
 
@@ -186,7 +186,7 @@ describe('VariantCalculator', () => {
       const visitor = createVisitor(config);
       const calculator = setupCalculator(visitor);
 
-      calculator.getAssignmentBucket = vi.fn().mockReturnValue(99);
+      vi.spyOn(calculator, 'getAssignmentBucket').mockReturnValue(99);
       expect(calculator.getVariant()).toBe('miniscule');
     });
 
@@ -195,7 +195,7 @@ describe('VariantCalculator', () => {
       const visitor = createVisitor(config);
       const calculator = setupCalculator(visitor);
 
-      calculator.getAssignmentBucket = vi.fn().mockReturnValue(80);
+      vi.spyOn(calculator, 'getAssignmentBucket').mockReturnValue(80);
       expect(calculator.getVariant()).toBe('huge');
     });
 
@@ -219,7 +219,7 @@ describe('VariantCalculator', () => {
 
       const visitor = createVisitor(config);
       const calculator = new VariantCalculator({ visitor, splitName: 'invalidWeighting' });
-      calculator.getAssignmentBucket = vi.fn().mockReturnValue(99);
+      vi.spyOn(calculator, 'getAssignmentBucket').mockReturnValue(99);
 
       expect(() => calculator.getVariant()).toThrow(
         'Assignment bucket out of range. 99 unmatched in invalidWeighting: {"yes":33,"no":33,"maybe":33}'

@@ -1,19 +1,25 @@
 import ABConfiguration from './abConfiguration';
-import SplitRegistry from './splitRegistry';
 import Visitor from './visitor';
-import { createSplitRegistry, createConfig } from './test-utils';
+import { createConfig } from './test-utils';
 import type { Config } from './testTrackConfig';
 
 function setupConfig() {
-  const config = createConfig();
-  vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
-    createSplitRegistry({
-      element: { earth: 25, wind: 25, fire: 25, water: 25 },
-      button_color: { red: 50, blue: 50 },
-      new_feature: { true: 100 }
-    })
-  );
-  return config;
+  return createConfig({
+    splits: {
+      element: {
+        feature_gate: false,
+        weights: { earth: 25, wind: 25, fire: 25, water: 25 }
+      },
+      button_color: {
+        feature_gate: false,
+        weights: { red: 50, blue: 50 }
+      },
+      new_feature: {
+        feature_gate: false,
+        weights: { true: 100 }
+      }
+    }
+  });
 }
 
 function createVisitor(config: Config) {
@@ -80,8 +86,7 @@ describe('ABConfiguration', () => {
     });
 
     it('does not log an error if the split registry is not loaded', () => {
-      const config = setupConfig();
-      vi.mocked(config.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      const config = createConfig();
 
       const visitor = createVisitor(config);
       const abConfiguration = new ABConfiguration({
@@ -145,8 +150,7 @@ describe('ABConfiguration', () => {
       });
 
       it('is false when there is no split_registry', () => {
-        const config = setupConfig();
-        vi.mocked(config.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+        const config = createConfig();
 
         const abConfiguration = new ABConfiguration({
           splitName: 'button_color',

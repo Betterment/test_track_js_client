@@ -6,7 +6,7 @@ import type { Config } from './testTrackConfig';
 import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
 import { v4 as uuid } from 'uuid';
-import { createSplitRegistry, createConfig } from './test-utils';
+import { createConfig } from './test-utils';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 
@@ -40,14 +40,14 @@ vi.mock('./identifier', () => {
 });
 
 function setupConfig() {
-  const config = createConfig();
-  vi.spyOn(config, 'getAssignments').mockReset();
-  vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
-    createSplitRegistry({
-      element: { earth: 25, wind: 25, fire: 25, water: 25 }
-    })
-  );
-  return config;
+  return createConfig({
+    splits: {
+      element: {
+        feature_gate: false,
+        weights: { earth: 25, wind: 25, fire: 25, water: 25 }
+      }
+    }
+  });
 }
 
 function createVisitor(config: Config) {
@@ -65,7 +65,6 @@ function createVisitor(config: Config) {
 }
 
 describe('Visitor', () => {
-
   describe('instantiation', () => {
     it('requires an id', () => {
       expect(() => {
@@ -129,7 +128,8 @@ describe('Visitor', () => {
     });
 
     it('does not hit the server when passed a visitorId and there are baked assignments', async () => {
-      const config = setupConfig();
+      const config = createConfig({ assignments: { jabba: 'puppet', wine: 'rose' } });
+
       const jabbaAssignment = new Assignment({
         splitName: 'jabba',
         variant: 'puppet',
@@ -141,8 +141,6 @@ describe('Visitor', () => {
         variant: 'rose',
         isUnsynced: false
       });
-
-      vi.mocked(config.getAssignments).mockReturnValue([jabbaAssignment, wineAssignment]);
 
       const visitor = await Visitor.loadVisitor(config, 'baked_visitor_id');
       expect(requests.length).toBe(0);

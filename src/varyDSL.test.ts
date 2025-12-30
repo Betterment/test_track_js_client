@@ -1,18 +1,18 @@
 import Assignment from './assignment';
-import SplitRegistry from './splitRegistry';
 import VaryDSL from './varyDSL';
 import Visitor from './visitor';
-import { createSplitRegistry, createConfig } from './test-utils';
+import { createConfig } from './test-utils';
 import type { Config } from './testTrackConfig';
 
 function setupConfig() {
-  const config = createConfig();
-  vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
-    createSplitRegistry({
-      element: { earth: 25, wind: 25, fire: 25, water: 25 }
-    })
-  );
-  return config;
+  return createConfig({
+    splits: {
+      element: {
+        feature_gate: false,
+        weights: { earth: 25, wind: 25, fire: 25, water: 25 }
+      }
+    }
+  });
 }
 
 function createAssignment() {
@@ -101,8 +101,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
-      const config = setupConfig();
-      vi.mocked(config.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      const config = createConfig();
 
       const assignment = createAssignment();
       const visitor = createVisitor(config);
@@ -114,12 +113,14 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error for a variant with a 0 weight', () => {
-      const config = setupConfig();
-      vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
-        createSplitRegistry({
-          element: { earth: 25, wind: 25, fire: 25, water: 25, leeloo_multipass: 0 }
-        })
-      );
+      const config = createConfig({
+        splits: {
+          element: {
+            feature_gate: false,
+            weights: { earth: 25, wind: 25, fire: 25, water: 25, leeloo_multipass: 0 }
+          }
+        }
+      });
 
       const assignment = createAssignment();
       const visitor = createVisitor(config);
@@ -201,8 +202,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
-      const config = setupConfig();
-      vi.mocked(config.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      const config = createConfig();
 
       const assignment = createAssignment();
       const visitor = createVisitor(config);
@@ -214,12 +214,14 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error for a variant with a 0 weight', () => {
-      const config = setupConfig();
-      vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
-        createSplitRegistry({
-          element: { earth: 25, wind: 25, fire: 25, water: 25, leeloo_multipass: 0 }
-        })
-      );
+      const config = createConfig({
+        splits: {
+          element: {
+            feature_gate: false,
+            weights: { earth: 25, wind: 25, fire: 25, water: 25, leeloo_multipass: 0 }
+          }
+        }
+      });
 
       const assignment = createAssignment();
       const visitor = createVisitor(config);
@@ -319,8 +321,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
-      const config = setupConfig();
-      vi.mocked(config.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      const config = createConfig();
 
       const assignment = createAssignment();
       const visitor = createVisitor(config);

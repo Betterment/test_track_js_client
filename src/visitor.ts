@@ -203,6 +203,7 @@ class Visitor {
 
   linkIdentifier(identifierType: string, value: number) {
     const identifier = new Identifier({
+      config: TestTrackConfig,
       identifierType,
       value,
       visitorId: this.getId()

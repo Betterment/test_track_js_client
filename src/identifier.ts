@@ -1,9 +1,10 @@
 import { request, toSearchParams } from './api';
 import Assignment, { type AssignmentData } from './assignment';
 import Visitor from './visitor';
-import TestTrackConfig from './testTrackConfig';
+import type { Config } from './testTrackConfig';
 
 type IdentifierOptions = {
+  config: Config;
   visitorId: string;
   identifierType: string;
   value: string | number;
@@ -19,11 +20,13 @@ type IdentifierResponse = {
 };
 
 class Identifier {
+  config: Config;
   visitorId: string;
   identifierType: string;
   value: string | number;
 
   constructor(options: IdentifierOptions) {
+    this.config = options.config;
     this.visitorId = options.visitorId;
     this.identifierType = options.identifierType;
     this.value = options.value;
@@ -40,7 +43,7 @@ class Identifier {
   save() {
     return request({
       method: 'POST',
-      url: TestTrackConfig.urlFor('/api/v1/identifier'),
+      url: this.config.urlFor('/api/v1/identifier'),
       body: toSearchParams({
         identifier_type: this.identifierType,
         value: this.value.toString(),

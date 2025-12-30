@@ -622,6 +622,7 @@ describe('Visitor', () => {
 
       expect(Identifier).toHaveBeenCalledTimes(1);
       expect(Identifier).toHaveBeenCalledWith({
+        config: TestTrackConfig,
         visitorId: 'EXISTING_VISITOR_ID',
         identifierType: 'myappdb_user_id',
         value: 444

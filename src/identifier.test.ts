@@ -3,22 +3,13 @@ import Identifier from './identifier';
 import Visitor from './visitor';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
-
-vi.mock(import('./testTrackConfig'), async importOriginal => {
-  const original = await importOriginal();
-  const config = new original.Config({
-    url: 'http://testtrack.dev',
-    cookieDomain: '.example.org',
-    experienceSamplingWeight: 1
-  });
-
-  return { ...original, default: config };
-});
+import { createConfig } from './test-utils';
 
 vi.mock('./visitor');
 
 function createIdentifier() {
   return new Identifier({
+    config: createConfig(),
     visitorId: 'transient_visitor_id',
     identifierType: 'myappdb_user_id',
     value: 444
@@ -28,7 +19,7 @@ function createIdentifier() {
 describe('Identifier', () => {
   beforeEach(() => {
     server.use(
-      http.post('http://testtrack.dev/api/v1/identifier', () => {
+      http.post('https://testtrack.dev/api/v1/identifier', () => {
         return HttpResponse.json({
           visitor: {
             id: 'actual_visitor_id',
@@ -53,20 +44,24 @@ describe('Identifier', () => {
   });
 
   it('requires a visitorId', () => {
-    // @ts-expect-error Testing missing required property
-    expect(() => new Identifier({ identifierType: 'myappdb_user_id', value: 444 })).toThrow('must provide visitorId');
+    expect(() => {
+      // @ts-expect-error Testing missing required property
+      new Identifier({ config: createConfig(), identifierType: 'myappdb_user_id', value: 444 });
+    }).toThrow('must provide visitorId');
   });
 
   it('requires a identifierType', () => {
-    // @ts-expect-error Testing missing required property
-    expect(() => new Identifier({ visitorId: 'visitorId', value: 444 })).toThrow('must provide identifierType');
+    expect(() => {
+      // @ts-expect-error Testing missing required property
+      new Identifier({ config: createConfig(), visitorId: 'visitorId', value: 444 });
+    }).toThrow('must provide identifierType');
   });
 
   it('requires a value', () => {
-    // @ts-expect-error Testing missing required property
-    expect(() => new Identifier({ visitorId: 'visitorId', identifierType: 'myappdb_user_id' })).toThrow(
-      'must provide value'
-    );
+    expect(() => {
+      // @ts-expect-error Testing missing required property
+      new Identifier({ config: createConfig(), visitorId: 'visitorId', identifierType: 'myappdb_user_id' });
+    }).toThrow('must provide value');
   });
 
   describe('#save()', () => {
@@ -74,7 +69,7 @@ describe('Identifier', () => {
       const identifier = createIdentifier();
       await identifier.save();
       expect(requests.length).toBe(1);
-      expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/identifier');
+      expect(requests[0].url).toEqual('https://testtrack.dev/api/v1/identifier');
       expect(await requests[0].text()).toEqual(
         'identifier_type=myappdb_user_id&value=444&visitor_id=transient_visitor_id'
       );

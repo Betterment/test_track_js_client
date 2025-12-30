@@ -30,14 +30,14 @@ export async function request(options: RequestOptions): Promise<Result> {
   setTimeout(() => controller.abort(), options.timeout ?? 60_000);
 
   const headers = new Headers({
-    accept: 'application/json',
-    'content-type': 'application/x-www-form-urlencoded'
+    Accept: 'application/json',
+    'Content-Type': 'application/x-www-form-urlencoded'
   });
 
   if (options.auth) {
     const { username, password } = options.auth;
     const credential = btoa(`${username}:${password}`);
-    headers.append('authorization', `Basic ${credential}`);
+    headers.append('Authorization', `Basic ${credential}`);
   }
 
   const response = await fetch(url, {
@@ -49,7 +49,9 @@ export async function request(options: RequestOptions): Promise<Result> {
 
   if (!response.ok) {
     throw new Error(`HTTP request failed with ${response.status} status`);
+  } else if (response.status === 204) {
+    return { data: null };
+  } else {
+    return { data: await response.json() };
   }
-
-  return { data: await response.json() };
 }

@@ -126,6 +126,7 @@ describe('Visitor', () => {
     });
 
     it('does not hit the server when not passed a visitorId', async () => {
+      // @ts-expect-error `uuid` has overloads
       vi.mocked(uuid).mockReturnValue('generated_uuid');
 
       const visitor = await Visitor.loadVisitor(undefined);

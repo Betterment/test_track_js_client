@@ -47,12 +47,7 @@ class AssignmentOverride {
         password: this._password
       }
     }).catch(error => {
-      if (error.response) {
-        const { status, statusText, data } = error.response;
-        this._visitor.logError(`test_track persistAssignment response error: ${status}, ${statusText}, ${data}`);
-      } else {
-        this._visitor.logError(`test_track persistAssignment other error: ${error}`);
-      }
+      this._visitor.logError(`test_track persistAssignment error: ${error}`);
     });
   }
 }

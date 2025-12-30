@@ -1,28 +1,12 @@
-import DefaultAxios from 'axios';
 import TestTrackConfig from './testTrackConfig';
 
-type GetOptions = {
-  url: `/api/${string}`;
-  timeout: number;
-};
+type BasicAuth = { username: string; password: string };
 
-type PostOptions = {
-  url: string;
-  body: URLSearchParams;
-  auth?: { username: string; password: string };
-};
+type GetOptions = { url: `/api/${string}`; timeout: number };
+type PostOptions = { url: `/api/${string}`; body: URLSearchParams; auth?: BasicAuth };
 
-type HttpResult = {
-  status: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
-};
-
-const defaultAxios = DefaultAxios.create({
-  headers: {
-    'Content-Type': 'application/x-www-form-urlencoded'
-  }
-});
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type HTTPResult = { data: any };
 
 export function toSearchParams(values: Record<string, string | null | undefined>): URLSearchParams {
   const params = new URLSearchParams();
@@ -36,12 +20,47 @@ export function toSearchParams(values: Record<string, string | null | undefined>
   return params;
 }
 
-export function get(options: GetOptions): Promise<HttpResult> {
-  const url = new URL(options.url, TestTrackConfig.getUrl());
-  return defaultAxios.get(url.toString(), { timeout: options.timeout });
+async function parseResponse(response: Response): Promise<HTTPResult> {
+  if (!response.ok) {
+    throw new Error(`HTTP request failed with ${response.status} status`);
+  }
+
+  return { data: await response.json() };
 }
 
-export function post(options: PostOptions): Promise<HttpResult> {
+export async function get(options: GetOptions): Promise<HTTPResult> {
   const url = new URL(options.url, TestTrackConfig.getUrl());
-  return defaultAxios.post(url.toString(), options.body, { auth: options.auth });
+
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), options.timeout);
+
+  const response = await fetch(url, {
+    signal: controller.signal,
+    headers: { accept: 'application/json' }
+  });
+
+  return parseResponse(response);
+}
+
+export async function post(options: PostOptions): Promise<HTTPResult> {
+  const url = new URL(options.url, TestTrackConfig.getUrl());
+
+  const headers = new Headers({
+    accept: 'application/json',
+    'content-type': 'application/x-www-form-urlencoded'
+  });
+
+  if (options.auth) {
+    const { username, password } = options.auth;
+    const credential = btoa(`${username}:${password}`);
+    headers.append('authorization', `Basic ${credential}`);
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    body: options.body,
+    headers
+  });
+
+  return parseResponse(response);
 }

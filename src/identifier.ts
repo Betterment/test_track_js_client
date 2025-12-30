@@ -1,6 +1,7 @@
 import { request, toSearchParams } from './api';
 import Assignment, { type AssignmentData } from './assignment';
 import Visitor from './visitor';
+import TestTrackConfig from './testTrackConfig';
 
 type IdentifierOptions = {
   visitorId: string;
@@ -39,7 +40,7 @@ class Identifier {
   save() {
     return request({
       method: 'POST',
-      url: '/api/v1/identifier',
+      url: TestTrackConfig.urlFor('/api/v1/identifier'),
       body: toSearchParams({
         identifier_type: this.identifierType,
         value: this.value.toString(),

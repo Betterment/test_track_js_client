@@ -1,6 +1,7 @@
 import { request, toSearchParams } from './api';
 import Assignment from './assignment';
 import Visitor from './visitor';
+import TestTrackConfig from './testTrackConfig';
 
 export type AssignmentOverrideOptions = {
   visitor: Visitor;
@@ -35,7 +36,7 @@ class AssignmentOverride {
   persistAssignment() {
     return request({
       method: 'POST',
-      url: '/api/v1/assignment_override',
+      url: TestTrackConfig.urlFor('/api/v1/assignment_override'),
       body: toSearchParams({
         visitor_id: this._visitor.getId(),
         split_name: this._assignment.getSplitName(),

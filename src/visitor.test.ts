@@ -12,13 +12,16 @@ import { server, requests } from './setupTests';
 
 vi.mock('uuid');
 
-vi.mock('./testTrackConfig', () => {
-  return {
-    default: {
-      getUrl: () => 'http://testtrack.dev',
-      getAssignments: vi.fn()
-    }
-  };
+vi.mock(import('./testTrackConfig'), async importOriginal => {
+  const original = await importOriginal();
+  const config = new original.Config({
+    url: 'http://testtrack.dev',
+    cookieDomain: '.example.org',
+    experienceSamplingWeight: 1
+  });
+
+  vi.spyOn(config, 'getAssignments');
+  return { ...original, default: config };
 });
 
 const mockGetVariant = vi.fn();

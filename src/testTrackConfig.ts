@@ -41,8 +41,8 @@ export class Config {
     }
   }
 
-  getUrl(): string {
-    return this.#load().url;
+  urlFor(path: string): URL {
+    return new URL(path, this.#load().url);
   }
 
   getCookieDomain(): string {

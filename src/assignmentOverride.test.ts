@@ -4,12 +4,15 @@ import Visitor from './visitor';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 
-vi.mock('./testTrackConfig', () => {
-  return {
-    default: {
-      getUrl: () => 'http://testtrack.dev'
-    }
-  };
+vi.mock(import('./testTrackConfig'), async importOriginal => {
+  const original = await importOriginal();
+  const config = new original.Config({
+    url: 'http://testtrack.dev',
+    cookieDomain: '.example.org',
+    experienceSamplingWeight: 1
+  });
+
+  return { ...original, default: config };
 });
 
 function createVisitor() {

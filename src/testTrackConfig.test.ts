@@ -18,9 +18,9 @@ describe('TestTrackConfig', () => {
     window.TT = btoa(JSON.stringify(createConfig('custom_cookie_name')));
   });
 
-  describe('.getUrl()', () => {
+  describe('.urlFor()', () => {
     it('grabs the correct value', () => {
-      expect(new Config().getUrl()).toBe('http://testtrack.dev');
+      expect(new Config().urlFor('/api/v1/foo')).toEqual(new URL('http://testtrack.dev/api/v1/foo'));
     });
   });
 
@@ -87,7 +87,7 @@ describe('TestTrackConfig', () => {
     });
 
     it('throws an error', () => {
-      expect(() => new Config().getUrl()).toThrow('Unable to parse configuration');
+      expect(() => new Config().getCookieDomain()).toThrow('Unable to parse configuration');
     });
   });
 });

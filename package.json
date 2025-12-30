@@ -8,7 +8,7 @@
   "typings": "dist/testTrack.d.ts",
   "scripts": {
     "build": "rollup -c",
-    "compile": "tsc --outDir /tmp",
+    "typecheck": "tsc",
     "lint": "eslint",
     "prettier:check": "prettier --check \"src/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "prettier:write": "prettier --write \"src/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
@@ -43,7 +43,7 @@
     "release-it": "^16.1.2",
     "rollup": "^3.28.1",
     "tslib": "^1.10.0",
-    "typescript": "^5.2.2",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.34.0",
     "vitest": "^4.0.16"
   },

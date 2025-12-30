@@ -1,35 +1,35 @@
 {
-  "include": ["src/*.ts", "types"],
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "allowJs": true,
-    "target": "es5",
-    "module": "esnext",
-    "lib": ["dom", "esnext"],
+    /* Environment */
+    "target": "es2022",
+    "lib": ["es2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
     "types": ["vitest/globals"],
-    "importHelpers": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "declarationDir": "dist",
-    "sourceMap": true,
-    "rootDir": "src",
+
+    /* Module */
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+
+    /* Output */
+    "noEmit": true,
+
+    /* Type checking */
     "strict": true,
-    "pretty": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUncheckedSideEffectImports": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
-    "skipLibCheck": true,
-    "baseUrl": "./",
-    "paths": {
-      "*": ["src/*", "node_modules/*"]
-    },
-    "esModuleInterop": true
+    // FIXME: Enable this setting:
+    // "noUncheckedIndexedAccess": true,
+
+    /* Interop */
+    "erasableSyntaxOnly": true,
+    // FIXME - Enable this setting:
+    // "verbatimModuleSyntax": true,
   }
 }

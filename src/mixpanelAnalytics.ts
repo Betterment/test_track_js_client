@@ -1,5 +1,5 @@
 import Assignment from './assignment';
-import { AnalyticsProvider } from 'analyticsProvider';
+import { AnalyticsProvider } from './analyticsProvider';
 
 type EventProperties = {
   TTVisitorID: string;

@@ -1,33 +1,25 @@
 import Assignment from './assignment';
+import type { RawConfig } from './configParser';
 import TestTrackConfig from './testTrackConfig';
 
-let mockCookieName: string | undefined;
-
-vi.mock('./configParser', () => {
-  class MockConfigParser {
-    getConfig() {
-      return {
-        url: 'http://testtrack.dev',
-        cookieDomain: '.example.com',
-        cookieName: mockCookieName,
-        splits: {
-          jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
-          wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
-        },
-        assignments: {
-          jabba: 'puppet',
-          wine: 'rose'
-        },
-        experienceSamplingWeight: 1
-      };
-    }
-  }
-
-  return { default: MockConfigParser };
+const createConfig = (cookieName: string | undefined): RawConfig => ({
+  url: 'http://testtrack.dev',
+  cookieDomain: '.example.com',
+  cookieName,
+  splits: {
+    jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
+    wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
+  },
+  assignments: {
+    jabba: 'puppet',
+    wine: 'rose'
+  },
+  experienceSamplingWeight: 1
 });
 
 describe('TestTrackConfig', () => {
   beforeEach(() => {
+    window.TT = btoa(JSON.stringify(createConfig('custom_cookie_name')));
     TestTrackConfig._clear();
   });
 
@@ -46,7 +38,8 @@ describe('TestTrackConfig', () => {
   describe('.getCookieName()', () => {
     describe('when there is a configured cookie name', () => {
       beforeEach(() => {
-        mockCookieName = 'custom_cookie_name';
+        window.TT = btoa(JSON.stringify(createConfig('custom_cookie_name')));
+        TestTrackConfig._clear();
       });
 
       it('grabs the correct value from the ConfigParser', () => {
@@ -56,7 +49,8 @@ describe('TestTrackConfig', () => {
 
     describe('when there is no configured cookie name', () => {
       beforeEach(() => {
-        mockCookieName = undefined;
+        window.TT = btoa(JSON.stringify(createConfig(undefined)));
+        TestTrackConfig._clear();
       });
 
       it('uses the default cookie name', () => {
@@ -91,6 +85,17 @@ describe('TestTrackConfig', () => {
   describe('.getExperienceSamplingWeight()', () => {
     it('returns the provided sampling weight', () => {
       expect(TestTrackConfig.getExperienceSamplingWeight()).toEqual(1);
+    });
+  });
+
+  describe('when window.TT is not decodable', () => {
+    beforeEach(() => {
+      window.TT = 'someNonesense';
+      TestTrackConfig._clear();
+    });
+
+    it('throws an error', () => {
+      expect(() => TestTrackConfig.getUrl()).toThrow('The string to be decoded is not correctly encoded');
     });
   });
 });

@@ -4,12 +4,12 @@ declare global {
   }
 }
 
-export type Config = {
+export type RawConfig = {
   assignments: {
     [splitName: string]: string;
   };
   cookieDomain: string;
-  cookieName: string;
+  cookieName?: string;
   experienceSamplingWeight: number;
   splits: {
     [splitName: string]: {
@@ -23,7 +23,7 @@ export type Config = {
 };
 
 class ConfigParser {
-  getConfig(): Config {
+  getConfig(): RawConfig {
     const decodedConfig = atob(window.TT);
     if (decodedConfig) return JSON.parse(decodedConfig);
     throw new Error('Unable to parse configuration');

@@ -5,13 +5,21 @@ import Visitor from './visitor';
 import { createSplitRegistry, createConfig } from './test-utils';
 import type { Config } from './testTrackConfig';
 
-let config: Config;
+function setupConfig() {
+  const config = createConfig();
+  vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
+    createSplitRegistry({
+      element: { earth: 25, wind: 25, fire: 25, water: 25 }
+    })
+  );
+  return config;
+}
 
 function createAssignment() {
   return new Assignment({ splitName: 'element', variant: 'earth', isUnsynced: true });
 }
 
-function createVisitor() {
+function createVisitor(config: Config) {
   const assignment = createAssignment();
   const visitor = new Visitor({ config, id: 'visitor_id', assignments: [assignment] });
   visitor.logError = vi.fn();
@@ -19,17 +27,10 @@ function createVisitor() {
 }
 
 describe('VaryDSL', () => {
-  beforeEach(() => {
-    config = createConfig();
-    vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
-      createSplitRegistry({
-        element: { earth: 25, wind: 25, fire: 25, water: 25 }
-      })
-    );
-  });
 
   it('requires an assignment', () => {
-    const visitor = createVisitor();
+    const config = setupConfig();
+    const visitor = createVisitor(config);
     // @ts-expect-error Testing missing required property
     expect(() => new VaryDSL({ visitor })).toThrow('must provide assignment');
   });
@@ -42,8 +43,9 @@ describe('VaryDSL', () => {
 
   describe('#when()', () => {
     it('throws an error if no variants are provided', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       expect(() => {
@@ -52,8 +54,9 @@ describe('VaryDSL', () => {
     });
 
     it('throws an error if handler is not provided', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       expect(() => {
@@ -62,8 +65,9 @@ describe('VaryDSL', () => {
     });
 
     it('supports multiple variants', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
       const handler = function () {};
 
@@ -78,8 +82,9 @@ describe('VaryDSL', () => {
     });
 
     it('logs an error if given a variant that is not in the split registry', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
       const handler = () => {};
 
@@ -96,10 +101,11 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
+      const config = setupConfig();
       vi.mocked(config.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       vary.when('earth', 'wind', 'leeloo_multipass', () => {});
@@ -108,6 +114,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error for a variant with a 0 weight', () => {
+      const config = setupConfig();
       vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
         createSplitRegistry({
           element: { earth: 25, wind: 25, fire: 25, water: 25, leeloo_multipass: 0 }
@@ -115,7 +122,7 @@ describe('VaryDSL', () => {
       );
 
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       vary.when('leeloo_multipass', function () {});
@@ -126,8 +133,9 @@ describe('VaryDSL', () => {
 
   describe('#default()', () => {
     it('throws an error if handler is not provided', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       expect(() => {
@@ -137,8 +145,9 @@ describe('VaryDSL', () => {
     });
 
     it('throws an error if default is called more than once', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       expect(() => {
@@ -149,8 +158,9 @@ describe('VaryDSL', () => {
     });
 
     it('sets the default variant', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       vary.default('water', function () {});
@@ -159,8 +169,9 @@ describe('VaryDSL', () => {
     });
 
     it('adds the variant to the _variantHandlers object', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
       const handler = function () {};
 
@@ -173,8 +184,9 @@ describe('VaryDSL', () => {
     });
 
     it('logs an error if given a variant that is not in the split registry', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
       const handler = function () {};
 
@@ -189,10 +201,11 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
+      const config = setupConfig();
       vi.mocked(config.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       vary.default('leeloo_multipass', function () {});
@@ -201,6 +214,7 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error for a variant with a 0 weight', () => {
+      const config = setupConfig();
       vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
         createSplitRegistry({
           element: { earth: 25, wind: 25, fire: 25, water: 25, leeloo_multipass: 0 }
@@ -208,7 +222,7 @@ describe('VaryDSL', () => {
       );
 
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       vary.default('leeloo_multipass', function () {});
@@ -222,16 +236,18 @@ describe('VaryDSL', () => {
     const defaultHandler = vi.fn();
 
     it('throws an error if `default` was never called', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       expect(() => vary.run()).toThrow('must provide exactly one `default`');
     });
 
     it('throws an error if `when` was never called', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       expect(() => {
@@ -242,8 +258,9 @@ describe('VaryDSL', () => {
     });
 
     it('runs the handler of the assigned variant', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       vary.when('earth', whenHandler);
@@ -256,8 +273,9 @@ describe('VaryDSL', () => {
     });
 
     it('runs the default handler and is defaulted if the assigned variant is not represented', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       vary.when('fire', whenHandler);
@@ -271,8 +289,9 @@ describe('VaryDSL', () => {
     });
 
     it('is not defaulted if the assigned variant is represented as the default', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       vary.when('water', whenHandler);
@@ -286,8 +305,9 @@ describe('VaryDSL', () => {
     });
 
     it('logs an error if not all variants are represented', () => {
+      const config = setupConfig();
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       vary.when('earth', whenHandler);
@@ -299,10 +319,11 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error when the split registry is not loaded', () => {
+      const config = setupConfig();
       vi.mocked(config.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
 
       const assignment = createAssignment();
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
       vary.when('earth', whenHandler);

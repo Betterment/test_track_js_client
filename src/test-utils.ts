@@ -1,12 +1,13 @@
 import SplitRegistry from './splitRegistry';
 import Split, { type Weighting } from './split';
-import { Config } from './testTrackConfig';
+import { Config, type RawConfig } from './testTrackConfig';
 
-export function createConfig(): Config {
+export function createConfig(options: Partial<RawConfig> = {}): Config {
   return new Config({
     url: 'http://testtrack.dev',
     cookieDomain: '.example.org',
-    experienceSamplingWeight: 1
+    experienceSamplingWeight: 1,
+    ...options
   });
 }
 

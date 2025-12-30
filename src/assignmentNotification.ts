@@ -1,7 +1,6 @@
 import { request, toSearchParams } from './api';
 import Visitor from './visitor';
 import Assignment from './assignment';
-import TestTrackConfig from './testTrackConfig';
 
 export type AssignmentNotificationOptions = {
   visitor: Visitor;
@@ -43,7 +42,7 @@ class AssignmentNotification {
   _persistAssignment(trackResult?: 'success' | 'failure') {
     return request({
       method: 'POST',
-      url: TestTrackConfig.urlFor('/api/v1/assignment_event'),
+      url: this._visitor.config.urlFor('/api/v1/assignment_event'),
       body: toSearchParams({
         visitor_id: this._visitor.getId(),
         split_name: this._assignment.getSplitName(),

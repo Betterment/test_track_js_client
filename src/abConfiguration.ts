@@ -64,7 +64,7 @@ class ABConfiguration {
   }
 
   _getSplit() {
-    return this._visitor.getSplitRegistry().getSplit(this._splitName);
+    return this._visitor.config.getSplitRegistry().getSplit(this._splitName);
   }
 
   _getSplitVariants() {

@@ -22,7 +22,7 @@ class VariantCalculator {
   }
 
   getVariant() {
-    if (!this.visitor.getSplitRegistry().isLoaded()) {
+    if (!this.visitor.config.getSplitRegistry().isLoaded()) {
       return null;
     }
 
@@ -71,7 +71,7 @@ class VariantCalculator {
   }
 
   getWeighting() {
-    const split = this.visitor.getSplitRegistry().getSplit(this.splitName);
+    const split = this.visitor.config.getSplitRegistry().getSplit(this.splitName);
 
     if (!split) {
       const message = 'Unknown split: "' + this.splitName + '"';

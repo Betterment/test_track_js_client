@@ -36,6 +36,8 @@ type AssignmentRegistry = {
 };
 
 class Visitor {
+  config = TestTrackConfig;
+
   static loadVisitor(visitorId: string | undefined) {
     if (visitorId) {
       const assignments = TestTrackConfig.getAssignments();
@@ -103,10 +105,6 @@ class Visitor {
 
   getId() {
     return this._id;
-  }
-
-  getSplitRegistry() {
-    return TestTrackConfig.getSplitRegistry();
   }
 
   getAssignmentRegistry() {

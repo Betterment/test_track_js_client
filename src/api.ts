@@ -19,7 +19,6 @@ type HttpResult = {
 };
 
 const defaultAxios = DefaultAxios.create({
-  baseURL: TestTrackConfig.getUrl(),
   headers: {
     'Content-Type': 'application/x-www-form-urlencoded'
   }
@@ -38,9 +37,11 @@ export function toSearchParams(values: Record<string, string | null | undefined>
 }
 
 export function get(options: GetOptions): Promise<HttpResult> {
-  return defaultAxios.get(options.url, { timeout: options.timeout });
+  const url = new URL(options.url, TestTrackConfig.getUrl());
+  return defaultAxios.get(url.toString(), { timeout: options.timeout });
 }
 
 export function post(options: PostOptions): Promise<HttpResult> {
-  return defaultAxios.post(options.url, options.body, { auth: options.auth });
+  const url = new URL(options.url, TestTrackConfig.getUrl());
+  return defaultAxios.post(url.toString(), options.body, { auth: options.auth });
 }

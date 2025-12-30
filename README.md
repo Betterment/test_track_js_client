@@ -47,7 +47,6 @@ The `vary` method is used to perform a split. It takes 2 arguments.
 
 - `split_name` -- The first argument is the name of the split. This will be a snake_case string, e.g. `"homepage_redesign_q1_2015"`.
 - `options` -- The second argument is an object that contains the `context` of the assignment, a variant/callback configuration (`variants`), and a default variant (`defaultVariant`).
-
   - `context` -- is a string that the developer provides so that the test track server can record where an assignment was first created. If a call to `vary` is made in more than one place for a given split, you'll be able to see which codepath was hit first.
 
   - `variants` -- The variant/callback configuration is an object whose keys are the variant names and whose values are function handlers for each of those variants.
@@ -60,16 +59,16 @@ Here is an example of a 4-way split where `'variant_4'` is the default variant. 
 TestTrack.vary('name_of_split', {
   context: 'homepage',
   variants: {
-    variant_1: function() {
+    variant_1: function () {
       // do variant 1 stuff
     },
-    variant_2: function() {
+    variant_2: function () {
       // do variant 2 stuff
     },
-    variant_3: function() {
+    variant_3: function () {
       // do variant 3 stuff
     },
-    variant_4: function() {
+    variant_4: function () {
       // do variant 4 stuff
     }
   },
@@ -83,7 +82,6 @@ The `ab` method is used exclusively for two-way splits and feature toggles. It t
 
 - `split_name` -- The first argument is the name of the split. This will be a snake_case string, e.g. `"homepage_chat_bubble"`.
 - `options` -- The second argument is an object that contains the `context`, an optional `trueVariant`, and a `callback` function.
-
   - `context` -- is a string that the developer provides so that the test track server can record where an assignment was first created. If a call to `vary` is made in more than one place for a given split, you'll be able to see which codepath was hit first.
   - `trueVariant` -- an optional parameter that specifies which variant is the "true" variant and the other variant will be used as the default. Without the true variant, `ab` will assume that the variants for the split are named `'true'` and `'false'`.
   - `callback` -- a single function that will be called for all variants. If the `trueVariant` is assigned to the visitor then `true` will be passed to the `callback`.
@@ -92,7 +90,7 @@ The `ab` method is used exclusively for two-way splits and feature toggles. It t
   TestTrack.ab('name_of_split', {
     context: 'homepage',
     trueVariant: 'variant_name',
-    callback: function(hasVariantName) {
+    callback: function (hasVariantName) {
       if (hasVariantName) {
         // do something
       } else {
@@ -105,7 +103,7 @@ The `ab` method is used exclusively for two-way splits and feature toggles. It t
   ```js
   TestTrack.ab('some_new_feature', {
     context: 'homepage',
-    callback: function(hasFeature) {
+    callback: function (hasFeature) {
       if (hasFeature) {
         // do something
       }
@@ -121,7 +119,7 @@ The `logIn` method is used to ensure a consistent experience across devices. For
 - `value` -- The second argument is a primitive value, e.g. `12345`, `"abcd"`
 
 ```js
-TestTrack.logIn('myapp_user_id', 12345).then(function() {
+TestTrack.logIn('myapp_user_id', 12345).then(function () {
   // From this point on you have existing split assignments from a previous device.
 });
 ```
@@ -133,7 +131,7 @@ When you call `TestTrack.initialize()` you can optionally pass in an analytics o
 ```js
 TestTrack.initialize({
   analytics: {
-    trackAssignment: function(visitorId, assignment, callback) {
+    trackAssignment: function (visitorId, assignment, callback) {
       var props = {
         SplitName: assignment.getSplitName(),
         SplitVariant: assignment.getVariant(),
@@ -142,17 +140,17 @@ TestTrack.initialize({
 
       remoteAnalyticsService.track('SplitAssigned', props, callback);
     },
-    identify: function(visitorId) {
+    identify: function (visitorId) {
       remoteAnalyticsService.identify(visitorId);
     },
-    alias: function(visitorId) {
+    alias: function (visitorId) {
       remoteAnalyticsService.alias(visitorId);
     }
   },
-  errorLogger: function(message) {
+  errorLogger: function (message) {
     RemoteLoggingService.log(message); // logs remotely so that you can be alerted to any misconfigured splits
   },
-  onVisitorLoaded: function(visitor) {
+  onVisitorLoaded: function (visitor) {
     // callback that will run after the test track visitor has loaded, but before any analytics events have fired
   }
 });
@@ -181,7 +179,7 @@ var TestTrack = require('path/to/deps/test_track_js_client/dist/testTrack');
 OR
 
 ```js
-define(['path/to/deps/test_track_js_client/dist/testTrack'], function(TestTrack) {});
+define(['path/to/deps/test_track_js_client/dist/testTrack'], function (TestTrack) {});
 ```
 
 ## How to Contribute

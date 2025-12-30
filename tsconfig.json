@@ -28,7 +28,7 @@
     // "noUncheckedIndexedAccess": true,
 
     /* Interop */
-    "erasableSyntaxOnly": true,
+    "erasableSyntaxOnly": true
     // FIXME - Enable this setting:
     // "verbatimModuleSyntax": true,
   }

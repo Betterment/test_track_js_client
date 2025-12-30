@@ -53,13 +53,13 @@ class Session {
   }
 
   vary(splitName: string, options: VaryOptions) {
-    return this._visitorLoaded.then(function(visitor) {
+    return this._visitorLoaded.then(function (visitor) {
       visitor.vary(splitName, options);
     });
   }
 
   ab(splitName: string, options: AbOptions) {
-    return this._visitorLoaded.then(function(visitor) {
+    return this._visitorLoaded.then(function (visitor) {
       visitor.ab(splitName, options);
     });
   }
@@ -83,7 +83,7 @@ class Session {
   }
 
   _setCookie() {
-    return this._visitorLoaded.then(function(visitor) {
+    return this._visitorLoaded.then(function (visitor) {
       Cookies.set(TestTrackConfig.getCookieName(), visitor.getId(), {
         expires: 365,
         path: '/',
@@ -101,7 +101,7 @@ class Session {
       initialize: this.initialize.bind(this),
       _crx: {
         loadInfo: () =>
-          this._visitorLoaded.then(function(visitor) {
+          this._visitorLoaded.then(function (visitor) {
             const assignmentRegistry: Registry = {};
             for (const splitName in visitor.getAssignmentRegistry()) {
               assignmentRegistry[splitName] = visitor.getAssignmentRegistry()[splitName].getVariant();
@@ -115,7 +115,7 @@ class Session {
           }),
 
         persistAssignment: (splitName: string, variant: string, username: string, password: string) =>
-          this._visitorLoaded.then(function(visitor) {
+          this._visitorLoaded.then(function (visitor) {
             return new AssignmentOverride({
               visitor,
               username,

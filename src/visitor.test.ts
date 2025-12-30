@@ -23,7 +23,7 @@ vi.mock('./testTrackConfig', () => {
 
 const mockGetVariant = vi.fn();
 vi.mock('./variantCalculator', () => {
-  const MockVariantCalculator = vi.fn(function() {
+  const MockVariantCalculator = vi.fn(function () {
     return { getVariant: mockGetVariant };
   });
 
@@ -32,7 +32,7 @@ vi.mock('./variantCalculator', () => {
 
 const mockSend = vi.fn();
 vi.mock('./assignmentNotification', () => {
-  const MockAssignmentNotification = vi.fn(function() {
+  const MockAssignmentNotification = vi.fn(function () {
     return { send: mockSend };
   });
 
@@ -41,7 +41,7 @@ vi.mock('./assignmentNotification', () => {
 
 const mockSave = vi.fn();
 vi.mock('./identifier', () => {
-  const MockIdentifier = vi.fn(function() {
+  const MockIdentifier = vi.fn(function () {
     return { save: mockSave };
   });
 
@@ -230,8 +230,8 @@ describe('Visitor', () => {
         visitor.vary('wine', {
           defaultVariant: 'white',
           variants: {
-            white: function() {},
-            red: function() {}
+            white: function () {},
+            red: function () {}
           }
         });
       }).toThrow('must provide context to `vary` for wine');
@@ -244,8 +244,8 @@ describe('Visitor', () => {
         visitor.vary('wine', {
           context: 'spec',
           variants: {
-            white: function() {},
-            red: function() {}
+            white: function () {},
+            red: function () {}
           }
         });
       }).toThrow('must provide defaultVariant to `vary` for wine');
@@ -257,8 +257,8 @@ describe('Visitor', () => {
         visitor.vary('wine', {
           context: 'spec',
           variants: {
-            white: function() {},
-            red: function() {}
+            white: function () {},
+            red: function () {}
           },
           defaultVariant: 'rose'
         });
@@ -376,8 +376,8 @@ describe('Visitor', () => {
         visitor.vary('jabba', {
           context: 'defaulted',
           variants: {
-            furry_man: function() {},
-            cgi: function() {}
+            furry_man: function () {},
+            cgi: function () {}
           },
           defaultVariant: 'cgi'
         });
@@ -518,7 +518,7 @@ describe('Visitor', () => {
         visitor.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
-          callback: function(isPuppet) {
+          callback: function (isPuppet) {
             expect(isPuppet).toBe(true);
           }
         });
@@ -538,7 +538,7 @@ describe('Visitor', () => {
         visitor.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
-          callback: function(isPuppet) {
+          callback: function (isPuppet) {
             expect(isPuppet).toBe(false);
           }
         });
@@ -559,7 +559,7 @@ describe('Visitor', () => {
 
         visitor.ab('blue_button', {
           context: 'spec',
-          callback: function(isBlue) {
+          callback: function (isBlue) {
             expect(isBlue).toBe(true);
           }
         });
@@ -578,7 +578,7 @@ describe('Visitor', () => {
 
         visitor.ab('blue_button', {
           context: 'spec',
-          callback: function(isBlue) {
+          callback: function (isBlue) {
             expect(isBlue).toBe(false);
           }
         });
@@ -588,7 +588,7 @@ describe('Visitor', () => {
         const visitor = createVisitor();
         visitor.ab('jabba', {
           context: 'spec',
-          callback: function(isTrue) {
+          callback: function (isTrue) {
             expect(isTrue).toBe(false);
           }
         });
@@ -673,7 +673,7 @@ describe('Visitor', () => {
 
     it('sets the error logger on the visitor', () => {
       const visitor = createVisitor();
-      const errorLogger = function() {};
+      const errorLogger = function () {};
 
       visitor.setErrorLogger(errorLogger);
 

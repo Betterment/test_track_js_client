@@ -95,7 +95,7 @@ class Visitor {
       throw new Error('must provide assignments');
     }
 
-    this._errorLogger = function(errorMessage) {
+    this._errorLogger = function (errorMessage) {
       window.console.error(errorMessage);
     };
 
@@ -171,11 +171,11 @@ class Visitor {
     const variants = abConfiguration.getVariants();
     const variantConfiguration: VaryOptions['variants'] = {};
 
-    variantConfiguration[variants.true.toString()] = function() {
+    variantConfiguration[variants.true.toString()] = function () {
       options.callback(true);
     };
 
-    variantConfiguration[variants.false.toString()] = function() {
+    variantConfiguration[variants.false.toString()] = function () {
       options.callback(false);
     };
 

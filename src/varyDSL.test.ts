@@ -44,7 +44,7 @@ describe('VaryDSL', () => {
       const vary = new VaryDSL({ assignment, visitor });
 
       expect(() => {
-        vary.when(function() {});
+        vary.when(function () {});
       }).toThrow('must provide at least one variant');
     });
 
@@ -62,7 +62,7 @@ describe('VaryDSL', () => {
       const assignment = createAssignment();
       const visitor = createVisitor();
       const vary = new VaryDSL({ assignment, visitor });
-      const handler = function() {};
+      const handler = function () {};
 
       vary.when('earth', 'wind', 'fire', handler);
 
@@ -119,7 +119,7 @@ describe('VaryDSL', () => {
       const visitor = createVisitor();
       const vary = new VaryDSL({ assignment, visitor });
 
-      vary.when('leeloo_multipass', function() {});
+      vary.when('leeloo_multipass', function () {});
 
       expect(visitor.logError).not.toHaveBeenCalled();
     });
@@ -143,9 +143,9 @@ describe('VaryDSL', () => {
       const vary = new VaryDSL({ assignment, visitor });
 
       expect(() => {
-        vary.default('fire', function() {});
+        vary.default('fire', function () {});
 
-        vary.default('water', function() {});
+        vary.default('water', function () {});
       }).toThrow('must provide exactly one `default`');
     });
 
@@ -154,7 +154,7 @@ describe('VaryDSL', () => {
       const visitor = createVisitor();
       const vary = new VaryDSL({ assignment, visitor });
 
-      vary.default('water', function() {});
+      vary.default('water', function () {});
 
       expect(vary.getDefaultVariant()).toBe('water');
     });
@@ -163,7 +163,7 @@ describe('VaryDSL', () => {
       const assignment = createAssignment();
       const visitor = createVisitor();
       const vary = new VaryDSL({ assignment, visitor });
-      const handler = function() {};
+      const handler = function () {};
 
       vary.default('water', handler);
 
@@ -177,7 +177,7 @@ describe('VaryDSL', () => {
       const assignment = createAssignment();
       const visitor = createVisitor();
       const vary = new VaryDSL({ assignment, visitor });
-      const handler = function() {};
+      const handler = function () {};
 
       vary.default('leeloo_multipass', handler);
 
@@ -196,7 +196,7 @@ describe('VaryDSL', () => {
       const visitor = createVisitor();
       const vary = new VaryDSL({ assignment, visitor });
 
-      vary.default('leeloo_multipass', function() {});
+      vary.default('leeloo_multipass', function () {});
 
       expect(visitor.logError).not.toHaveBeenCalled();
     });
@@ -216,7 +216,7 @@ describe('VaryDSL', () => {
       const visitor = createVisitor();
       const vary = new VaryDSL({ assignment, visitor });
 
-      vary.default('leeloo_multipass', function() {});
+      vary.default('leeloo_multipass', function () {});
 
       expect(visitor.logError).not.toHaveBeenCalled();
     });
@@ -240,7 +240,7 @@ describe('VaryDSL', () => {
       const vary = new VaryDSL({ assignment, visitor });
 
       expect(() => {
-        vary.default('water', function() {});
+        vary.default('water', function () {});
 
         vary.run();
       }).toThrow('must provide at least one `when`');

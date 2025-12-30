@@ -132,7 +132,7 @@ describe('Session', () => {
       });
 
       it('sets the error logger', async () => {
-        const errorLogger = function() {};
+        const errorLogger = function () {};
         visitorInstance.setErrorLogger = vi.fn();
 
         await new Session().getPublicAPI().initialize({ errorLogger: errorLogger });

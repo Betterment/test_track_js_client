@@ -29,7 +29,7 @@ export default [
     },
     plugins: [
       resolve({
-        browser: true,
+        browser: true
       }),
       typescript({ noEmitOnError: false }),
       commonjs(),
@@ -38,5 +38,5 @@ export default [
         exclude: 'node_modules/**'
       })
     ]
-  },
+  }
 ];

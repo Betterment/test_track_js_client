@@ -6,7 +6,7 @@ const DEFAULT_VISITOR_COOKIE_NAME = 'tt_visitor_id';
 
 declare global {
   interface Window {
-    TT: string;
+    TT?: string;
   }
 }
 
@@ -82,9 +82,13 @@ export class Config {
   }
 }
 
-export function loadConfig(): Config {
+export function loadConfig(config?: RawConfig): Config {
+  if (config) {
+    return new Config(config);
+  }
+
   try {
-    return new Config(JSON.parse(atob(window.TT)));
+    return new Config(JSON.parse(atob(window.TT!)));
   } catch {
     throw new Error('Unable to parse configuration');
   }

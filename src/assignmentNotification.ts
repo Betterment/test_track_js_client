@@ -1,5 +1,4 @@
-import qs from 'qs';
-import client from './api';
+import client, { toSearchParams } from './api';
 import Visitor from './visitor';
 import Assignment from './assignment';
 
@@ -44,7 +43,7 @@ class AssignmentNotification {
     return client
       .post(
         '/v1/assignment_event',
-        qs.stringify({
+        toSearchParams({
           visitor_id: this._visitor.getId(),
           split_name: this._assignment.getSplitName(),
           context: this._assignment.getContext(),

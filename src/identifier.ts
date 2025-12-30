@@ -1,5 +1,4 @@
-import qs from 'qs';
-import client from './api';
+import client, { toSearchParams } from './api';
 import Assignment, { type AssignmentData } from './assignment';
 import Visitor from './visitor';
 
@@ -41,9 +40,9 @@ class Identifier {
     return client
       .post(
         '/v1/identifier',
-        qs.stringify({
+        toSearchParams({
           identifier_type: this.identifierType,
-          value: this.value,
+          value: this.value.toString(),
           visitor_id: this.visitorId
         })
       )

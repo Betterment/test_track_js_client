@@ -1,5 +1,4 @@
-import qs from 'qs';
-import client from './api';
+import client, { toSearchParams } from './api';
 import Assignment from './assignment';
 import Visitor from './visitor';
 
@@ -37,7 +36,7 @@ class AssignmentOverride {
     return client
       .post(
         '/v1/assignment_override',
-        qs.stringify({
+        toSearchParams({
           visitor_id: this._visitor.getId(),
           split_name: this._assignment.getSplitName(),
           variant: this._assignment.getVariant(),

@@ -32,12 +32,12 @@ export async function get(options: GetOptions): Promise<HTTPResult> {
   const url = new URL(options.url, TestTrackConfig.getUrl());
 
   const controller = new AbortController();
-  setTimeout(() => controller.abort(), options.timeout);
+  const timeout = setTimeout(() => controller.abort(), options.timeout);
 
   const response = await fetch(url, {
     signal: controller.signal,
     headers: { accept: 'application/json' }
-  });
+  }).finally(() => clearTimeout(timeout));
 
   return parseResponse(response);
 }

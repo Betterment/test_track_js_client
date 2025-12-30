@@ -1,20 +1,16 @@
 import Assignment from './assignment';
-import type { RawConfig } from './configParser';
-import TestTrackConfig from './testTrackConfig';
+import TestTrackConfig, { type RawConfig } from './testTrackConfig';
 
 const createConfig = (cookieName: string | undefined): RawConfig => ({
   url: 'http://testtrack.dev',
   cookieDomain: '.example.com',
   cookieName,
+  experienceSamplingWeight: 1,
+  assignments: { jabba: 'puppet', wine: 'rose' },
   splits: {
     jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
     wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
-  },
-  assignments: {
-    jabba: 'puppet',
-    wine: 'rose'
-  },
-  experienceSamplingWeight: 1
+  }
 });
 
 describe('TestTrackConfig', () => {

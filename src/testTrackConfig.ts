@@ -1,5 +1,4 @@
 import Assignment from './assignment';
-import ConfigParser, { type RawConfig } from './configParser';
 import Split from './split';
 import SplitRegistry from './splitRegistry';
 
@@ -8,10 +7,35 @@ let config: RawConfig | null = null;
 let assignments: Assignment[] | null = null;
 let registry: SplitRegistry | null = null;
 
+declare global {
+  interface Window {
+    TT: string;
+  }
+}
+
+export type RawConfig = {
+  assignments: {
+    [splitName: string]: string;
+  };
+  cookieDomain: string;
+  cookieName?: string;
+  experienceSamplingWeight: number;
+  splits: {
+    [splitName: string]: {
+      feature_gate: boolean;
+      weights: {
+        [variant: string]: number;
+      };
+    };
+  };
+  url: string;
+};
+
 const getConfig = function (): RawConfig {
   if (!config) {
-    const parser = new ConfigParser();
-    config = parser.getConfig();
+    const decodedConfig = atob(window.TT);
+    if (decodedConfig) return JSON.parse(decodedConfig);
+    throw new Error('Unable to parse configuration');
   }
   return config;
 };

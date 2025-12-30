@@ -1,4 +1,3 @@
-import type { Mock } from 'vitest';
 import SplitRegistry from './splitRegistry';
 import Split, { type Weighting } from './split';
 import { Config } from './testTrackConfig';
@@ -11,15 +10,12 @@ export function createConfig(): Config {
   });
 }
 
-export function mockSplitRegistry(v1RegistryHash: Record<string, Weighting>): Mock<() => SplitRegistry> {
-  const mock = vi.fn();
+export function createSplitRegistry(v1RegistryHash: Record<string, Weighting>): SplitRegistry {
   const splits: Split[] = [];
 
   for (const splitName in v1RegistryHash) {
     splits.push(new Split(splitName, false, v1RegistryHash[splitName]));
   }
 
-  mock.mockReturnValue(new SplitRegistry(splits));
-
-  return mock;
+  return new SplitRegistry(splits);
 }

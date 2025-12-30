@@ -1,7 +1,7 @@
 import ABConfiguration from './abConfiguration';
 import SplitRegistry from './splitRegistry';
 import Visitor from './visitor';
-import { mockSplitRegistry, createConfig } from './test-utils';
+import { createSplitRegistry, createConfig } from './test-utils';
 import type { Config } from './testTrackConfig';
 
 let config: Config;
@@ -15,21 +15,13 @@ function createVisitor() {
 describe('ABConfiguration', () => {
   beforeEach(() => {
     config = createConfig();
-    config.getSplitRegistry = mockSplitRegistry({
-      element: {
-        earth: 25,
-        wind: 25,
-        fire: 25,
-        water: 25
-      },
-      button_color: {
-        red: 50,
-        blue: 50
-      },
-      new_feature: {
-        true: 100
-      }
-    });
+    vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
+      createSplitRegistry({
+        element: { earth: 25, wind: 25, fire: 25, water: 25 },
+        button_color: { red: 50, blue: 50 },
+        new_feature: { true: 100 }
+      })
+    );
   });
 
   it('requires a splitName', () => {

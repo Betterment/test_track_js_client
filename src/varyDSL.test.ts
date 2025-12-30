@@ -2,7 +2,7 @@ import Assignment from './assignment';
 import SplitRegistry from './splitRegistry';
 import VaryDSL from './varyDSL';
 import Visitor from './visitor';
-import { mockSplitRegistry, createConfig } from './test-utils';
+import { createSplitRegistry, createConfig } from './test-utils';
 import type { Config } from './testTrackConfig';
 
 let config: Config;
@@ -21,9 +21,11 @@ function createVisitor() {
 describe('VaryDSL', () => {
   beforeEach(() => {
     config = createConfig();
-    config.getSplitRegistry = mockSplitRegistry({
-      element: { earth: 25, wind: 25, fire: 25, water: 25 }
-    });
+    vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
+      createSplitRegistry({
+        element: { earth: 25, wind: 25, fire: 25, water: 25 }
+      })
+    );
   });
 
   it('requires an assignment', () => {
@@ -106,15 +108,11 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error for a variant with a 0 weight', () => {
-      config.getSplitRegistry = mockSplitRegistry({
-        element: {
-          earth: 25,
-          wind: 25,
-          fire: 25,
-          water: 25,
-          leeloo_multipass: 0
-        }
-      });
+      vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
+        createSplitRegistry({
+          element: { earth: 25, wind: 25, fire: 25, water: 25, leeloo_multipass: 0 }
+        })
+      );
 
       const assignment = createAssignment();
       const visitor = createVisitor();
@@ -203,15 +201,11 @@ describe('VaryDSL', () => {
     });
 
     it('does not log an error for a variant with a 0 weight', () => {
-      config.getSplitRegistry = mockSplitRegistry({
-        element: {
-          earth: 25,
-          wind: 25,
-          fire: 25,
-          water: 25,
-          leeloo_multipass: 0
-        }
-      });
+      vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
+        createSplitRegistry({
+          element: { earth: 25, wind: 25, fire: 25, water: 25, leeloo_multipass: 0 }
+        })
+      );
 
       const assignment = createAssignment();
       const visitor = createVisitor();

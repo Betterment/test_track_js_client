@@ -6,7 +6,7 @@ import type { Config } from './testTrackConfig';
 import VariantCalculator from './variantCalculator';
 import Visitor from './visitor';
 import { v4 as uuid } from 'uuid';
-import { mockSplitRegistry, createConfig } from './test-utils';
+import { createSplitRegistry, createConfig } from './test-utils';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 
@@ -59,14 +59,11 @@ describe('Visitor', () => {
   beforeEach(() => {
     config = createConfig();
     vi.spyOn(config, 'getAssignments').mockReset();
-    config.getSplitRegistry = mockSplitRegistry({
-      element: {
-        earth: 25,
-        wind: 25,
-        fire: 25,
-        water: 25
-      }
-    });
+    vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
+      createSplitRegistry({
+        element: { earth: 25, wind: 25, fire: 25, water: 25 }
+      })
+    );
   });
 
   describe('instantiation', () => {

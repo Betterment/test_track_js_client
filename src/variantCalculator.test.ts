@@ -1,7 +1,7 @@
 import SplitRegistry from './splitRegistry';
 import VariantCalculator, { type VariantCalculatorOptions } from './variantCalculator';
 import Visitor from './visitor';
-import { mockSplitRegistry, createConfig } from './test-utils';
+import { createSplitRegistry, createConfig } from './test-utils';
 import type { Config } from './testTrackConfig';
 
 describe('VariantCalculator', () => {
@@ -30,16 +30,11 @@ describe('VariantCalculator', () => {
 
     calculator = createCalculator();
 
-    config.getSplitRegistry = mockSplitRegistry({
-      logoSize: {
-        extraGiant: 0,
-        giant: 80,
-        huge: 1,
-        leetle: 0,
-        miniscule: 19,
-        teeny: 0
-      }
-    });
+    vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
+      createSplitRegistry({
+        logoSize: { extraGiant: 0, giant: 80, huge: 1, leetle: 0, miniscule: 19, teeny: 0 }
+      })
+    );
   });
 
   it('requires a visitor', () => {
@@ -164,13 +159,11 @@ describe('VariantCalculator', () => {
     });
 
     it('throws an error with an incomplete weighting', () => {
-      config.getSplitRegistry = mockSplitRegistry({
-        invalidWeighting: {
-          yes: 33,
-          no: 33,
-          maybe: 33
-        }
-      });
+      vi.spyOn(config, 'getSplitRegistry').mockReturnValue(
+        createSplitRegistry({
+          invalidWeighting: { yes: 33, no: 33, maybe: 33 }
+        })
+      );
 
       calculatorOptions.splitName = 'invalidWeighting';
       const localCalculator = createCalculator();

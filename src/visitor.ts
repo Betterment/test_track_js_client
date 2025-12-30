@@ -105,6 +105,10 @@ class Visitor {
     return this._id;
   }
 
+  getSplitRegistry() {
+    return TestTrackConfig.getSplitRegistry();
+  }
+
   getAssignmentRegistry() {
     if (!this._assignmentRegistry) {
       this._assignmentRegistry = this._assignments.reduce((registry, assignment) => {

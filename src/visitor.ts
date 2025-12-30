@@ -48,7 +48,7 @@ class Visitor {
           })
         );
       } else {
-        return get({ url: '/v1/visitors/' + visitorId, timeout: 5000 })
+        return get({ url: `/api/v1/visitors/${visitorId}`, timeout: 5000 })
           .then(({ data }) => {
             return new Visitor({
               id: data.id,

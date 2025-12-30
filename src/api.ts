@@ -2,7 +2,7 @@ import DefaultAxios from 'axios';
 import TestTrackConfig from './testTrackConfig';
 
 type GetOptions = {
-  url: string;
+  url: `/api/${string}`;
   timeout: number;
 };
 
@@ -19,7 +19,7 @@ type HttpResult = {
 };
 
 const defaultAxios = DefaultAxios.create({
-  baseURL: `${TestTrackConfig.getUrl()}/api`,
+  baseURL: TestTrackConfig.getUrl(),
   headers: {
     'Content-Type': 'application/x-www-form-urlencoded'
   }

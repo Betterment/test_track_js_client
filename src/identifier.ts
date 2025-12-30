@@ -38,7 +38,7 @@ class Identifier {
 
   save() {
     return post({
-      url: '/v1/identifier',
+      url: '/api/v1/identifier',
       body: toSearchParams({
         identifier_type: this.identifierType,
         value: this.value.toString(),

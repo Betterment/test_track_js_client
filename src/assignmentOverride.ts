@@ -34,7 +34,7 @@ class AssignmentOverride {
 
   persistAssignment() {
     return post({
-      url: '/v1/assignment_override',
+      url: '/api/v1/assignment_override',
       body: toSearchParams({
         visitor_id: this._visitor.getId(),
         split_name: this._assignment.getSplitName(),

@@ -41,7 +41,7 @@ class AssignmentNotification {
 
   _persistAssignment(trackResult?: 'success' | 'failure') {
     return post({
-      url: '/v1/assignment_event',
+      url: '/api/v1/assignment_event',
       body: toSearchParams({
         visitor_id: this._visitor.getId(),
         split_name: this._assignment.getSplitName(),

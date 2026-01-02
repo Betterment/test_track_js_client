@@ -1,8 +1,8 @@
 import Session from './session';
-export { AnalyticsProvider } from './analyticsProvider';
+export type { AnalyticsProvider } from './analyticsProvider';
 
 const TestTrack = new Session().getPublicAPI();
-const notifyListener = function() {
+const notifyListener = function () {
   window.dispatchEvent(
     new CustomEvent('tt:lib:loaded', {
       detail: {
@@ -11,7 +11,7 @@ const notifyListener = function() {
     })
   );
 };
-const loadTestTrack = function() {
+const loadTestTrack = function () {
   // Add class to body of page after body is loaded to enable chrome extension support
   document.body.classList.add('_tt');
   try {

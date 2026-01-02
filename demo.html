@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TestTrack Demo</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      section {
+        margin-bottom: 4em;
+      }
+    </style>
+
+    <!-- Assign `window.TT` -->
+    <script>
+      window.TT = btoa(
+        JSON.stringify({
+          url: 'http://localhost:8297',
+          cookieDomain: 'localhost',
+          cookieName: 'tt_visitor_id',
+          experienceSamplingWeight: 1,
+          splits: {
+            button_color: {
+              feature_gate: false,
+              weights: { blue: 50, red: 50 }
+            },
+            new_feature: {
+              feature_gate: true,
+              weights: { true: 50, false: 50 }
+            }
+          }
+        })
+      );
+    </script>
+
+    <!-- Load the library -->
+    <script src="dist/index.iife.js"></script>
+
+    <!-- Use the library -->
+    <script type="module">
+      const visitorIdEl = document.getElementById('visitor-id');
+      const buttonVariantEl = document.getElementById('button-variant');
+      const featureVariantEl = document.getElementById('feature-variant');
+
+      async function runSplits() {
+        await TestTrack.vary('button_color', {
+          context: 'demo_page',
+          defaultVariant: 'blue',
+          variants: {
+            blue: () => {
+              buttonVariantEl.textContent = 'blue';
+              console.log('button_color split: blue variant assigned');
+            },
+            red: () => {
+              buttonVariantEl.textContent = 'red';
+              console.log('button_color split: red variant assigned');
+            }
+          }
+        });
+
+        await TestTrack.ab('new_feature', {
+          context: 'demo_page',
+          trueVariant: 'true',
+          callback: isEnabled => {
+            featureVariantEl.textContent = isEnabled ? 'true' : 'false';
+            console.log('new_feature split:', isEnabled ? 'enabled' : 'disabled');
+          }
+        });
+      }
+
+      // Initialize
+      const visitor = await TestTrack.initialize();
+      const visitorId = visitor.getId();
+      visitorIdEl.textContent = visitorId;
+      await runSplits();
+
+      // Login
+      document.getElementById('login').addEventListener('click', async () => {
+        await TestTrack.logIn('user_id', 'demo_user_123');
+        console.log('Successfully linked visitor to demo_user_123');
+        await runSplits();
+      });
+    </script>
+  </head>
+  <body>
+    <section>
+      <h1>TestTrack Demo</h1>
+      <p><strong>Server: </strong>http://localhost:8297</p>
+      <p><strong>Visitor: </strong><span id="visitor-id"></span></p>
+      <button id="login">Login</button>
+    </section>
+
+    <section>
+      <h2>Split: button_color</h2>
+      <p>This split has two variants: blue (50%) and red (50%).</p>
+      <p><strong>Assigned variant:</strong> <span id="button-variant">Loading...</span></p>
+    </section>
+
+    <section>
+      <h2>Split: new_feature</h2>
+      <p>This split has two variants: true (50%) and false (50%).</p>
+      <p><strong>Assigned variant:</strong> <span id="feature-variant">Loading...</span></p>
+    </section>
+  </body>
+</html>

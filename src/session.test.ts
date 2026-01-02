@@ -3,7 +3,7 @@ import AssignmentOverride from './assignmentOverride';
 import Cookies from 'js-cookie';
 import Session from './session';
 import Visitor from './visitor';
-import { AnalyticsProvider } from './analyticsProvider';
+import type { AnalyticsProvider } from './analyticsProvider';
 
 vi.mock('./assignmentOverride');
 
@@ -132,7 +132,7 @@ describe('Session', () => {
       });
 
       it('sets the error logger', async () => {
-        const errorLogger = function() {};
+        const errorLogger = function () {};
         visitorInstance.setErrorLogger = vi.fn();
 
         await new Session().getPublicAPI().initialize({ errorLogger: errorLogger });

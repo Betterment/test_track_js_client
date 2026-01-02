@@ -7,7 +7,7 @@
 Example
 
 ```
-$ npm run release
+$ pnpm run release
 
 > test_track_js_client@2.1.0 release
 > release-it

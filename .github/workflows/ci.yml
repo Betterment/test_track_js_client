@@ -27,14 +27,14 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
 
-      - name: Compile
-        run: pnpm compile
+      - name: Typecheck
+        run: pnpm typecheck
 
       - name: Lint
         run: pnpm lint
 
+      - name: Format
+        run: pnpm format:check
+
       - name: Test
         run: pnpm test
-
-      - name: Prettier formatting check
-        run: pnpm prettier:check

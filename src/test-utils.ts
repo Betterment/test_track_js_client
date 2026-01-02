@@ -1,6 +1,6 @@
-import { Mock } from 'vitest';
+import type { Mock } from 'vitest';
 import SplitRegistry from './splitRegistry';
-import Split, { Weighting } from './split';
+import Split, { type Weighting } from './split';
 
 function mockSplitRegistry(v1RegistryHash: Record<string, Weighting>): Mock<() => SplitRegistry> {
   const mock = vi.fn();

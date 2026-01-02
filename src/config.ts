@@ -33,8 +33,8 @@ export class Config {
     this.#config = config;
   }
 
-  urlFor(path: string): URL {
-    return new URL(path, this.#config.url);
+  get url(): URL {
+    return new URL(this.#config.url);
   }
 
   get cookieDomain(): string {

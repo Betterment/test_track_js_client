@@ -1,3 +1,5 @@
+import type { Config } from './config';
+
 type RequestOptions = {
   url: URL;
   method: 'GET' | 'POST';
@@ -8,6 +10,10 @@ type RequestOptions = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Result = { data: any };
+
+export function urlFor(config: Config, path: `/api/${string}`): URL {
+  return new URL(path, config.url);
+}
 
 export function toSearchParams(values: Record<string, string | null | undefined>): URLSearchParams {
   const params = new URLSearchParams();

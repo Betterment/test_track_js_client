@@ -18,9 +18,9 @@ describe('TestTrackConfig', () => {
     window.TT = btoa(JSON.stringify(createConfig('custom_cookie_name')));
   });
 
-  describe('.urlFor()', () => {
-    it('grabs the correct value', () => {
-      expect(loadConfig().urlFor('/api/v1/foo')).toEqual(new URL('http://testtrack.dev/api/v1/foo'));
+  describe('.url', () => {
+    it('is a URL', () => {
+      expect(loadConfig().url).toEqual(new URL('http://testtrack.dev'));
     });
   });
 

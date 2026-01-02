@@ -1,4 +1,4 @@
-import { request, toSearchParams } from './api';
+import { request, toSearchParams, urlFor } from './api';
 import Assignment, { type AssignmentData } from './assignment';
 import Visitor from './visitor';
 import type { Config } from './config';
@@ -43,7 +43,7 @@ class Identifier {
   save() {
     return request({
       method: 'POST',
-      url: this.config.urlFor('/api/v1/identifier'),
+      url: urlFor(this.config, '/api/v1/identifier'),
       body: toSearchParams({
         identifier_type: this.identifierType,
         value: this.value.toString(),

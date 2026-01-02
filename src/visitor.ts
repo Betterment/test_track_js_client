@@ -1,4 +1,4 @@
-import { request } from './api';
+import { request, urlFor } from './api';
 import ABConfiguration from './abConfiguration';
 import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
@@ -50,7 +50,7 @@ class Visitor {
           })
         );
       } else {
-        return request({ method: 'GET', url: config.urlFor(`/api/v1/visitors/${visitorId}`), timeout: 5000 })
+        return request({ method: 'GET', url: urlFor(config, `/api/v1/visitors/${visitorId}`), timeout: 5000 })
           .then(({ data }) => {
             return new Visitor({
               config,

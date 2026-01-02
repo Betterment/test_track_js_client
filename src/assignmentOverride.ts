@@ -1,4 +1,4 @@
-import { request, toSearchParams } from './api';
+import { request, toSearchParams, urlFor } from './api';
 import Assignment from './assignment';
 import Visitor from './visitor';
 
@@ -35,7 +35,7 @@ class AssignmentOverride {
   persistAssignment() {
     return request({
       method: 'POST',
-      url: this._visitor.config.urlFor('/api/v1/assignment_override'),
+      url: urlFor(this._visitor.config, '/api/v1/assignment_override'),
       body: toSearchParams({
         visitor_id: this._visitor.getId(),
         split_name: this._assignment.getSplitName(),

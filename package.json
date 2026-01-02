@@ -11,7 +11,7 @@
     }
   },
   "scripts": {
-    "build": "tsdown src/testTrack.ts --dts --sourcemap --platform neutral",
+    "build": "tsdown",
     "typecheck": "tsc",
     "lint": "eslint",
     "format": "prettier --write .",

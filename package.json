@@ -11,6 +11,9 @@
     }
   },
   "scripts": {
+    "dev": "pnpm run /^dev:.*/",
+    "dev:build": "tsdown --watch",
+    "dev:server": "python -m http.server 8000",
     "build": "tsdown",
     "typecheck": "tsc",
     "lint": "eslint",

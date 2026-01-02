@@ -27,7 +27,7 @@ export async function request(options: RequestOptions): Promise<Result> {
   const url = new URL(options.url, TestTrackConfig.getUrl());
 
   const controller = new AbortController();
-  setTimeout(() => controller.abort(), options.timeout ?? 60_000);
+  const timeout = setTimeout(() => controller.abort(), options.timeout ?? 60_000);
 
   const headers = new Headers({
     Accept: 'application/json',
@@ -45,7 +45,7 @@ export async function request(options: RequestOptions): Promise<Result> {
     body: options.body,
     headers,
     signal: controller.signal
-  });
+  }).finally(() => clearTimeout(timeout));
 
   if (!response.ok) {
     throw new Error(`HTTP request failed with ${response.status} status`);

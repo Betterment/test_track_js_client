@@ -121,7 +121,7 @@ describe('Session', () => {
           }
         });
 
-        expect(visitor.config.getCookieDomain()).toEqual('localhost');
+        expect(visitor.config.cookieDomain).toEqual('localhost');
       });
     });
 

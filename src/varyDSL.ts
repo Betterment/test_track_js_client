@@ -117,7 +117,7 @@ class VaryDSL {
   }
 
   _getSplit() {
-    return this._visitor.config.getSplitRegistry().getSplit(this._assignment.getSplitName());
+    return this._visitor.config.splitRegistry.getSplit(this._assignment.getSplitName());
   }
 
   _getVariants() {

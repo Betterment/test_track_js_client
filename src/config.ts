@@ -37,19 +37,19 @@ export class Config {
     return new URL(path, this.#config.url);
   }
 
-  getCookieDomain(): string {
+  get cookieDomain(): string {
     return this.#config.cookieDomain;
   }
 
-  getCookieName(): string {
+  get cookieName(): string {
     return this.#config.cookieName || DEFAULT_VISITOR_COOKIE_NAME;
   }
 
-  getExperienceSamplingWeight(): number {
+  get experienceSamplingWeight(): number {
     return this.#config.experienceSamplingWeight;
   }
 
-  getSplitRegistry(): SplitRegistry {
+  get splitRegistry(): SplitRegistry {
     const rawRegistry = this.#config.splits;
     if (!rawRegistry) {
       return new SplitRegistry(null);
@@ -66,7 +66,7 @@ export class Config {
     return this.#splitRegistry;
   }
 
-  getAssignments(): Assignment[] | null {
+  get assignments(): Assignment[] | null {
     const rawAssignments = this.#config.assignments;
     if (!rawAssignments) {
       return null;

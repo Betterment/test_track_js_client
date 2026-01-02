@@ -29,7 +29,7 @@ class Session {
   initialize(options: SessionOptions) {
     this._config = loadConfig(options.config);
 
-    const visitorId = Cookies.get(this._config.getCookieName());
+    const visitorId = Cookies.get(this._config.cookieName);
 
     Visitor.loadVisitor(this._config, visitorId).then(visitor => {
       if (options && options.analytics) {
@@ -88,10 +88,10 @@ class Session {
 
   _setCookie() {
     return this._visitorLoaded.then(visitor => {
-      Cookies.set(this._config.getCookieName(), visitor.getId(), {
+      Cookies.set(this._config.cookieName, visitor.getId(), {
         expires: 365,
         path: '/',
-        domain: this._config.getCookieDomain()
+        domain: this._config.cookieDomain
       });
     });
   }
@@ -113,7 +113,7 @@ class Session {
 
             return {
               visitorId: visitor.getId(),
-              splitRegistry: this._config.getSplitRegistry().asV1Hash(),
+              splitRegistry: this._config.splitRegistry.asV1Hash(),
               assignmentRegistry: assignmentRegistry
             };
           }),

@@ -39,7 +39,7 @@ type AssignmentRegistry = {
 class Visitor {
   static loadVisitor(config: Config, visitorId: string | undefined) {
     if (visitorId) {
-      const assignments = config.getAssignments();
+      const assignments = config.assignments;
       if (assignments) {
         return Promise.resolve(
           new Visitor({

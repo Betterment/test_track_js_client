@@ -24,20 +24,20 @@ describe('TestTrackConfig', () => {
     });
   });
 
-  describe('.getCookieDomain()', () => {
+  describe('.cookieDomain', () => {
     it('grabs the correct value', () => {
-      expect(loadConfig().getCookieDomain()).toBe('.example.com');
+      expect(loadConfig().cookieDomain).toBe('.example.com');
     });
   });
 
-  describe('.getCookieName()', () => {
+  describe('.cookieName()', () => {
     describe('when there is a configured cookie name', () => {
       beforeEach(() => {
         window.TT = btoa(JSON.stringify(createConfig('custom_cookie_name')));
       });
 
       it('grabs the correct value', () => {
-        expect(loadConfig().getCookieName()).toBe('custom_cookie_name');
+        expect(loadConfig().cookieName).toBe('custom_cookie_name');
       });
     });
 
@@ -47,14 +47,14 @@ describe('TestTrackConfig', () => {
       });
 
       it('uses the default cookie name', () => {
-        expect(loadConfig().getCookieName()).toBe('tt_visitor_id');
+        expect(loadConfig().cookieName).toBe('tt_visitor_id');
       });
     });
   });
 
-  describe('.getSplitRegistry()', () => {
+  describe('.splitRegistry', () => {
     it('grabs the correct value', () => {
-      const splitRegistry = loadConfig().getSplitRegistry();
+      const splitRegistry = loadConfig().splitRegistry;
 
       const jabba = splitRegistry.getSplit('jabba');
       expect(jabba.getWeighting()).toEqual({ cgi: 50, puppet: 50 });
@@ -66,18 +66,18 @@ describe('TestTrackConfig', () => {
     });
   });
 
-  describe('.getAssignments()', () => {
+  describe('.assignments', () => {
     it('grabs the correct value', () => {
-      expect(loadConfig().getAssignments()).toEqual([
+      expect(loadConfig().assignments).toEqual([
         new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: false }),
         new Assignment({ splitName: 'wine', variant: 'rose', isUnsynced: false })
       ]);
     });
   });
 
-  describe('.getExperienceSamplingWeight()', () => {
+  describe('.experienceSamplingWeight', () => {
     it('returns the provided sampling weight', () => {
-      expect(loadConfig().getExperienceSamplingWeight()).toEqual(1);
+      expect(loadConfig().experienceSamplingWeight).toEqual(1);
     });
   });
 
@@ -87,7 +87,7 @@ describe('TestTrackConfig', () => {
     });
 
     it('throws an error', () => {
-      expect(() => loadConfig().getCookieDomain()).toThrow('Unable to parse configuration');
+      expect(() => loadConfig()).toThrow('Unable to parse configuration');
     });
   });
 });

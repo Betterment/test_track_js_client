@@ -102,7 +102,7 @@ describe('AssignmentNotification', () => {
       await notification.send();
       expect(visitor.logError).toHaveBeenCalledTimes(2);
       expect(visitor.logError).toHaveBeenCalledWith(
-        expect.stringContaining('test_track persistAssignment response error: 500')
+        'test_track persistAssignment error: Error: HTTP request failed with 500 status'
       );
     });
 
@@ -119,9 +119,7 @@ describe('AssignmentNotification', () => {
 
       await notification.send();
       expect(visitor.logError).toHaveBeenCalledTimes(2);
-      expect(visitor.logError).toHaveBeenCalledWith(
-        expect.stringContaining('test_track persistAssignment other error')
-      );
+      expect(visitor.logError).toHaveBeenCalledWith('test_track persistAssignment error: TypeError: Failed to fetch');
     });
   });
 });

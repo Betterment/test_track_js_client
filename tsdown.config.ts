@@ -11,6 +11,7 @@ export default defineConfig([
   },
   {
     format: 'iife',
+    minify: true,
     platform: 'browser',
     entry: 'src/index.ts',
     globalName: 'TestTrack',

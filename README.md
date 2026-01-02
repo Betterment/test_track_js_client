@@ -1,7 +1,5 @@
 # TestTrack JS Client
 
-[![Build Status](https://travis-ci.org/Betterment/test_track_js_client.svg?branch=master)](https://travis-ci.org/Betterment/test_track_js_client)
-
 This is the JavaScript client library for the [TestTrack](https://github.com/Betterment/test_track) system.
 
 It provides client-side split-testing and feature-toggling through a simple, mostly declarative API.

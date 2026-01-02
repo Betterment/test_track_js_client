@@ -1,4 +1,4 @@
-import TestTrack from './testTrack';
+import TestTrack from './index';
 
 vi.mock('./configParser', () => {
   class MockConfigParser {

@@ -5,14 +5,14 @@ export default defineConfig([
   {
     format: 'esm',
     platform: 'neutral',
-    entry: 'src/testTrack.ts',
+    entry: 'src/index.ts',
     dts: true,
     sourcemap: true
   },
   {
     format: 'iife',
     platform: 'browser',
-    entry: 'src/testTrack.ts',
+    entry: 'src/index.ts',
     globalName: 'TestTrack',
     noExternal: Object.keys(pkg.dependencies)
   }

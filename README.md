@@ -148,16 +148,13 @@ TestTrack.initialize({
 The `test_track_js_client` package is distributed as an ES module. The package also provides `dist/index.iffe.js`. This artifact includes all dependencies and can be used directly in the browser.
 
 ```html
-<script>
-  window.TT = btoa(
-    JSON.stringify({
-      /* Config */
-    })
-  );
-</script>
 <script src="/path/to/index.iife.js"></script>
 <script defer>
-  window.TestTrack.initialize();
+  window.TestTrack.initialize({
+    config: {
+      /* Config */
+    }
+  });
 </script>
 ```
 

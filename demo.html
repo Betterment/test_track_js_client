@@ -12,46 +12,12 @@
         margin-bottom: 4em;
       }
     </style>
-  </head>
-  <body>
-    <section>
-      <h1>TestTrack Demo</h1>
-      <p><strong>Server: </strong>http://localhost:8297</p>
-      <p><strong>Visitor: </strong><span id="visitor-id"></span></p>
-      <button id="login">Login</button>
-    </section>
 
-    <section>
-      <h2>Split: button_color</h2>
-      <p>This split has two variants: blue (50%) and red (50%).</p>
-      <p><strong>Assigned variant:</strong> <span id="button-variant">Loading...</span></p>
-    </section>
-
-    <section>
-      <h2>Split: new_feature</h2>
-      <p>This split has two variants: true (50%) and false (50%).</p>
-      <p><strong>Assigned variant:</strong> <span id="feature-variant">Loading...</span></p>
-    </section>
-
-    <!-- Import maps for ESM dependencies -->
-    <script type="importmap">
-      {
-        "imports": {
-          "js-cookie": "https://esm.sh/js-cookie@2.2.0",
-          "qs": "https://esm.sh/qs@6.9.1",
-          "axios": "https://esm.sh/axios@1.5.0",
-          "abab": "https://esm.sh/abab@2.0.3",
-          "uuid": "https://esm.sh/uuid@9.0.0",
-          "blueimp-md5": "https://esm.sh/blueimp-md5@2.10.0"
-        }
-      }
-    </script>
-
-    <script type="module">
-      // Configure TestTrack server URL and splits
+    <!-- Assign `window.TT` -->
+    <script>
       window.TT = btoa(
         JSON.stringify({
-          url: 'http://localhost:8297', // Your TestTrack server URL
+          url: 'http://localhost:8297',
           cookieDomain: 'localhost',
           cookieName: 'tt_visitor_id',
           experienceSamplingWeight: 1,
@@ -69,9 +35,11 @@
       );
     </script>
 
-    <script type="module">
-      import TestTrack from './dist/testTrack.js';
+    <!-- Load the library -->
+    <script src="dist/index.iife.js"></script>
 
+    <!-- Use the library -->
+    <script type="module">
       const visitorIdEl = document.getElementById('visitor-id');
       const buttonVariantEl = document.getElementById('button-variant');
       const featureVariantEl = document.getElementById('feature-variant');
@@ -115,5 +83,25 @@
         await runSplits();
       });
     </script>
+  </head>
+  <body>
+    <section>
+      <h1>TestTrack Demo</h1>
+      <p><strong>Server: </strong>http://localhost:8297</p>
+      <p><strong>Visitor: </strong><span id="visitor-id"></span></p>
+      <button id="login">Login</button>
+    </section>
+
+    <section>
+      <h2>Split: button_color</h2>
+      <p>This split has two variants: blue (50%) and red (50%).</p>
+      <p><strong>Assigned variant:</strong> <span id="button-variant">Loading...</span></p>
+    </section>
+
+    <section>
+      <h2>Split: new_feature</h2>
+      <p>This split has two variants: true (50%) and false (50%).</p>
+      <p><strong>Assigned variant:</strong> <span id="feature-variant">Loading...</span></p>
+    </section>
   </body>
 </html>

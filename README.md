@@ -15,16 +15,14 @@ If you're looking to do server-side assignment and you're using Rails, then chec
 You can add the test track js client to your application via npm, yarn or pnpm.
 
 ```
-npm install test_track_js_client --save
-```
-
-```
-pnpm add test_track_js_client
+$ pnpm add test_track_js_client
 ```
 
 You can find the latest version of the test track JS client [here](https://github.com/Betterment/test_track_js_client/releases).
 
-The client is distributed as an ES module with no bundled dependencies.
+```javascript
+import TestTrack from 'test_track_js_client';
+```
 
 ## Configuration
 
@@ -145,6 +143,16 @@ TestTrack.initialize({
     // callback that will run after the test track visitor has loaded, but before any analytics events have fired
   }
 });
+```
+
+## Using TestTrack without a build tool
+
+The `test_track_js_client` package is distributed as an ES module. The package also provides `dist/index.iffe.js`. This artifact includes all dependencies and can be used directly in the browser.
+
+```html
+<script>window.TT = btoa(JSON.stringify({ /* Config */ }))</script>
+<script src="/path/to/index.iife.js"></script>
+<script defer>window.TestTrack.initialize();</script>
 ```
 
 ## How to Contribute

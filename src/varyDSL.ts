@@ -1,7 +1,5 @@
-import TestTrackConfig from './testTrackConfig';
 import Assignment from './assignment';
 import Visitor from './visitor';
-import SplitRegistry from './splitRegistry';
 
 export type VaryDSLOptions = {
   assignment: Assignment;
@@ -15,7 +13,6 @@ type WhenArg = string | Handler;
 class VaryDSL {
   private _assignment: Assignment;
   private _visitor: Visitor;
-  private _splitRegistry: SplitRegistry;
   private _variantHandlers: {
     [variant: string]: () => void;
   };
@@ -31,7 +28,6 @@ class VaryDSL {
 
     this._assignment = options.assignment;
     this._visitor = options.visitor;
-    this._splitRegistry = TestTrackConfig.getSplitRegistry();
 
     this._variantHandlers = {};
   }
@@ -121,7 +117,7 @@ class VaryDSL {
   }
 
   _getSplit() {
-    return this._splitRegistry.getSplit(this._assignment.getSplitName());
+    return this._visitor.config.splitRegistry.getSplit(this._assignment.getSplitName());
   }
 
   _getVariants() {

@@ -3,17 +3,10 @@ import AssignmentOverride from './assignmentOverride';
 import Visitor from './visitor';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
-
-vi.mock('./testTrackConfig', () => {
-  return {
-    default: {
-      getUrl: () => 'http://testtrack.dev'
-    }
-  };
-});
+import { createConfig } from './test-utils';
 
 function createVisitor() {
-  const visitor = new Visitor({ id: 'visitorId', assignments: [] });
+  const visitor = new Visitor({ config: createConfig(), id: 'visitorId', assignments: [] });
   visitor.logError = vi.fn();
   return visitor;
 }

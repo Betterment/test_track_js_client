@@ -1,7 +1,7 @@
-import TestTrackConfig from './testTrackConfig';
+import type { Config } from './config';
 
 type RequestOptions = {
-  url: `/api/${string}`;
+  url: URL;
   method: 'GET' | 'POST';
   timeout?: number;
   body?: URLSearchParams;
@@ -10,6 +10,10 @@ type RequestOptions = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Result = { data: any };
+
+export function urlFor(config: Config, path: `/api/${string}`): URL {
+  return new URL(path, config.url);
+}
 
 export function toSearchParams(values: Record<string, string | null | undefined>): URLSearchParams {
   const params = new URLSearchParams();
@@ -24,8 +28,6 @@ export function toSearchParams(values: Record<string, string | null | undefined>
 }
 
 export async function request(options: RequestOptions): Promise<Result> {
-  const url = new URL(options.url, TestTrackConfig.getUrl());
-
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeout ?? 60_000);
 
@@ -40,7 +42,7 @@ export async function request(options: RequestOptions): Promise<Result> {
     headers.append('Authorization', `Basic ${credential}`);
   }
 
-  const response = await fetch(url, {
+  const response = await fetch(options.url, {
     method: options.method,
     body: options.body,
     headers,

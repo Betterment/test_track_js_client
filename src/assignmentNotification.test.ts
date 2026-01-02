@@ -3,17 +3,10 @@ import AssignmentNotification from './assignmentNotification';
 import Visitor from './visitor';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
-
-vi.mock('./testTrackConfig', () => {
-  return {
-    default: {
-      getUrl: () => 'http://testtrack.dev'
-    }
-  };
-});
+import { createConfig } from './test-utils';
 
 function createVisitor(options: { trackSuccess: boolean }) {
-  const visitor = new Visitor({ id: 'visitorId', assignments: [] });
+  const visitor = new Visitor({ config: createConfig(), id: 'visitorId', assignments: [] });
 
   visitor.setAnalytics({
     identify: vi.fn(),

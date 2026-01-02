@@ -24,71 +24,51 @@ export type RawConfig = {
   };
 };
 
-export class Config {
-  #config: RawConfig;
-  #assignments?: Assignment[];
-  #splitRegistry?: SplitRegistry;
+export type Config = {
+  url: URL;
+  cookieDomain: string;
+  cookieName: string;
+  experienceSamplingWeight: number;
+  splitRegistry: SplitRegistry;
+  assignments: Assignment[] | null;
+};
 
-  constructor(config: RawConfig) {
-    this.#config = config;
+function parseSplitRegistry(rawSplits: RawConfig['splits']): SplitRegistry {
+  if (!rawSplits) {
+    return new SplitRegistry(null);
   }
 
-  get url(): URL {
-    return new URL(this.#config.url);
-  }
+  const splits = Object.entries(rawSplits).map(([splitName, rawSplit]) => {
+    return new Split(splitName, rawSplit['feature_gate'], rawSplit['weights']);
+  });
 
-  get cookieDomain(): string {
-    return this.#config.cookieDomain;
-  }
-
-  get cookieName(): string {
-    return this.#config.cookieName || DEFAULT_VISITOR_COOKIE_NAME;
-  }
-
-  get experienceSamplingWeight(): number {
-    return this.#config.experienceSamplingWeight;
-  }
-
-  get splitRegistry(): SplitRegistry {
-    const rawRegistry = this.#config.splits;
-    if (!rawRegistry) {
-      return new SplitRegistry(null);
-    }
-
-    if (!this.#splitRegistry) {
-      const splits = Object.entries(rawRegistry).map(([splitName, rawSplit]) => {
-        return new Split(splitName, rawSplit['feature_gate'], rawSplit['weights']);
-      });
-
-      this.#splitRegistry = new SplitRegistry(splits);
-    }
-
-    return this.#splitRegistry;
-  }
-
-  get assignments(): Assignment[] | null {
-    const rawAssignments = this.#config.assignments;
-    if (!rawAssignments) {
-      return null;
-    }
-
-    if (!this.#assignments) {
-      this.#assignments = Object.entries(rawAssignments).map(([splitName, variant]) => {
-        return new Assignment({ splitName, variant, isUnsynced: false });
-      });
-    }
-
-    return this.#assignments;
-  }
+  return new SplitRegistry(splits);
 }
 
-export function loadConfig(config?: RawConfig): Config {
-  if (config) {
-    return new Config(config);
+function parseAssignments(rawAssignments: RawConfig['assignments']): Assignment[] | null {
+  if (!rawAssignments) {
+    return null;
   }
 
+  return Object.entries(rawAssignments).map(([splitName, variant]) => {
+    return new Assignment({ splitName, variant, isUnsynced: false });
+  });
+}
+
+export function parseConfig(rawConfig: RawConfig): Config {
+  return {
+    url: new URL(rawConfig.url),
+    cookieDomain: rawConfig.cookieDomain,
+    cookieName: rawConfig.cookieName || DEFAULT_VISITOR_COOKIE_NAME,
+    experienceSamplingWeight: rawConfig.experienceSamplingWeight,
+    splitRegistry: parseSplitRegistry(rawConfig.splits),
+    assignments: parseAssignments(rawConfig.assignments)
+  };
+}
+
+export function loadConfig(): Config {
   try {
-    return new Config(JSON.parse(atob(window.TT!)));
+    return parseConfig(JSON.parse(atob(window.TT!)));
   } catch {
     throw new Error('Unable to parse configuration');
   }

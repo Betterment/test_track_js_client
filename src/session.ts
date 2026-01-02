@@ -1,7 +1,7 @@
 import Cookies from 'js-cookie';
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
-import { Config, loadConfig, type RawConfig } from './config';
+import { type Config, loadConfig, parseConfig, type RawConfig } from './config';
 import Visitor, { type VaryOptions, type AbOptions } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 
@@ -27,7 +27,7 @@ class Session {
   }
 
   initialize(options: SessionOptions) {
-    this._config = loadConfig(options.config);
+    this._config = options.config ? parseConfig(options.config) : loadConfig();
 
     const visitorId = Cookies.get(this._config.cookieName);
 

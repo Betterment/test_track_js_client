@@ -1,35 +1,33 @@
 import Assignment from './assignment';
-import ConfigParser from './configParser';
 import TestTrackConfig from './testTrackConfig';
 
-let mockCookieName;
+let mockCookieName: string | undefined;
 
-jest.mock('./configParser', () => {
-  return jest.fn().mockImplementation(() => {
-    return {
-      getConfig: () => {
-        return {
-          url: 'http://testtrack.dev',
-          cookieDomain: '.example.com',
-          cookieName: mockCookieName,
-          splits: {
-            jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
-            wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
-          },
-          assignments: {
-            jabba: 'puppet',
-            wine: 'rose'
-          },
-          experienceSamplingWeight: 1
-        };
-      }
-    };
-  });
+vi.mock('./configParser', () => {
+  class MockConfigParser {
+    getConfig() {
+      return {
+        url: 'http://testtrack.dev',
+        cookieDomain: '.example.com',
+        cookieName: mockCookieName,
+        splits: {
+          jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
+          wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
+        },
+        assignments: {
+          jabba: 'puppet',
+          wine: 'rose'
+        },
+        experienceSamplingWeight: 1
+      };
+    }
+  }
+
+  return { default: MockConfigParser };
 });
 
 describe('TestTrackConfig', () => {
   beforeEach(() => {
-    ConfigParser.mockClear();
     TestTrackConfig._clear();
   });
 
@@ -69,13 +67,13 @@ describe('TestTrackConfig', () => {
 
   describe('.getSplitRegistry()', () => {
     it('grabs the correct value from the ConfigParser', () => {
-      let splitRegistry = TestTrackConfig.getSplitRegistry();
+      const splitRegistry = TestTrackConfig.getSplitRegistry();
 
-      let jabba = splitRegistry.getSplit('jabba');
+      const jabba = splitRegistry.getSplit('jabba');
       expect(jabba.getWeighting()).toEqual({ cgi: 50, puppet: 50 });
       expect(jabba.isFeatureGate()).toEqual(true);
 
-      let wine = splitRegistry.getSplit('wine');
+      const wine = splitRegistry.getSplit('wine');
       expect(wine.getWeighting()).toEqual({ red: 50, white: 25, rose: 25 });
       expect(wine.isFeatureGate()).toEqual(false);
     });

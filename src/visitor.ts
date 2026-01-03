@@ -1,7 +1,7 @@
 import { request, urlFor } from './api';
 import ABConfiguration from './abConfiguration';
 import Assignment from './assignment';
-import AssignmentNotification from './assignmentNotification';
+import { sendAssignmentNotification } from './assignmentNotification';
 import { saveIdentifier } from './identifier';
 import MixpanelAnalytics from './mixpanelAnalytics';
 import { v4 as uuid } from 'uuid';
@@ -263,12 +263,11 @@ class Visitor {
         return;
       }
 
-      const notification = new AssignmentNotification({
+      // Potential bug here: This function returns a promise.
+      sendAssignmentNotification({
         visitor: this,
         assignment
       });
-
-      notification.send();
       assignment.setUnsynced(false);
     } catch (e) {
       this.logError('test_track notify error: ' + e);

@@ -24,36 +24,6 @@ describe('AssignmentOverride', () => {
     );
   });
 
-  it('requires a visitor', () => {
-    const assignment = createAssignment();
-    // @ts-expect-error Intentionally passing invalid types
-    expect(() => new AssignmentOverride({ assignment, username: 'user', password: 'pass' })).toThrow(
-      'must provide visitor'
-    );
-  });
-
-  it('requires an assignment', () => {
-    const visitor = createVisitor();
-    // @ts-expect-error Intentionally passing invalid types
-    expect(() => new AssignmentOverride({ visitor, username: 'user', password: 'pass' })).toThrow(
-      'must provide assignment'
-    );
-  });
-
-  it('requires an username', () => {
-    const visitor = createVisitor();
-    const assignment = createAssignment();
-    // @ts-expect-error Intentionally passing invalid types
-    expect(() => new AssignmentOverride({ visitor, assignment, password: 'pass' })).toThrow('must provide username');
-  });
-
-  it('requires a password', () => {
-    const visitor = createVisitor();
-    const assignment = createAssignment();
-    // @ts-expect-error Intentionally passing invalid types
-    expect(() => new AssignmentOverride({ visitor, assignment, username: 'user' })).toThrow('must provide password');
-  });
-
   describe('#persistAssignment()', () => {
     it('creates an assignment on the test track server', async () => {
       const visitor = createVisitor();

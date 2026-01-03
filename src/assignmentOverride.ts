@@ -20,16 +20,6 @@ class AssignmentOverride {
     this._assignment = options.assignment;
     this._username = options.username;
     this._password = options.password;
-
-    if (!this._visitor) {
-      throw new Error('must provide visitor');
-    } else if (!this._assignment) {
-      throw new Error('must provide assignment');
-    } else if (!this._username) {
-      throw new Error('must provide username');
-    } else if (!this._password) {
-      throw new Error('must provide password');
-    }
   }
 
   persistAssignment() {

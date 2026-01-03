@@ -14,12 +14,6 @@ class AssignmentNotification {
   constructor({ visitor, assignment }: AssignmentNotificationOptions) {
     this._visitor = visitor;
     this._assignment = assignment;
-
-    if (!this._visitor) {
-      throw new Error('must provide visitor');
-    } else if (!this._assignment) {
-      throw new Error('must provide assignment');
-    }
   }
 
   send() {

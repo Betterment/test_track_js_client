@@ -65,26 +65,6 @@ function createVisitor(config: Config) {
 }
 
 describe('Visitor', () => {
-  describe('instantiation', () => {
-    it('requires an id', () => {
-      expect(() => {
-        // @ts-expect-error id is required
-        new Visitor({
-          assignments: []
-        });
-      }).toThrow('must provide id');
-    });
-
-    it('requires assignments', () => {
-      expect(() => {
-        // @ts-expect-error assignments are required
-        new Visitor({
-          id: 'visitor_id'
-        });
-      }).toThrow('must provide assignments');
-    });
-  });
-
   describe('.loadVisitor()', () => {
     beforeEach(() => {
       server.use(
@@ -205,48 +185,6 @@ describe('Visitor', () => {
 
     beforeEach(() => {
       mockGetVariant.mockReturnValue('red');
-    });
-
-    it('throws an error if a variants object is not provided', () => {
-      const config = setupConfig();
-      const visitor = createVisitor(config);
-      expect(() => {
-        // @ts-expect-error Testing missing required property
-        visitor.vary('wine', {
-          context: 'spec',
-          defaultVariant: 'white'
-        });
-      }).toThrow('must provide variants object to `vary` for wine');
-    });
-
-    it('throws an error if a context is not provided', () => {
-      const config = setupConfig();
-      const visitor = createVisitor(config);
-      expect(() => {
-        // @ts-expect-error Testing missing required property
-        visitor.vary('wine', {
-          defaultVariant: 'white',
-          variants: {
-            white: function () {},
-            red: function () {}
-          }
-        });
-      }).toThrow('must provide context to `vary` for wine');
-    });
-
-    it('throws an error if a defaultVariant is not provided', () => {
-      const config = setupConfig();
-      const visitor = createVisitor(config);
-      expect(() => {
-        // @ts-expect-error Testing missing required property
-        visitor.vary('wine', {
-          context: 'spec',
-          variants: {
-            white: function () {},
-            red: function () {}
-          }
-        });
-      }).toThrow('must provide defaultVariant to `vary` for wine');
     });
 
     it('throws an error if the defaultVariant is not represented in the variants object', () => {
@@ -687,15 +625,6 @@ describe('Visitor', () => {
   });
 
   describe('#setErrorLogger()', () => {
-    it('throws an error if not provided with a function', () => {
-      const config = setupConfig();
-      const visitor = createVisitor(config);
-      expect(() => {
-        // @ts-expect-error Testing with wrong argument type
-        visitor.setErrorLogger('teapot');
-      }).toThrow('must provide function for errorLogger');
-    });
-
     it('sets the error logger on the visitor', () => {
       const config = setupConfig();
       const visitor = createVisitor(config);
@@ -744,15 +673,6 @@ describe('Visitor', () => {
   });
 
   describe('#setAnalytics()', () => {
-    it('throws an error if not provided with an object', () => {
-      const config = setupConfig();
-      const visitor = createVisitor(config);
-      expect(() => {
-        // @ts-expect-error Testing with wrong argument type
-        visitor.setAnalytics('teapot');
-      }).toThrow('must provide object for setAnalytics');
-    });
-
     it('sets the analytics object on the visitor', () => {
       const config = setupConfig();
       const visitor = createVisitor(config);

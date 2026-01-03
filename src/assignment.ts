@@ -31,14 +31,6 @@ class Assignment {
   private _isUnsynced: boolean;
 
   constructor(options: AssignmentOptions) {
-    if (!options.splitName) {
-      throw new Error('must provide splitName');
-    } else if (!options.hasOwnProperty('variant')) {
-      throw new Error('must provide variant');
-    } else if (!options.hasOwnProperty('isUnsynced')) {
-      throw new Error('must provide isUnsynced');
-    }
-
     this._splitName = options.splitName;
     this._variant = options.variant;
     this._context = options.context;

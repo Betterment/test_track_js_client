@@ -29,19 +29,6 @@ function setupCalculator(visitor: Visitor) {
 }
 
 describe('VariantCalculator', () => {
-  it('requires a visitor', () => {
-    // @ts-expect-error Testing deletion of required property
-    expect(() => new VariantCalculator({ splitName: 'logoSize' })).toThrow('must provide visitor');
-  });
-
-  it('requires a splitName', () => {
-    const config = setupConfig();
-    const visitor = createVisitor(config);
-
-    // @ts-expect-error Testing deletion of required property
-    expect(() => new VariantCalculator({ visitor })).toThrow('must provide splitName');
-  });
-
   describe('#getSplitVisitorHash()', () => {
     it('calculates MD5 of splitName and visitorId', () => {
       const config = setupConfig();

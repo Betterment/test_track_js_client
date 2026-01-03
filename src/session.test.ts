@@ -1,5 +1,5 @@
 import Assignment from './assignment';
-import AssignmentOverride from './assignmentOverride';
+import { persistAssignmentOverride } from './assignmentOverride';
 import Cookies from 'js-cookie';
 import Session from './session';
 import Visitor from './visitor';
@@ -21,9 +21,15 @@ const rawConfig: RawConfig = {
   }
 };
 
-vi.mock('./assignmentOverride');
+vi.mock('./assignmentOverride', () => {
+  return {
+    persistAssignmentOverride: vi.fn()
+  };
+});
 vi.mock('js-cookie');
 vi.mock('uuid');
+
+const mockPersistAssignmentOverride = vi.mocked(persistAssignmentOverride);
 
 describe('Session', () => {
   beforeAll(() => {
@@ -238,12 +244,12 @@ describe('Session', () => {
 
       describe('_crx', () => {
         describe('#persistAssignment()', () => {
-          it('creates an AssignmentOverride and persists it', async () => {
-            vi.spyOn(AssignmentOverride.prototype, 'persistAssignment').mockResolvedValue();
+          it('calls persistAssignmentOverride with the correct parameters', async () => {
+            mockPersistAssignmentOverride.mockResolvedValue();
 
             await publicApi._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
-            expect(AssignmentOverride).toHaveBeenCalledTimes(1);
-            expect(AssignmentOverride).toHaveBeenCalledWith({
+            expect(mockPersistAssignmentOverride).toHaveBeenCalledTimes(1);
+            expect(mockPersistAssignmentOverride).toHaveBeenCalledWith({
               visitor: expect.any(Visitor),
               username: 'the_username',
               password: 'the_password',

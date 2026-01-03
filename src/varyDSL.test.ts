@@ -67,7 +67,7 @@ describe('VaryDSL', () => {
 
       vary.run();
 
-      expect(visitor.logError).toHaveBeenCalledWith('configures unknown variant leeloo_multipass');
+      expect(visitor.logError).toHaveBeenCalledWith('configures unknown variants: leeloo_multipass');
     });
 
     it('does not log an error when the split registry is not loaded', () => {
@@ -152,7 +152,7 @@ describe('VaryDSL', () => {
 
       expect(() => {
         vary.run();
-      }).toThrow('must provide at least one `when`');
+      }).toThrow('must provide at least two variants');
     });
 
     it('runs the handler of the assigned variant', () => {
@@ -219,7 +219,7 @@ describe('VaryDSL', () => {
 
       vary.run();
 
-      expect(visitor.logError).toHaveBeenCalledWith('does not configure variants wind and water');
+      expect(visitor.logError).toHaveBeenCalledWith('does not configure variants: wind, water');
     });
 
     it('does not log an error when the split registry is not loaded', () => {

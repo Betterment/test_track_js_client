@@ -16,10 +16,6 @@ class Split {
   getVariants(): string[] {
     return Object.keys(this.weighting);
   }
-
-  hasVariant(variant: string): boolean {
-    return variant in this.weighting;
-  }
 }
 
 export default Split;

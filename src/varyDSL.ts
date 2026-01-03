@@ -8,8 +8,6 @@ export type VaryDSLOptions = {
 
 type Handler = () => void;
 
-type WhenArg = string | Handler;
-
 class VaryDSL {
   private _assignment: Assignment;
   private _visitor: Visitor;
@@ -26,17 +24,16 @@ class VaryDSL {
     this._variantHandlers = {};
   }
 
-  when(...args: WhenArg[]) {
-    const handler = typeof args[args.length - 1] === 'function' ? (args.pop() as Handler) : null;
+  when(...args: [variant: string, ...variants: string[], handler: Handler]) {
+    const variants = args.slice(0, -1) as string[];
+    const handler = args[args.length - 1] as Handler;
 
-    if (args.length === 0) {
+    if (variants.length === 0) {
       throw new Error('must provide at least one variant');
     }
 
-    args.forEach(variant => {
-      if (typeof variant === 'string') {
-        this._assignHandlerToVariant(variant, handler);
-      }
+    variants.forEach(variant => {
+      this._assignHandlerToVariant(variant, handler);
     });
   }
 
@@ -77,11 +74,7 @@ class VaryDSL {
     return this._defaultVariant;
   }
 
-  _assignHandlerToVariant(variant: string, handler: Handler | null) {
-    if (typeof handler !== 'function') {
-      throw new Error('must provide handler for ' + variant);
-    }
-
+  _assignHandlerToVariant(variant: string, handler: Handler) {
     variant = variant.toString();
 
     if (this._getSplit() && !this._getSplit().hasVariant(variant)) {

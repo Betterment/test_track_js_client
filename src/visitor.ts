@@ -1,5 +1,5 @@
 import { request, urlFor } from './api';
-import ABConfiguration from './abConfiguration';
+import { getABVariants } from './abConfiguration';
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { saveIdentifier } from './identifier';
@@ -157,12 +157,11 @@ class Visitor {
   }
 
   ab(splitName: string, options: AbOptions) {
-    const abConfiguration = new ABConfiguration({
+    const variants = getABVariants({
       splitName,
-      trueVariant: options.trueVariant,
+      trueVariant: options.trueVariant || 'true',
       visitor: this
     });
-    const variants = abConfiguration.getVariants();
     const variantConfiguration: VaryOptions['variants'] = {};
 
     variantConfiguration[variants.true.toString()] = function () {

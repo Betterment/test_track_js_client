@@ -1,5 +1,5 @@
 import Assignment from './assignment';
-import AssignmentNotification from './assignmentNotification';
+import { sendAssignmentNotification } from './assignmentNotification';
 import { saveIdentifier } from './identifier';
 import MixpanelAnalytics from './mixpanelAnalytics';
 import type { Config } from './config';
@@ -21,19 +21,15 @@ vi.mock('./variantCalculator', () => {
   return { default: MockVariantCalculator };
 });
 
-const mockSend = vi.fn();
-vi.mock('./assignmentNotification', () => {
-  const MockAssignmentNotification = vi.fn(function () {
-    return { send: mockSend };
-  });
-
-  return { default: MockAssignmentNotification };
-});
+vi.mock('./assignmentNotification', () => ({
+  sendAssignmentNotification: vi.fn()
+}));
 
 vi.mock('./identifier', () => ({
   saveIdentifier: vi.fn()
 }));
 
+const mockSendAssignmentNotification = vi.mocked(sendAssignmentNotification);
 const mockSaveIdentifier = vi.mocked(saveIdentifier);
 
 function setupConfig() {
@@ -237,7 +233,7 @@ describe('Visitor', () => {
         const visitor = createVisitor(config);
         varyWineSplit(visitor);
 
-        expect(AssignmentNotification).toHaveBeenCalledWith({
+        expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           visitor: visitor,
           assignment: new Assignment({
             splitName: 'wine',
@@ -246,17 +242,17 @@ describe('Visitor', () => {
             isUnsynced: false
           })
         });
-        expect(mockSend).toHaveBeenCalledTimes(1);
+        expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       });
 
       it('only sends one AssignmentNotification with the default if it is defaulted', () => {
-        mockGetVariant.mockReturnValue('rose');
+        mockCalculateVariant.mockReturnValue('rose');
         const config = setupConfig();
         const visitor = createVisitor(config);
 
         varyWineSplit(visitor);
 
-        expect(AssignmentNotification).toHaveBeenCalledWith({
+        expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           visitor: visitor,
           assignment: new Assignment({
             splitName: 'wine',
@@ -265,7 +261,7 @@ describe('Visitor', () => {
             isUnsynced: false
           })
         });
-        expect(mockSend).toHaveBeenCalledTimes(1);
+        expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       });
 
       it('logs an error if the AssignmentNotification throws an error', () => {
@@ -273,13 +269,13 @@ describe('Visitor', () => {
         const visitor = createVisitor(config);
         visitor.logError = vi.fn();
 
-        mockSend.mockImplementation(() => {
+        mockSendAssignmentNotification.mockImplementation(() => {
           throw new Error('something bad happened');
         });
 
         varyWineSplit(visitor);
 
-        expect(AssignmentNotification).toHaveBeenCalledWith({
+        expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           visitor: visitor,
           assignment: new Assignment({
             splitName: 'wine',
@@ -288,7 +284,7 @@ describe('Visitor', () => {
             isUnsynced: true
           })
         });
-        expect(mockSend).toHaveBeenCalledTimes(1);
+        expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
 
         expect(visitor.logError).toHaveBeenCalledWith('test_track notify error: Error: something bad happened');
       });
@@ -308,8 +304,8 @@ describe('Visitor', () => {
         const visitor = createVisitor(config);
         varyJabbaSplit(visitor);
 
-        expect(AssignmentNotification).not.toHaveBeenCalled();
-        expect(mockSend).not.toHaveBeenCalled();
+        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
+        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
       });
 
       it('sends an AssignmentNotification with the default if it is defaulted', () => {
@@ -324,8 +320,8 @@ describe('Visitor', () => {
           defaultVariant: 'cgi'
         });
 
-        expect(AssignmentNotification).toHaveBeenCalledTimes(1);
-        expect(AssignmentNotification).toHaveBeenCalledWith({
+        expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
+        expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           visitor: visitor,
           assignment: new Assignment({
             splitName: 'jabba',
@@ -334,7 +330,7 @@ describe('Visitor', () => {
             isUnsynced: true
           })
         });
-        expect(mockSend).toHaveBeenCalled();
+        expect(mockSendAssignmentNotification).toHaveBeenCalled();
       });
     });
 
@@ -611,12 +607,12 @@ describe('Visitor', () => {
       const config = setupConfig();
       const visitor = createVisitor(config);
       await visitor.linkIdentifier('myappdb_user_id', 444);
-      expect(AssignmentNotification).toHaveBeenCalledTimes(1);
-      expect(AssignmentNotification).toHaveBeenCalledWith({
+      expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
+      expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         visitor: visitor,
         assignment: blueButtonAssignment
       });
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -693,10 +689,10 @@ describe('Visitor', () => {
 
       visitor.notifyUnsyncedAssignments();
 
-      expect(AssignmentNotification).toHaveBeenCalledTimes(1);
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
+      expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
 
-      expect(AssignmentNotification).toHaveBeenCalledWith({
+      expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         visitor: visitor,
         assignment: blueButtonAssignment
       });

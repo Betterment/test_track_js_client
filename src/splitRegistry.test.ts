@@ -12,9 +12,9 @@ describe('SplitRegistry', () => {
     it('returns the split for the given name', () => {
       const splitRegistry = createSplitRegistry();
       const split = splitRegistry.getSplit('split1');
-      expect(split!.getName()).toEqual('split1');
-      expect(split!.isFeatureGate()).toEqual(true);
-      expect(split!.getWeighting()).toEqual({ foo: 50, bar: 50, baz: 0 });
+      expect(split!.name).toEqual('split1');
+      expect(split!.isFeatureGate).toEqual(true);
+      expect(split!.weighting).toEqual({ foo: 50, bar: 50, baz: 0 });
 
       expect(splitRegistry.getSplit('unknown split')).toEqual(undefined);
     });

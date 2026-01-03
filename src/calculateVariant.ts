@@ -28,7 +28,7 @@ export function calculateVariant(visitor: Visitor, splitName: string): string | 
   let bucketCeiling = 0;
   const assignmentBucket = getAssignmentBucket(visitor, splitName);
   const split = getSplit(visitor, splitName);
-  const weighting = split.getWeighting();
+  const weighting = split.weighting;
   const sortedVariants = split.getVariants().sort();
 
   for (const variant of sortedVariants) {

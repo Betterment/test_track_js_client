@@ -57,12 +57,12 @@ describe('TestTrackConfig', () => {
       const splitRegistry = loadConfig().splitRegistry;
 
       const jabba = splitRegistry.getSplit('jabba');
-      expect(jabba!.getWeighting()).toEqual({ cgi: 50, puppet: 50 });
-      expect(jabba!.isFeatureGate()).toEqual(true);
+      expect(jabba!.weighting).toEqual({ cgi: 50, puppet: 50 });
+      expect(jabba!.isFeatureGate).toEqual(true);
 
       const wine = splitRegistry.getSplit('wine');
-      expect(wine!.getWeighting()).toEqual({ red: 50, white: 25, rose: 25 });
-      expect(wine!.isFeatureGate()).toEqual(false);
+      expect(wine!.weighting).toEqual({ red: 50, white: 25, rose: 25 });
+      expect(wine!.isFeatureGate).toEqual(false);
     });
   });
 

@@ -5,7 +5,7 @@ import { sendAssignmentNotification } from './assignmentNotification';
 import { saveIdentifier } from './identifier';
 import MixpanelAnalytics from './mixpanelAnalytics';
 import { v4 as uuid } from 'uuid';
-import VariantCalculator from './variantCalculator';
+import { calculateVariant } from './calculateVariant';
 import VaryDSL from './varyDSL';
 import type { Config } from './config';
 
@@ -231,10 +231,7 @@ class Visitor {
   }
 
   _generateAssignmentFor(splitName: string, context: string) {
-    const variant = new VariantCalculator({
-      visitor: this,
-      splitName: splitName
-    }).getVariant();
+    const variant = calculateVariant(this, splitName);
 
     if (!variant) {
       this._ttOffline = true;

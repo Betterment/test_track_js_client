@@ -1,8 +1,8 @@
 import { md5 } from 'js-md5';
 import Visitor from './visitor';
-import type { Weighting } from './split';
+import Split from './split';
 
-function getWeighting(visitor: Visitor, splitName: string): Weighting {
+function getSplit(visitor: Visitor, splitName: string): Split {
   const split = visitor.config.splitRegistry.getSplit(splitName);
 
   if (!split) {
@@ -11,7 +11,7 @@ function getWeighting(visitor: Visitor, splitName: string): Weighting {
     throw new Error(message);
   }
 
-  return split.getWeighting();
+  return split;
 }
 
 export function getAssignmentBucket(visitor: Visitor, splitName: string): number {
@@ -27,8 +27,9 @@ export function calculateVariant(visitor: Visitor, splitName: string): string | 
 
   let bucketCeiling = 0;
   const assignmentBucket = getAssignmentBucket(visitor, splitName);
-  const weighting = getWeighting(visitor, splitName);
-  const sortedVariants = Object.keys(weighting).sort();
+  const split = getSplit(visitor, splitName);
+  const weighting = split.getWeighting();
+  const sortedVariants = split.getVariants().sort();
 
   for (const variant of sortedVariants) {
     bucketCeiling += weighting[variant];

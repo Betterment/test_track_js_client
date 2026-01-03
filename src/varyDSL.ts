@@ -24,17 +24,8 @@ class VaryDSL {
     this._variantHandlers = {};
   }
 
-  when(...args: [variant: string, ...variants: string[], handler: Handler]) {
-    const variants = args.slice(0, -1) as string[];
-    const handler = args[args.length - 1] as Handler;
-
-    if (variants.length === 0) {
-      throw new Error('must provide at least one variant');
-    }
-
-    variants.forEach(variant => {
-      this._assignHandlerToVariant(variant, handler);
-    });
+  when(variant: string, handler: Handler) {
+    this._assignHandlerToVariant(variant, handler);
   }
 
   default(variant: string, handler: Handler) {
@@ -75,8 +66,6 @@ class VaryDSL {
   }
 
   _assignHandlerToVariant(variant: string, handler: Handler) {
-    variant = variant.toString();
-
     const split = this._getSplit();
     if (split && !split.hasVariant(variant)) {
       this._visitor.logError('configures unknown variant ' + variant);

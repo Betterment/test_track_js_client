@@ -28,32 +28,18 @@ function createVisitor(config: Config) {
 
 describe('VaryDSL', () => {
   describe('#when()', () => {
-    it('throws an error if no variants are provided', () => {
-      const config = setupConfig();
-      const assignment = createAssignment();
-      const visitor = createVisitor(config);
-      const vary = new VaryDSL({ assignment, visitor });
-
-      expect(() => {
-        // @ts-expect-error Testing validation
-        vary.when(() => {});
-      }).toThrow('must provide at least one variant');
-    });
-
-    it('supports multiple variants', () => {
+    it('registers a variant handler', () => {
       const config = setupConfig();
       const assignment = createAssignment();
       const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
       const handler = function () {};
 
-      vary.when('earth', 'wind', 'fire', handler);
+      vary.when('earth', handler);
 
       // @ts-expect-error Private property
       expect(vary._variantHandlers).toEqual({
-        earth: handler,
-        wind: handler,
-        fire: handler
+        earth: handler
       });
     });
 
@@ -64,12 +50,10 @@ describe('VaryDSL', () => {
       const vary = new VaryDSL({ assignment, visitor });
       const handler = () => {};
 
-      vary.when('earth', 'wind', 'leeloo_multipass', handler);
+      vary.when('leeloo_multipass', handler);
 
       // @ts-expect-error Private property
       expect(vary._variantHandlers).toEqual({
-        earth: handler,
-        wind: handler,
         leeloo_multipass: handler
       });
 
@@ -83,7 +67,7 @@ describe('VaryDSL', () => {
       const visitor = createVisitor(config);
       const vary = new VaryDSL({ assignment, visitor });
 
-      vary.when('earth', 'wind', 'leeloo_multipass', () => {});
+      vary.when('leeloo_multipass', () => {});
 
       expect(visitor.logError).not.toHaveBeenCalled();
     });

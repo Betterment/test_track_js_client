@@ -35,7 +35,8 @@ describe('VaryDSL', () => {
       const vary = new VaryDSL({ assignment, visitor });
 
       expect(() => {
-        vary.when(function () {});
+        // @ts-expect-error Testing validation
+        vary.when(() => {});
       }).toThrow('must provide at least one variant');
     });
 

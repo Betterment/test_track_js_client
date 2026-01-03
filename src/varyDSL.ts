@@ -1,37 +1,30 @@
 import Assignment from './assignment';
 import Visitor from './visitor';
 
+type Handler = () => void;
+
+export type Variants = {
+  [variant: string]: Handler;
+};
+
 export type VaryDSLOptions = {
   assignment: Assignment;
   visitor: Visitor;
+  variants: Variants;
   defaultVariant: string;
 };
-
-type Handler = () => void;
 
 class VaryDSL {
   private _assignment: Assignment;
   private _visitor: Visitor;
-  private _variantHandlers: {
-    [variant: string]: () => void;
-  };
+  private _variantHandlers: Variants;
   private _defaultVariant: string;
 
   constructor(options: VaryDSLOptions) {
     this._assignment = options.assignment;
     this._visitor = options.visitor;
     this._defaultVariant = options.defaultVariant;
-
-    this._variantHandlers = {};
-  }
-
-  when(variant: string, handler: Handler) {
-    const split = this._visitor.config.splitRegistry.getSplit(this._assignment.getSplitName());
-    if (split && !split.hasVariant(variant)) {
-      this._visitor.logError('configures unknown variant ' + variant);
-    }
-
-    this._variantHandlers[variant] = handler;
+    this._variantHandlers = options.variants;
   }
 
   run() {
@@ -62,6 +55,12 @@ class VaryDSL {
     if (!split) {
       return;
     }
+
+    Object.keys(this._variantHandlers).forEach(variant => {
+      if (!split.hasVariant(variant)) {
+        this._visitor.logError('configures unknown variant ' + variant);
+      }
+    });
 
     const missingVariants = split.getVariants().filter(variant => !configuredVariants.includes(variant));
 

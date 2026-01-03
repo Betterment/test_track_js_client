@@ -6,12 +6,8 @@ import { saveIdentifier } from './identifier';
 import MixpanelAnalytics from './mixpanelAnalytics';
 import { v4 as uuid } from 'uuid';
 import { calculateVariant } from './calculateVariant';
-import VaryDSL from './varyDSL';
+import VaryDSL, { type Variants } from './varyDSL';
 import type { Config } from './config';
-
-type Variants = {
-  [key: string]: () => void;
-};
 
 export type VaryOptions = {
   variants: Variants;
@@ -133,14 +129,9 @@ class Visitor {
     const vary = new VaryDSL({
       assignment,
       visitor: this,
-      defaultVariant
+      defaultVariant,
+      variants
     });
-
-    for (const variant in variants) {
-      if (variants.hasOwnProperty(variant)) {
-        vary.when(variant, variants[variant]);
-      }
-    }
 
     const { isDefaulted } = vary.run();
 

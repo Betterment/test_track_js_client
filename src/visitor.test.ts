@@ -1,6 +1,6 @@
 import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
-import Identifier from './identifier';
+import { saveIdentifier } from './identifier';
 import MixpanelAnalytics from './mixpanelAnalytics';
 import type { Config } from './config';
 import VariantCalculator from './variantCalculator';
@@ -30,14 +30,11 @@ vi.mock('./assignmentNotification', () => {
   return { default: MockAssignmentNotification };
 });
 
-const mockSave = vi.fn();
-vi.mock('./identifier', () => {
-  const MockIdentifier = vi.fn(function () {
-    return { save: mockSave };
-  });
+vi.mock('./identifier', () => ({
+  saveIdentifier: vi.fn()
+}));
 
-  return { default: MockIdentifier };
-});
+const mockSaveIdentifier = vi.mocked(saveIdentifier);
 
 function setupConfig() {
   return createConfig({
@@ -563,7 +560,7 @@ describe('Visitor', () => {
         assignments: [jabbaCGIAssignment, blueButtonAssignment]
       });
 
-      mockSave.mockImplementation(() => Promise.resolve(actualVisitor));
+      mockSaveIdentifier.mockImplementation(() => Promise.resolve(actualVisitor));
 
       return { jabbaCGIAssignment, blueButtonAssignment, actualVisitor };
     }
@@ -574,14 +571,13 @@ describe('Visitor', () => {
       const visitor = createVisitor(config);
       visitor.linkIdentifier('myappdb_user_id', 444);
 
-      expect(Identifier).toHaveBeenCalledTimes(1);
-      expect(Identifier).toHaveBeenCalledWith({
+      expect(mockSaveIdentifier).toHaveBeenCalledTimes(1);
+      expect(mockSaveIdentifier).toHaveBeenCalledWith({
         config: visitor.config,
         visitorId: 'EXISTING_VISITOR_ID',
         identifierType: 'myappdb_user_id',
         value: 444
       });
-      expect(mockSave).toHaveBeenCalledTimes(1);
     });
 
     it('overrides assignments that exist in the other visitor', async () => {

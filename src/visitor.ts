@@ -2,7 +2,7 @@ import { request, urlFor } from './api';
 import ABConfiguration from './abConfiguration';
 import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
-import Identifier from './identifier';
+import { saveIdentifier } from './identifier';
 import MixpanelAnalytics from './mixpanelAnalytics';
 import { v4 as uuid } from 'uuid';
 import VariantCalculator from './variantCalculator';
@@ -188,18 +188,16 @@ class Visitor {
     this._errorLogger.call(null, errorMessage); // call with null context to ensure we don't leak the visitor object to the outside world
   }
 
-  linkIdentifier(identifierType: string, value: number) {
-    const identifier = new Identifier({
+  async linkIdentifier(identifierType: string, value: number) {
+    const otherVisitor = await saveIdentifier({
       config: this.config,
       identifierType,
       value,
       visitorId: this.getId()
     });
 
-    return identifier.save().then(otherVisitor => {
-      this._merge(otherVisitor);
-      this.notifyUnsyncedAssignments();
-    });
+    this._merge(otherVisitor);
+    this.notifyUnsyncedAssignments();
   }
 
   setAnalytics(analytics: MixpanelAnalytics) {

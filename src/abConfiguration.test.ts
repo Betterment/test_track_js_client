@@ -1,4 +1,4 @@
-import ABConfiguration from './abConfiguration';
+import { getABVariants } from './abConfiguration';
 import Visitor from './visitor';
 import { createConfig } from './test-utils';
 import type { Config } from './config';
@@ -28,134 +28,111 @@ function createVisitor(config: Config) {
   return visitor;
 }
 
-describe('ABConfiguration', () => {
-  it('allows a null trueVariant', () => {
+describe('getABVariants()', () => {
+  it('logs an error if the split does not have exactly two variants', () => {
     const config = setupConfig();
     const visitor = createVisitor(config);
 
-    expect(() => {
-      new ABConfiguration({
-        splitName: 'button_color',
-        // @ts-expect-error Testing null value
-        trueVariant: null,
-        visitor: visitor
-      });
-    }).not.toThrow();
+    getABVariants({
+      splitName: 'element',
+      trueVariant: 'water',
+      visitor: visitor
+    });
+
+    expect(visitor.logError).toHaveBeenCalledWith('A/B for element configures split with more than 2 variants');
   });
 
-  describe('#getVariants()', () => {
-    it('logs an error if the split does not have exactly two variants', () => {
+  it('does not log an error if the split registry is not loaded', () => {
+    const config = createConfig();
+    const visitor = createVisitor(config);
+
+    getABVariants({
+      splitName: 'element',
+      trueVariant: 'water',
+      visitor
+    });
+
+    expect(visitor.logError).not.toHaveBeenCalled();
+  });
+
+  describe('true variant', () => {
+    it('accepts `true` as a fallback value', () => {
       const config = setupConfig();
-      const visitor = createVisitor(config);
-      const abConfiguration = new ABConfiguration({
-        splitName: 'element',
-        trueVariant: 'water',
-        visitor: visitor
+      const variants = getABVariants({
+        splitName: 'button_color',
+        trueVariant: 'true',
+        visitor: createVisitor(config)
       });
 
-      abConfiguration.getVariants();
-
-      expect(visitor.logError).toHaveBeenCalledWith('A/B for element configures split with more than 2 variants');
+      expect(variants.true).toBe('true');
     });
 
-    it('does not log an error if the split registry is not loaded', () => {
+    it('is true if only one variant in the split', () => {
+      const config = setupConfig();
+      const variants = getABVariants({
+        splitName: 'new_feature',
+        trueVariant: 'true',
+        visitor: createVisitor(config)
+      });
+
+      expect(variants.true).toBe('true');
+    });
+
+    it('is whatever was passed in', () => {
+      const config = setupConfig();
+      const variants = getABVariants({
+        splitName: 'button_color',
+        trueVariant: 'red',
+        visitor: createVisitor(config)
+      });
+
+      expect(variants.true).toBe('red');
+    });
+  });
+
+  describe('false variant', () => {
+    it('is the variant of the split that is not the true_variant', () => {
+      const config = setupConfig();
+      const variants = getABVariants({
+        splitName: 'button_color',
+        trueVariant: 'red',
+        visitor: createVisitor(config)
+      });
+
+      expect(variants.false).toBe('blue');
+    });
+
+    it('is false when there is no split_registry', () => {
       const config = createConfig();
+      const variants = getABVariants({
+        splitName: 'button_color',
+        trueVariant: 'red',
+        visitor: createVisitor(config)
+      });
 
-      const visitor = createVisitor(config);
-      const abConfiguration = new ABConfiguration({
+      expect(variants.false).toBe('false');
+    });
+
+    it('is always the same if the split has more than two variants', () => {
+      const config = setupConfig();
+      const variants = getABVariants({
         splitName: 'element',
-        trueVariant: 'water',
-        visitor
+        trueVariant: 'earth',
+        visitor: createVisitor(config)
       });
 
-      abConfiguration.getVariants();
-
-      expect(visitor.logError).not.toHaveBeenCalled();
+      expect(variants.false).toBe('fire');
     });
 
-    describe('true variant', () => {
-      it('is true if null was passed in during instantiation', () => {
-        const config = setupConfig();
-        const abConfiguration = new ABConfiguration({
-          splitName: 'button_color',
-          // @ts-expect-error Testing null value
-          trueVariant: null,
-          visitor: createVisitor(config)
-        });
-
-        expect(abConfiguration.getVariants().true).toBe('true');
+    it('is false if only one variant in the split', () => {
+      const config = setupConfig();
+      const variants = getABVariants({
+        splitName: 'new_feature',
+        trueVariant: 'true',
+        visitor: createVisitor(config)
       });
 
-      it('is true if only one variant in the split', () => {
-        const config = setupConfig();
-        const abConfiguration = new ABConfiguration({
-          splitName: 'new_feature',
-          // @ts-expect-error Testing null value
-          trueVariant: null,
-          visitor: createVisitor(config)
-        });
-
-        expect(abConfiguration.getVariants().true).toBe('true');
-      });
-
-      it('is whatever was passed in during instantiation', () => {
-        const config = setupConfig();
-        const abConfiguration = new ABConfiguration({
-          splitName: 'button_color',
-          trueVariant: 'red',
-          visitor: createVisitor(config)
-        });
-
-        expect(abConfiguration.getVariants().true).toBe('red');
-      });
-    });
-
-    describe('false variant', () => {
-      it('is the variant of the split that is not the true_variant', () => {
-        const config = setupConfig();
-        const abConfiguration = new ABConfiguration({
-          splitName: 'button_color',
-          trueVariant: 'red',
-          visitor: createVisitor(config)
-        });
-
-        expect(abConfiguration.getVariants().false).toBe('blue');
-      });
-
-      it('is false when there is no split_registry', () => {
-        const config = createConfig();
-
-        const abConfiguration = new ABConfiguration({
-          splitName: 'button_color',
-          trueVariant: 'red',
-          visitor: createVisitor(config)
-        });
-
-        expect(abConfiguration.getVariants().false).toBe('false');
-      });
-
-      it('is always the same if the split has more than two variants', () => {
-        const config = setupConfig();
-        const abConfiguration = new ABConfiguration({
-          splitName: 'element',
-          trueVariant: 'earth',
-          visitor: createVisitor(config)
-        });
-
-        expect(abConfiguration.getVariants().false).toBe('fire');
-      });
-
-      it('is false if only one variant in the split', () => {
-        const config = setupConfig();
-        const abConfiguration = new ABConfiguration({
-          splitName: 'new_feature',
-          // @ts-expect-error Testing null value
-          trueVariant: null,
-          visitor: createVisitor(config)
-        });
-
-        expect(abConfiguration.getVariants().false).toBe('false');
-      });
+      expect(variants.false).toBe('false');
     });
   });
 });

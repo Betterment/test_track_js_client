@@ -132,16 +132,13 @@ class Visitor {
     const assignment = this._getAssignmentFor(splitName, context);
     const vary = new VaryDSL({
       assignment,
-      visitor: this
+      visitor: this,
+      defaultVariant
     });
 
     for (const variant in variants) {
       if (variants.hasOwnProperty(variant)) {
-        if (variant === defaultVariant) {
-          vary.default(variant, variants[variant]);
-        } else {
-          vary.when(variant, variants[variant]);
-        }
+        vary.when(variant, variants[variant]);
       }
     }
 

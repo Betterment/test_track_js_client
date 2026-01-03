@@ -4,6 +4,7 @@ import Visitor from './visitor';
 export type VaryDSLOptions = {
   assignment: Assignment;
   visitor: Visitor;
+  defaultVariant: string;
 };
 
 type Handler = () => void;
@@ -14,36 +15,29 @@ class VaryDSL {
   private _variantHandlers: {
     [variant: string]: () => void;
   };
-  private _defaultVariant?: string;
+  private _defaultVariant: string;
 
   constructor(options: VaryDSLOptions) {
     this._assignment = options.assignment;
     this._visitor = options.visitor;
+    this._defaultVariant = options.defaultVariant;
 
     this._variantHandlers = {};
   }
 
   when(variant: string, handler: Handler) {
-    this._assignHandlerToVariant(variant, handler);
-  }
-
-  default(variant: string, handler: Handler) {
-    if (this._defaultVariant) {
-      throw new Error('must provide exactly one `default`');
+    const split = this._visitor.config.splitRegistry.getSplit(this._assignment.getSplitName());
+    if (split && !split.hasVariant(variant)) {
+      this._visitor.logError('configures unknown variant ' + variant);
     }
 
-    this._defaultVariant = this._assignHandlerToVariant(variant, handler);
+    this._variantHandlers[variant] = handler;
   }
 
   run() {
-    const defaultVariant = this._defaultVariant;
-    if (!defaultVariant) {
-      throw new Error('must provide exactly one `default`');
-    }
-
     this._validate();
 
-    let chosenHandler = this._variantHandlers[defaultVariant];
+    let chosenHandler = this._variantHandlers[this._defaultVariant];
     const assignedVariant = this._assignment.getVariant();
 
     let isDefaulted = false;
@@ -56,17 +50,6 @@ class VaryDSL {
     chosenHandler();
 
     return { isDefaulted };
-  }
-
-  _assignHandlerToVariant(variant: string, handler: Handler) {
-    const split = this._visitor.config.splitRegistry.getSplit(this._assignment.getSplitName());
-    if (split && !split.hasVariant(variant)) {
-      this._visitor.logError('configures unknown variant ' + variant);
-    }
-
-    this._variantHandlers[variant] = handler;
-
-    return variant;
   }
 
   _validate() {

@@ -6,7 +6,7 @@ import { saveIdentifier } from './identifier';
 import MixpanelAnalytics from './mixpanelAnalytics';
 import { v4 as uuid } from 'uuid';
 import { calculateVariant } from './calculateVariant';
-import VaryDSL, { type Variants } from './varyDSL';
+import { vary, type Variants } from './vary';
 import type { Config } from './config';
 
 export type VaryOptions = {
@@ -117,23 +117,17 @@ class Visitor {
     return this._assignmentRegistry;
   }
 
-  vary(splitName: string, options: VaryOptions) {
+  vary(splitName: string, options: VaryOptions): void {
     const defaultVariant = options.defaultVariant.toString();
     const { variants, context } = options;
 
-    if (!variants.hasOwnProperty(defaultVariant)) {
-      throw new Error('defaultVariant: ' + defaultVariant + ' must be represented in variants object');
-    }
-
     const assignment = this._getAssignmentFor(splitName, context);
-    const vary = new VaryDSL({
+    const { isDefaulted } = vary({
       assignment,
       visitor: this,
       defaultVariant,
       variants
     });
-
-    const { isDefaulted } = vary.run();
 
     if (isDefaulted) {
       assignment.setVariant(defaultVariant);

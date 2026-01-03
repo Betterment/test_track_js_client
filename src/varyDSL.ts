@@ -77,7 +77,8 @@ class VaryDSL {
   _assignHandlerToVariant(variant: string, handler: Handler) {
     variant = variant.toString();
 
-    if (this._getSplit() && !this._getSplit().hasVariant(variant)) {
+    const split = this._getSplit();
+    if (split && !split.hasVariant(variant)) {
       this._visitor.logError('configures unknown variant ' + variant);
     }
 
@@ -114,7 +115,7 @@ class VaryDSL {
   _getMissingVariants() {
     const variants = this._getVariants();
     const split = this._getSplit();
-    const splitVariants = split.getVariants();
+    const splitVariants = split!.getVariants();
     return splitVariants.filter(variant => !variants.includes(variant));
   }
 }

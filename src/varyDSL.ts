@@ -15,7 +15,6 @@ class VaryDSL {
     [variant: string]: () => void;
   };
   private _defaultVariant?: string;
-  private _defaulted?: boolean;
 
   constructor(options: VaryDSLOptions) {
     this._assignment = options.assignment;
@@ -47,17 +46,16 @@ class VaryDSL {
     let chosenHandler = this._variantHandlers[defaultVariant];
     const assignedVariant = this._assignment.getVariant();
 
+    let isDefaulted = false;
     if (assignedVariant && this._variantHandlers[assignedVariant]) {
       chosenHandler = this._variantHandlers[assignedVariant];
     } else {
-      this._defaulted = true;
+      isDefaulted = true;
     }
 
     chosenHandler();
-  }
 
-  isDefaulted() {
-    return this._defaulted || false;
+    return { isDefaulted };
   }
 
   getDefaultVariant() {

@@ -143,9 +143,9 @@ class Visitor {
       }
     }
 
-    vary.run();
+    const { isDefaulted } = vary.run();
 
-    if (vary.isDefaulted()) {
+    if (isDefaulted) {
       assignment.setVariant(vary.getDefaultVariant()!);
       assignment.setUnsynced(true);
       assignment.setContext(context);

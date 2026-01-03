@@ -231,11 +231,10 @@ describe('VaryDSL', () => {
       vary.when('fire', whenHandler);
       vary.default('water', defaultHandler);
 
-      vary.run();
+      expect(vary.run()).toEqual({ isDefaulted: true });
 
       expect(defaultHandler).toHaveBeenCalled();
       expect(whenHandler).not.toHaveBeenCalled();
-      expect(vary.isDefaulted()).toBe(true);
     });
 
     it('is not defaulted if the assigned variant is represented as the default', () => {
@@ -247,11 +246,10 @@ describe('VaryDSL', () => {
       vary.when('water', whenHandler);
       vary.default('earth', defaultHandler);
 
-      vary.run();
+      expect(vary.run()).toEqual({ isDefaulted: false });
 
       expect(defaultHandler).toHaveBeenCalled();
       expect(whenHandler).not.toHaveBeenCalled();
-      expect(vary.isDefaulted()).toBe(false);
     });
 
     it('logs an error if not all variants are represented', () => {

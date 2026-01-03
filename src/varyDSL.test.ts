@@ -114,7 +114,8 @@ describe('VaryDSL', () => {
 
       vary.default('water', function () {});
 
-      expect(vary.getDefaultVariant()).toBe('water');
+      // @ts-expect-error Private property
+      expect(vary._defaultVariant).toBe('water');
     });
 
     it('adds the variant to the _variantHandlers object', () => {

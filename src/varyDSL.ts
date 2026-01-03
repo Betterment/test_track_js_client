@@ -58,10 +58,6 @@ class VaryDSL {
     return { isDefaulted };
   }
 
-  getDefaultVariant() {
-    return this._defaultVariant;
-  }
-
   _assignHandlerToVariant(variant: string, handler: Handler) {
     const split = this._visitor.config.splitRegistry.getSplit(this._assignment.getSplitName());
     if (split && !split.hasVariant(variant)) {

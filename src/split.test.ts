@@ -12,10 +12,10 @@ describe('Split', () => {
     });
   });
 
-  describe('.getWeighting()', () => {
+  describe('.weighting', () => {
     it('returns the weightings hash', () => {
       const split = createSplit();
-      expect(split.getWeighting()).toEqual({ foo: 50, bar: 50, baz: 0 });
+      expect(split.weighting).toEqual({ foo: 50, bar: 50, baz: 0 });
     });
   });
 

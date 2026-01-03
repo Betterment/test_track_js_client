@@ -12,7 +12,7 @@ class SplitRegistry {
 
   constructor(splitArray: Split[] | null) {
     this._loaded = splitArray !== null;
-    this._splits = Object.fromEntries((splitArray || []).map(split => [split.getName(), split]));
+    this._splits = Object.fromEntries((splitArray || []).map(split => [split.name, split]));
   }
 
   getSplit(splitName: string): Split | undefined {
@@ -24,9 +24,7 @@ class SplitRegistry {
   }
 
   asV1Hash(): V1Hash {
-    return Object.fromEntries(
-      Object.entries(this._splits).map(([splitName, split]) => [splitName, split.getWeighting()])
-    );
+    return Object.fromEntries(Object.entries(this._splits).map(([splitName, split]) => [splitName, split.weighting]));
   }
 }
 

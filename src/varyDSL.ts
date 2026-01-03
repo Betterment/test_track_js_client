@@ -37,13 +37,12 @@ class VaryDSL {
   }
 
   run() {
-    this._validate();
-
-    const defaultVariant = this.getDefaultVariant();
-
-    if (typeof defaultVariant === 'undefined') {
+    const defaultVariant = this._defaultVariant;
+    if (!defaultVariant) {
       throw new Error('must provide exactly one `default`');
     }
+
+    this._validate();
 
     let chosenHandler = this._variantHandlers[defaultVariant];
     const assignedVariant = this._assignment.getVariant();
@@ -77,10 +76,6 @@ class VaryDSL {
   }
 
   _validate() {
-    if (!this.getDefaultVariant()) {
-      throw new Error('must provide exactly one `default`');
-    }
-
     const configuredVariants = Object.getOwnPropertyNames(this._variantHandlers);
     if (configuredVariants.length < 2) {
       throw new Error('must provide at least one `when`');

@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 import Assignment from './assignment';
-import AssignmentOverride from './assignmentOverride';
+import { persistAssignmentOverride } from './assignmentOverride';
 import { type Config, loadConfig, parseConfig, type RawConfig } from './config';
 import Visitor, { type VaryOptions, type AbOptions } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
@@ -120,7 +120,7 @@ class Session {
 
         persistAssignment: (splitName: string, variant: string, username: string, password: string) =>
           this._visitorLoaded.then(function (visitor) {
-            return new AssignmentOverride({
+            return persistAssignmentOverride({
               visitor,
               username,
               password,
@@ -130,7 +130,7 @@ class Session {
                 context: 'chrome_extension',
                 isUnsynced: true
               })
-            }).persistAssignment();
+            });
           })
       }
     };

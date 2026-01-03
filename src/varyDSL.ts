@@ -66,7 +66,7 @@ class VaryDSL {
   }
 
   _assignHandlerToVariant(variant: string, handler: Handler) {
-    const split = this._getSplit();
+    const split = this._visitor.config.splitRegistry.getSplit(this._assignment.getSplitName());
     if (split && !split.hasVariant(variant)) {
       this._visitor.logError('configures unknown variant ' + variant);
     }
@@ -79,33 +79,24 @@ class VaryDSL {
   _validate() {
     if (!this.getDefaultVariant()) {
       throw new Error('must provide exactly one `default`');
-    } else if (this._getVariants().length < 2) {
+    }
+
+    const configuredVariants = Object.getOwnPropertyNames(this._variantHandlers);
+    if (configuredVariants.length < 2) {
       throw new Error('must provide at least one `when`');
-    } else if (!this._getSplit()) {
+    }
+
+    const split = this._visitor.config.splitRegistry.getSplit(this._assignment.getSplitName());
+    if (!split) {
       return;
     }
 
-    const missingVariants = this._getMissingVariants();
+    const missingVariants = split.getVariants().filter(variant => !configuredVariants.includes(variant));
 
     if (missingVariants.length > 0) {
       const missingVariantSentence = missingVariants.join(', ').replace(/, (.+)$/, ' and $1');
       this._visitor.logError('does not configure variants ' + missingVariantSentence);
     }
-  }
-
-  _getSplit() {
-    return this._visitor.config.splitRegistry.getSplit(this._assignment.getSplitName());
-  }
-
-  _getVariants() {
-    return Object.getOwnPropertyNames(this._variantHandlers);
-  }
-
-  _getMissingVariants() {
-    const variants = this._getVariants();
-    const split = this._getSplit();
-    const splitVariants = split!.getVariants();
-    return splitVariants.filter(variant => !variants.includes(variant));
   }
 }
 

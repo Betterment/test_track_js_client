@@ -13,12 +13,6 @@ class VariantCalculator {
   constructor(options: VariantCalculatorOptions) {
     this.visitor = options.visitor;
     this.splitName = options.splitName;
-
-    if (!this.visitor) {
-      throw new Error('must provide visitor');
-    } else if (!this.splitName) {
-      throw new Error('must provide splitName');
-    }
   }
 
   getVariant() {

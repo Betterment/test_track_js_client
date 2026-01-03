@@ -97,12 +97,6 @@ class Visitor {
     this._assignments = assignments;
     this._ttOffline = ttOffline;
 
-    if (!this._id) {
-      throw new Error('must provide id');
-    } else if (!this._assignments) {
-      throw new Error('must provide assignments');
-    }
-
     this._errorLogger = function (errorMessage) {
       window.console.error(errorMessage);
     };
@@ -128,14 +122,6 @@ class Visitor {
   }
 
   vary(splitName: string, options: VaryOptions) {
-    if (typeof options.variants !== 'object') {
-      throw new Error('must provide variants object to `vary` for ' + splitName);
-    } else if (!options.context) {
-      throw new Error('must provide context to `vary` for ' + splitName);
-    } else if (!options.defaultVariant && options.defaultVariant !== false) {
-      throw new Error('must provide defaultVariant to `vary` for ' + splitName);
-    }
-
     const defaultVariant = options.defaultVariant.toString();
     const { variants, context } = options;
 
@@ -195,10 +181,6 @@ class Visitor {
   }
 
   setErrorLogger(errorLogger: (errorMessage: string) => void) {
-    if (typeof errorLogger !== 'function') {
-      throw new Error('must provide function for errorLogger');
-    }
-
     this._errorLogger = errorLogger;
   }
 
@@ -221,11 +203,7 @@ class Visitor {
   }
 
   setAnalytics(analytics: MixpanelAnalytics) {
-    if (typeof analytics !== 'object') {
-      throw new Error('must provide object for setAnalytics');
-    } else {
-      this.analytics = analytics;
-    }
+    this.analytics = analytics;
   }
 
   notifyUnsyncedAssignments() {

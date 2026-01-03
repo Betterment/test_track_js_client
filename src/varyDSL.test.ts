@@ -27,19 +27,6 @@ function createVisitor(config: Config) {
 }
 
 describe('VaryDSL', () => {
-  it('requires an assignment', () => {
-    const config = setupConfig();
-    const visitor = createVisitor(config);
-    // @ts-expect-error Testing missing required property
-    expect(() => new VaryDSL({ visitor })).toThrow('must provide assignment');
-  });
-
-  it('requires a visitor', () => {
-    const assignment = createAssignment();
-    // @ts-expect-error Testing missing required property
-    expect(() => new VaryDSL({ assignment })).toThrow('must provide visitor');
-  });
-
   describe('#when()', () => {
     it('throws an error if no variants are provided', () => {
       const config = setupConfig();
@@ -50,17 +37,6 @@ describe('VaryDSL', () => {
       expect(() => {
         vary.when(function () {});
       }).toThrow('must provide at least one variant');
-    });
-
-    it('throws an error if handler is not provided', () => {
-      const config = setupConfig();
-      const assignment = createAssignment();
-      const visitor = createVisitor(config);
-      const vary = new VaryDSL({ assignment, visitor });
-
-      expect(() => {
-        vary.when('earth');
-      }).toThrow('must provide handler for earth');
     });
 
     it('supports multiple variants', () => {
@@ -132,18 +108,6 @@ describe('VaryDSL', () => {
   });
 
   describe('#default()', () => {
-    it('throws an error if handler is not provided', () => {
-      const config = setupConfig();
-      const assignment = createAssignment();
-      const visitor = createVisitor(config);
-      const vary = new VaryDSL({ assignment, visitor });
-
-      expect(() => {
-        // @ts-expect-error Testing missing required argument
-        vary.default('earth');
-      }).toThrow('must provide handler for earth');
-    });
-
     it('throws an error if default is called more than once', () => {
       const config = setupConfig();
       const assignment = createAssignment();

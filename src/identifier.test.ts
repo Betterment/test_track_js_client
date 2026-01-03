@@ -43,27 +43,6 @@ describe('Identifier', () => {
     );
   });
 
-  it('requires a visitorId', () => {
-    expect(() => {
-      // @ts-expect-error Testing missing required property
-      new Identifier({ config: createConfig(), identifierType: 'myappdb_user_id', value: 444 });
-    }).toThrow('must provide visitorId');
-  });
-
-  it('requires a identifierType', () => {
-    expect(() => {
-      // @ts-expect-error Testing missing required property
-      new Identifier({ config: createConfig(), visitorId: 'visitorId', value: 444 });
-    }).toThrow('must provide identifierType');
-  });
-
-  it('requires a value', () => {
-    expect(() => {
-      // @ts-expect-error Testing missing required property
-      new Identifier({ config: createConfig(), visitorId: 'visitorId', identifierType: 'myappdb_user_id' });
-    }).toThrow('must provide value');
-  });
-
   describe('#save()', () => {
     it('hits the test track server with the correct parameters', async () => {
       const identifier = createIdentifier();

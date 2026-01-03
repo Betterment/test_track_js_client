@@ -29,32 +29,6 @@ function createVisitor(config: Config) {
 }
 
 describe('ABConfiguration', () => {
-  it('requires a splitName', () => {
-    const config = setupConfig();
-    const visitor = createVisitor(config);
-
-    expect(() => {
-      // @ts-expect-error Testing missing required property
-      new ABConfiguration({ trueVariant: 'red', visitor: visitor });
-    }).toThrow('must provide splitName');
-  });
-
-  it('requires an trueVariant', () => {
-    const config = setupConfig();
-    const visitor = createVisitor(config);
-
-    expect(() => {
-      new ABConfiguration({ splitName: 'button_color', visitor: visitor });
-    }).toThrow('must provide trueVariant');
-  });
-
-  it('requires a visitor', () => {
-    expect(() => {
-      // @ts-expect-error Testing missing required property
-      new ABConfiguration({ splitName: 'button_color', trueVariant: 'red' });
-    }).toThrow('must provide visitor');
-  });
-
   it('allows a null trueVariant', () => {
     const config = setupConfig();
     const visitor = createVisitor(config);

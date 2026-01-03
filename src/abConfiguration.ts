@@ -12,14 +12,6 @@ class ABConfiguration {
   private _visitor: Visitor;
 
   constructor(options: ABConfigurationOptions) {
-    if (!options.splitName) {
-      throw new Error('must provide splitName');
-    } else if (!options.hasOwnProperty('trueVariant')) {
-      throw new Error('must provide trueVariant');
-    } else if (!options.visitor) {
-      throw new Error('must provide visitor');
-    }
-
     this._splitName = options.splitName;
     this._trueVariant = options.trueVariant;
     this._visitor = options.visitor;

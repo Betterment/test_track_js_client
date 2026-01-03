@@ -31,18 +31,6 @@ describe('AssignmentNotification', () => {
     );
   });
 
-  it('requires a visitor', () => {
-    const assignment = createAssignment();
-    // @ts-expect-error Intentionally passing the wrong types
-    expect(() => new AssignmentNotification({ assignment })).toThrow('must provide visitor');
-  });
-
-  it('requires an assignment', () => {
-    const visitor = createVisitor({ trackSuccess: true });
-    // @ts-expect-error Intentionally passing the wrong types
-    expect(() => new AssignmentNotification({ visitor })).toThrow('must provide assignment');
-  });
-
   describe('#send()', () => {
     it('tracks an event', () => {
       const visitor = createVisitor({ trackSuccess: true });

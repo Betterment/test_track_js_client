@@ -30,14 +30,6 @@ class Identifier {
     this.visitorId = options.visitorId;
     this.identifierType = options.identifierType;
     this.value = options.value;
-
-    if (!this.visitorId) {
-      throw new Error('must provide visitorId');
-    } else if (!this.identifierType) {
-      throw new Error('must provide identifierType');
-    } else if (!this.value) {
-      throw new Error('must provide value');
-    }
   }
 
   save() {

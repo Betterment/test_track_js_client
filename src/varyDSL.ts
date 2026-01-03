@@ -20,12 +20,6 @@ class VaryDSL {
   private _defaulted?: boolean;
 
   constructor(options: VaryDSLOptions) {
-    if (!options.assignment) {
-      throw new Error('must provide assignment');
-    } else if (!options.visitor) {
-      throw new Error('must provide visitor');
-    }
-
     this._assignment = options.assignment;
     this._visitor = options.visitor;
 

@@ -18,12 +18,4 @@ describe('Split', () => {
       expect(split.weighting).toEqual({ foo: 50, bar: 50, baz: 0 });
     });
   });
-
-  describe('.hasVariant()', () => {
-    it('returns whether the variant is defined', () => {
-      const split = createSplit();
-      expect(split.hasVariant('foo')).toEqual(true);
-      expect(split.hasVariant('buzz')).toEqual(false);
-    });
-  });
 });

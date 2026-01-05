@@ -1,7 +1,7 @@
 import Cookies from 'js-cookie';
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
-import { type Config, loadConfig, parseConfig, type RawConfig } from './config';
+import { loadConfig, parseConfig, type RawConfig } from './config';
 import Visitor, { type VaryOptions, type AbOptions } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 
@@ -19,7 +19,6 @@ export type Registry = {
 };
 
 class Session {
-  private _config!: Config;
   private _visitorLoaded: PromiseLike<Visitor>;
 
   constructor() {
@@ -27,11 +26,10 @@ class Session {
   }
 
   initialize(options: SessionOptions) {
-    this._config = options.config ? parseConfig(options.config) : loadConfig();
+    const config = options.config ? parseConfig(options.config) : loadConfig();
+    const visitorId = Cookies.get(config.cookieName);
 
-    const visitorId = Cookies.get(this._config.cookieName);
-
-    Visitor.loadVisitor(this._config, visitorId).then(visitor => {
+    Visitor.loadVisitor(config, visitorId).then(visitor => {
       if (options && options.analytics) {
         visitor.setAnalytics(options.analytics);
       }
@@ -88,10 +86,10 @@ class Session {
 
   _setCookie() {
     return this._visitorLoaded.then(visitor => {
-      Cookies.set(this._config.cookieName, visitor.getId(), {
+      Cookies.set(visitor.config.cookieName, visitor.getId(), {
         expires: 365,
         path: '/',
-        domain: this._config.cookieDomain
+        domain: visitor.config.cookieDomain
       });
     });
   }
@@ -113,7 +111,7 @@ class Session {
 
             return {
               visitorId: visitor.getId(),
-              splitRegistry: this._config.splitRegistry.asV1Hash(),
+              splitRegistry: visitor.config.splitRegistry.asV1Hash(),
               assignmentRegistry: assignmentRegistry
             };
           }),

@@ -4,11 +4,13 @@ import Visitor from './visitor';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 import { createConfig } from './test-utils';
+import type { Config } from './config';
 
-function createVisitor() {
-  const visitor = new Visitor({ config: createConfig(), id: 'visitorId', assignments: [] });
+function createVisitor(): { visitor: Visitor; config: Config } {
+  const config = createConfig();
+  const visitor = new Visitor({ config, id: 'visitorId', assignments: [] });
   visitor.logError = vi.fn();
-  return visitor;
+  return { visitor, config };
 }
 
 function createAssignment() {
@@ -25,10 +27,11 @@ describe('persistAssignmentOverride', () => {
   });
 
   it('creates an assignment on the test track server', async () => {
-    const visitor = createVisitor();
+    const { visitor, config } = createVisitor();
     const assignment = createAssignment();
 
     await persistAssignmentOverride({
+      config,
       visitor,
       assignment,
       username: 'the_username',
@@ -49,10 +52,11 @@ describe('persistAssignmentOverride', () => {
       })
     );
 
-    const visitor = createVisitor();
+    const { visitor, config } = createVisitor();
     const assignment = createAssignment();
 
     await persistAssignmentOverride({
+      config,
       visitor,
       assignment,
       username: 'the_username',
@@ -71,10 +75,11 @@ describe('persistAssignmentOverride', () => {
       })
     );
 
-    const visitor = createVisitor();
+    const { visitor, config } = createVisitor();
     const assignment = createAssignment();
 
     await persistAssignmentOverride({
+      config,
       visitor,
       assignment,
       username: 'the_username',

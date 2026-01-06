@@ -99,7 +99,7 @@ export function createSession() {
       async persistAssignment(splitName: string, variant: string, username: string, password: string): Promise<void> {
         const visitor = await visitorLoaded;
         const assignment = new Assignment({ splitName, variant, context: 'chrome_extension', isUnsynced: true });
-        await persistAssignmentOverride({ visitor, username, password, assignment });
+        await persistAssignmentOverride({ config: visitor.config, visitor, username, password, assignment });
       }
     }
   };

@@ -1,15 +1,20 @@
-import Cookies from 'js-cookie';
 import Assignment from './assignment';
 import { persistAssignmentOverride } from './assignmentOverride';
 import { loadConfig } from './config';
 import Visitor, { type AbOptions, type VaryOptions } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { V1Hash } from './splitRegistry';
+import { createCookieStorage, type Storage } from './storage';
 
 type SessionOptions = {
   analytics?: AnalyticsProvider;
   errorLogger?: (errorMessage: string) => void;
   onVisitorLoaded?: (visitor: Visitor) => void;
+};
+
+type SessionContext = {
+  visitor: Visitor;
+  storage: Storage;
 };
 
 type CrxInfo = {
@@ -18,22 +23,15 @@ type CrxInfo = {
   assignmentRegistry: Record<string, string | null>;
 };
 
-function setCookie(visitor: Visitor): void {
-  Cookies.set(visitor.config.cookieName, visitor.getId(), {
-    expires: 365,
-    path: '/',
-    domain: visitor.config.cookieDomain
-  });
-}
-
 export function createSession() {
-  let resolveVisitor: (visitor: Visitor) => void;
-  const visitorLoaded = new Promise<Visitor>(resolve => (resolveVisitor = resolve));
+  let resolveContext: (context: SessionContext) => void;
+  const sessionContext = new Promise<SessionContext>(resolve => (resolveContext = resolve));
 
   return {
     async initialize(options: SessionOptions): Promise<Visitor> {
       const config = loadConfig();
-      const visitorId = Cookies.get(config.cookieName);
+      const storage = createCookieStorage(config);
+      const visitorId = storage.getVisitorId();
       const visitor = await Visitor.loadVisitor(config, visitorId);
 
       if (options.analytics) {
@@ -50,39 +48,39 @@ export function createSession() {
 
       visitor.notifyUnsyncedAssignments();
 
-      resolveVisitor(visitor);
-      setCookie(visitor);
+      resolveContext({ visitor, storage });
+      storage.setVisitorId(visitor.getId());
 
       return visitor;
     },
 
     async vary(splitName: string, options: VaryOptions): Promise<void> {
-      const visitor = await visitorLoaded;
+      const { visitor } = await sessionContext;
       visitor.vary(splitName, options);
     },
 
     async ab(splitName: string, options: AbOptions): Promise<void> {
-      const visitor = await visitorLoaded;
+      const { visitor } = await sessionContext;
       visitor.ab(splitName, options);
     },
 
     async logIn(identifierType: string, value: number): Promise<void> {
-      const visitor = await visitorLoaded;
+      const { visitor, storage } = await sessionContext;
       await visitor.linkIdentifier(identifierType, value);
-      setCookie(visitor);
+      storage.setVisitorId(visitor.getId());
       visitor.analytics.identify(visitor.getId());
     },
 
     async signUp(identifierType: string, value: number): Promise<void> {
-      const visitor = await visitorLoaded;
+      const { visitor, storage } = await sessionContext;
       await visitor.linkIdentifier(identifierType, value);
-      setCookie(visitor);
+      storage.setVisitorId(visitor.getId());
       visitor.analytics.alias(visitor.getId());
     },
 
     _crx: {
       async loadInfo(): Promise<CrxInfo> {
-        const visitor = await visitorLoaded;
+        const { visitor } = await sessionContext;
 
         return {
           visitorId: visitor.getId(),
@@ -97,7 +95,7 @@ export function createSession() {
       },
 
       async persistAssignment(splitName: string, variant: string, username: string, password: string): Promise<void> {
-        const visitor = await visitorLoaded;
+        const { visitor } = await sessionContext;
         const assignment = new Assignment({ splitName, variant, context: 'chrome_extension', isUnsynced: true });
         await persistAssignmentOverride({ config: visitor.config, visitor, username, password, assignment });
       }

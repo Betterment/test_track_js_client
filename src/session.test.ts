@@ -105,24 +105,6 @@ describe('Session', () => {
         expect(setErrorLoggerSpy).toHaveBeenCalledTimes(1);
         expect(setErrorLoggerSpy).toHaveBeenCalledWith(errorLogger);
       });
-
-      it('does not use window.TT when config is provided', async () => {
-        window.TT = undefined;
-        // @ts-expect-error Cookies.get returns different types depending on arguments
-        vi.mocked(Cookies.get).mockReturnValue(undefined);
-        // @ts-expect-error uuid returns different types depending on arguments
-        vi.mocked(uuid).mockReturnValue('new_visitor_id');
-
-        const visitor = await new Session().getPublicAPI().initialize({
-          config: {
-            url: 'http://localhost:3000',
-            cookieDomain: 'localhost',
-            experienceSamplingWeight: 1
-          }
-        });
-
-        expect(visitor.config.cookieDomain).toEqual('localhost');
-      });
     });
 
     describe('#logIn()', () => {

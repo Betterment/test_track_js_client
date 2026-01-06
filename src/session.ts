@@ -1,14 +1,13 @@
 import Cookies from 'js-cookie';
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
-import { loadConfig, parseConfig, type RawConfig } from './config';
+import { loadConfig } from './config';
 import Visitor, { type VaryOptions, type AbOptions } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 
 let loaded: null | ((value: Visitor | PromiseLike<Visitor>) => void) = null;
 
 type SessionOptions = {
-  config?: RawConfig;
   analytics?: AnalyticsProvider;
   errorLogger?: (errorMessage: string) => void;
   onVisitorLoaded?: (visitor: Visitor) => void;
@@ -26,7 +25,7 @@ class Session {
   }
 
   initialize(options: SessionOptions) {
-    const config = options.config ? parseConfig(options.config) : loadConfig();
+    const config = loadConfig();
     const visitorId = Cookies.get(config.cookieName);
 
     Visitor.loadVisitor(config, visitorId).then(visitor => {

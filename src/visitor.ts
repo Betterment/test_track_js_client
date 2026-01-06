@@ -250,6 +250,7 @@ class Visitor {
 
       // Potential bug here: This function returns a promise.
       sendAssignmentNotification({
+        config: this.config,
         visitor: this,
         assignment
       });

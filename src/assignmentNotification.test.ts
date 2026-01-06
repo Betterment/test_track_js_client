@@ -4,9 +4,11 @@ import Visitor from './visitor';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 import { createConfig } from './test-utils';
+import type { Config } from './config';
 
-function createVisitor(options: { trackSuccess: boolean }) {
-  const visitor = new Visitor({ config: createConfig(), id: 'visitorId', assignments: [] });
+function createVisitor(options: { trackSuccess: boolean }): { visitor: Visitor; config: Config } {
+  const config = createConfig();
+  const visitor = new Visitor({ config, id: 'visitorId', assignments: [] });
 
   visitor.setAnalytics({
     identify: vi.fn(),
@@ -15,7 +17,7 @@ function createVisitor(options: { trackSuccess: boolean }) {
   });
   visitor.logError = vi.fn();
 
-  return visitor;
+  return { visitor, config };
 }
 
 function createAssignment() {
@@ -32,20 +34,20 @@ describe('sendAssignmentNotification', () => {
   });
 
   it('tracks an event', async () => {
-    const visitor = createVisitor({ trackSuccess: true });
+    const { visitor, config } = createVisitor({ trackSuccess: true });
     const assignment = createAssignment();
 
-    await sendAssignmentNotification({ visitor, assignment });
+    await sendAssignmentNotification({ config, visitor, assignment });
 
     expect(visitor.analytics.trackAssignment).toHaveBeenCalledTimes(1);
     expect(visitor.analytics.trackAssignment).toHaveBeenCalledWith('visitorId', assignment, expect.any(Function));
   });
 
   it('notifies the test track server with an analytics success', async () => {
-    const visitor = createVisitor({ trackSuccess: true });
+    const { visitor, config } = createVisitor({ trackSuccess: true });
     const assignment = createAssignment();
 
-    await sendAssignmentNotification({ visitor, assignment });
+    await sendAssignmentNotification({ config, visitor, assignment });
     expect(requests.length).toBe(2);
     expect(await requests[0].text()).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
     expect(await requests[1].text()).toEqual(
@@ -54,10 +56,10 @@ describe('sendAssignmentNotification', () => {
   });
 
   it('notifies the test track server with an analytics failure', async () => {
-    const visitor = createVisitor({ trackSuccess: false });
+    const { visitor, config } = createVisitor({ trackSuccess: false });
     const assignment = createAssignment();
 
-    await sendAssignmentNotification({ visitor, assignment });
+    await sendAssignmentNotification({ config, visitor, assignment });
     expect(requests.length).toBe(2);
     expect(await requests[0].text()).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
     expect(await requests[1].text()).toEqual(
@@ -72,10 +74,10 @@ describe('sendAssignmentNotification', () => {
       })
     );
 
-    const visitor = createVisitor({ trackSuccess: false });
+    const { visitor, config } = createVisitor({ trackSuccess: false });
     const assignment = createAssignment();
 
-    await sendAssignmentNotification({ visitor, assignment });
+    await sendAssignmentNotification({ config, visitor, assignment });
     expect(visitor.logError).toHaveBeenCalledTimes(2);
     expect(visitor.logError).toHaveBeenCalledWith(
       'test_track persistAssignment error: Error: HTTP request failed with 500 status'
@@ -89,10 +91,10 @@ describe('sendAssignmentNotification', () => {
       })
     );
 
-    const visitor = createVisitor({ trackSuccess: true });
+    const { visitor, config } = createVisitor({ trackSuccess: true });
     const assignment = createAssignment();
 
-    await sendAssignmentNotification({ visitor, assignment });
+    await sendAssignmentNotification({ config, visitor, assignment });
     expect(visitor.logError).toHaveBeenCalledTimes(2);
     expect(visitor.logError).toHaveBeenCalledWith('test_track persistAssignment error: TypeError: Failed to fetch');
   });

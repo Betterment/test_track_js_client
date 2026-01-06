@@ -13,6 +13,28 @@
       }
     </style>
 
+    <!-- Assign `window.TT` -->
+    <script>
+      window.TT = btoa(
+        JSON.stringify({
+          url: 'http://localhost:8297',
+          cookieDomain: 'localhost',
+          cookieName: 'tt_visitor_id',
+          experienceSamplingWeight: 1,
+          splits: {
+            button_color: {
+              feature_gate: false,
+              weights: { blue: 50, red: 50 }
+            },
+            new_feature: {
+              feature_gate: true,
+              weights: { true: 50, false: 50 }
+            }
+          }
+        })
+      );
+    </script>
+
     <!-- Load the library -->
     <script src="dist/index.iife.js"></script>
 
@@ -49,25 +71,7 @@
       }
 
       // Initialize
-      const visitor = await TestTrack.initialize({
-        config: {
-          url: 'http://localhost:8297',
-          cookieDomain: 'localhost',
-          cookieName: 'tt_visitor_id',
-          experienceSamplingWeight: 1,
-          splits: {
-            button_color: {
-              feature_gate: false,
-              weights: { blue: 50, red: 50 }
-            },
-            new_feature: {
-              feature_gate: true,
-              weights: { true: 50, false: 50 }
-            }
-          }
-        }
-      });
-
+      const visitor = await TestTrack.initialize();
       const visitorId = visitor.getId();
       visitorIdEl.textContent = visitorId;
       await runSplits();

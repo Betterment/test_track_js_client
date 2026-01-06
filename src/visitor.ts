@@ -215,7 +215,11 @@ class Visitor {
   }
 
   _generateAssignmentFor(splitName: string, context: string) {
-    const variant = calculateVariant(this, splitName);
+    const variant = calculateVariant({
+      visitor: this,
+      splitRegistry: this.config.splitRegistry,
+      splitName
+    });
 
     if (!variant) {
       this._ttOffline = true;

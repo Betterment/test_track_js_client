@@ -73,7 +73,7 @@ describe('calculateVariant()', () => {
     const config = setupConfig();
     const visitor = createVisitor(config);
 
-    const variant = calculateVariant(visitor, 'logoSize');
+    const variant = calculateVariant({ visitor, splitRegistry: config.splitRegistry, splitName: 'logoSize' });
     expect(variant).toBe('miniscule');
   });
 
@@ -81,14 +81,14 @@ describe('calculateVariant()', () => {
     const config = createConfig();
     const visitor = createVisitor(config);
 
-    expect(calculateVariant(visitor, 'logoSize')).toBeNull();
+    expect(calculateVariant({ visitor, splitRegistry: config.splitRegistry, splitName: 'logoSize' })).toBeNull();
   });
 
   it('throws and logs an error when given an unknown splitName', () => {
     const config = setupConfig();
     const visitor = createVisitor(config);
 
-    expect(() => calculateVariant(visitor, 'nonExistentSplit')).toThrow('Unknown split: "nonExistentSplit"');
+    expect(() => calculateVariant({ visitor, splitRegistry: config.splitRegistry, splitName: 'nonExistentSplit' })).toThrow('Unknown split: "nonExistentSplit"');
     expect(visitor.logError).toHaveBeenCalledTimes(1);
     expect(visitor.logError).toHaveBeenCalledWith('Unknown split: "nonExistentSplit"');
   });
@@ -97,8 +97,8 @@ describe('calculateVariant()', () => {
     const config = setupConfig();
     const visitor = createVisitor(config);
 
-    const variant1 = calculateVariant(visitor, 'logoSize');
-    const variant2 = calculateVariant(visitor, 'logoSize');
+    const variant1 = calculateVariant({ visitor, splitRegistry: config.splitRegistry, splitName: 'logoSize' });
+    const variant2 = calculateVariant({ visitor, splitRegistry: config.splitRegistry, splitName: 'logoSize' });
 
     expect(variant1).toBe(variant2);
   });

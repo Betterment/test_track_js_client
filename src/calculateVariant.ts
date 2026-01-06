@@ -1,18 +1,7 @@
 import { md5 } from 'js-md5';
 import Visitor from './visitor';
-import { getSplitVariants, type Split } from './split';
-
-function getSplit(visitor: Visitor, splitName: string): Split {
-  const split = visitor.config.splitRegistry.getSplit(splitName);
-
-  if (!split) {
-    const message = `Unknown split: "${splitName}"`;
-    visitor.logError(message);
-    throw new Error(message);
-  }
-
-  return split;
-}
+import { getSplitVariants } from './split';
+import type { SplitRegistry } from './splitRegistry';
 
 export function getAssignmentBucket(visitor: Visitor, splitName: string): number {
   const hash = md5(splitName + visitor.getId());
@@ -20,14 +9,27 @@ export function getAssignmentBucket(visitor: Visitor, splitName: string): number
   return hashFixnum % 100;
 }
 
-export function calculateVariant(visitor: Visitor, splitName: string): string | null {
-  if (!visitor.config.splitRegistry.isLoaded) {
+type CalculateVariantOptions = {
+  visitor: Visitor;
+  splitRegistry: SplitRegistry;
+  splitName: string;
+};
+
+export function calculateVariant({ visitor, splitRegistry, splitName }: CalculateVariantOptions): string | null {
+  if (!splitRegistry.isLoaded) {
     return null;
+  }
+
+  const split = splitRegistry.getSplit(splitName);
+
+  if (!split) {
+    const message = `Unknown split: "${splitName}"`;
+    visitor.logError(message);
+    throw new Error(message);
   }
 
   let bucketCeiling = 0;
   const assignmentBucket = getAssignmentBucket(visitor, splitName);
-  const split = getSplit(visitor, splitName);
   const weighting = split.weighting;
   const sortedVariants = getSplitVariants(split).sort();
 

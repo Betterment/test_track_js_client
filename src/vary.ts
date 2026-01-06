@@ -1,6 +1,7 @@
 import Assignment from './assignment';
 import { getSplitVariants } from './split';
 import Visitor from './visitor';
+import type { SplitRegistry } from './splitRegistry';
 
 type Handler = () => void;
 
@@ -13,15 +14,16 @@ type Options = {
   visitor: Visitor;
   variants: Variants;
   defaultVariant: string;
+  splitRegistry: SplitRegistry;
 };
 
-function validateVariants(visitor: Visitor, assignment: Assignment, variants: Variants): void {
+function validateVariants(visitor: Visitor, assignment: Assignment, variants: Variants, splitRegistry: SplitRegistry): void {
   const configuredVariants = Object.keys(variants);
   if (configuredVariants.length < 2) {
     throw new Error('must provide at least two variants');
   }
 
-  const split = visitor.config.splitRegistry.getSplit(assignment.getSplitName());
+  const split = splitRegistry.getSplit(assignment.getSplitName());
   if (!split) return;
 
   const splitVariants = getSplitVariants(split);
@@ -43,8 +45,8 @@ function validateDefaultVariant(variants: Variants, defaultVariant: string): voi
   }
 }
 
-export function vary({ visitor, assignment, variants, defaultVariant }: Options) {
-  validateVariants(visitor, assignment, variants);
+export function vary({ visitor, assignment, variants, defaultVariant, splitRegistry }: Options) {
+  validateVariants(visitor, assignment, variants, splitRegistry);
   validateDefaultVariant(variants, defaultVariant);
 
   const assignedVariant = assignment.getVariant();

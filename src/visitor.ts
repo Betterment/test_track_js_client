@@ -127,7 +127,8 @@ class Visitor {
       assignment,
       visitor: this,
       defaultVariant,
-      variants
+      variants,
+      splitRegistry: this.config.splitRegistry
     });
 
     if (isDefaulted) {

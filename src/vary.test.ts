@@ -36,7 +36,8 @@ describe('vary', () => {
       assignment,
       visitor,
       defaultVariant: 'leeloo_multipass',
-      variants: { leeloo_multipass: handler, water: () => {} }
+      variants: { leeloo_multipass: handler, water: () => {} },
+      splitRegistry: config.splitRegistry
     });
 
     expect(visitor.logError).toHaveBeenCalledWith('configures unknown variants: leeloo_multipass');
@@ -51,7 +52,8 @@ describe('vary', () => {
       assignment,
       visitor,
       defaultVariant: 'water',
-      variants: { leeloo_multipass: () => {}, water: () => {} }
+      variants: { leeloo_multipass: () => {}, water: () => {} },
+      splitRegistry: config.splitRegistry
     });
 
     expect(visitor.logError).not.toHaveBeenCalled();
@@ -79,7 +81,8 @@ describe('vary', () => {
         earth: () => {},
         wind: () => {},
         fire: () => {}
-      }
+      },
+      splitRegistry: config.splitRegistry
     });
 
     expect(visitor.logError).not.toHaveBeenCalled();
@@ -95,7 +98,8 @@ describe('vary', () => {
         assignment,
         visitor,
         defaultVariant: 'water',
-        variants: { water: () => {} }
+        variants: { water: () => {} },
+        splitRegistry: config.splitRegistry
       });
     }).toThrow('must provide at least two variants');
   });
@@ -112,7 +116,8 @@ describe('vary', () => {
       assignment,
       visitor,
       defaultVariant: 'water',
-      variants: { earth: whenHandler, water: defaultHandler }
+      variants: { earth: whenHandler, water: defaultHandler },
+      splitRegistry: config.splitRegistry
     });
 
     expect(whenHandler).toHaveBeenCalled();
@@ -131,7 +136,8 @@ describe('vary', () => {
       assignment,
       visitor,
       defaultVariant: 'water',
-      variants: { fire: whenHandler, water: defaultHandler }
+      variants: { fire: whenHandler, water: defaultHandler },
+      splitRegistry: config.splitRegistry
     });
 
     expect(result).toEqual({ isDefaulted: true });
@@ -151,7 +157,8 @@ describe('vary', () => {
       assignment,
       visitor,
       defaultVariant: 'earth',
-      variants: { water: whenHandler, earth: defaultHandler }
+      variants: { water: whenHandler, earth: defaultHandler },
+      splitRegistry: config.splitRegistry
     });
 
     expect(result).toEqual({ isDefaulted: false });
@@ -168,7 +175,8 @@ describe('vary', () => {
       assignment,
       visitor,
       defaultVariant: 'fire',
-      variants: { earth: vi.fn(), fire: vi.fn() }
+      variants: { earth: vi.fn(), fire: vi.fn() },
+      splitRegistry: config.splitRegistry
     });
 
     expect(visitor.logError).toHaveBeenCalledWith('does not configure variants: wind, water');
@@ -183,7 +191,8 @@ describe('vary', () => {
       assignment,
       visitor,
       defaultVariant: 'fire',
-      variants: { earth: vi.fn(), fire: vi.fn() }
+      variants: { earth: vi.fn(), fire: vi.fn() },
+      splitRegistry: config.splitRegistry
     });
 
     expect(visitor.logError).not.toHaveBeenCalled();

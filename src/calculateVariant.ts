@@ -21,7 +21,7 @@ export function getAssignmentBucket(visitor: Visitor, splitName: string): number
 }
 
 export function calculateVariant(visitor: Visitor, splitName: string): string | null {
-  if (!visitor.config.splitRegistry.isLoaded()) {
+  if (!visitor.config.splitRegistry.isLoaded) {
     return null;
   }
 

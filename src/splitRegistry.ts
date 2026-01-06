@@ -4,28 +4,19 @@ export type V1Hash = {
   [splitName: string]: Weighting;
 };
 
-class SplitRegistry {
-  private _loaded: boolean;
-  private _splits: {
-    [splitName: string]: Split;
+export type SplitRegistry = {
+  isLoaded: boolean;
+  getSplit: (splitName: string) => Split | undefined;
+  asV1Hash: () => V1Hash;
+};
+
+export function createSplitRegistry(input: Split[] | null): SplitRegistry {
+  const isLoaded = input !== null;
+  const splits = Object.fromEntries((input || []).map(split => [split.name, split]));
+
+  return {
+    isLoaded,
+    getSplit: splitName => splits[splitName],
+    asV1Hash: () => Object.fromEntries(Object.entries(splits).map(([splitName, split]) => [splitName, split.weighting]))
   };
-
-  constructor(splitArray: Split[] | null) {
-    this._loaded = splitArray !== null;
-    this._splits = Object.fromEntries((splitArray || []).map(split => [split.name, split]));
-  }
-
-  getSplit(splitName: string): Split | undefined {
-    return this._splits[splitName];
-  }
-
-  isLoaded(): boolean {
-    return this._loaded;
-  }
-
-  asV1Hash(): V1Hash {
-    return Object.fromEntries(Object.entries(this._splits).map(([splitName, split]) => [splitName, split.weighting]));
-  }
 }
-
-export default SplitRegistry;

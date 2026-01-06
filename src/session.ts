@@ -2,10 +2,9 @@ import Cookies from 'js-cookie';
 import Assignment from './assignment';
 import { persistAssignmentOverride } from './assignmentOverride';
 import { loadConfig } from './config';
-import Visitor, { type VaryOptions, type AbOptions } from './visitor';
+import Visitor, { type AbOptions, type VaryOptions } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
-
-let loaded: null | ((value: Visitor | PromiseLike<Visitor>) => void) = null;
+import type { V1Hash } from './splitRegistry';
 
 type SessionOptions = {
   analytics?: AnalyticsProvider;
@@ -13,125 +12,97 @@ type SessionOptions = {
   onVisitorLoaded?: (visitor: Visitor) => void;
 };
 
-export type Registry = {
-  [key: string]: boolean | string | null;
+type CrxInfo = {
+  visitorId: string;
+  splitRegistry: V1Hash;
+  assignmentRegistry: Record<string, string | null>;
 };
 
-class Session {
-  private _visitorLoaded: PromiseLike<Visitor>;
+function setCookie(visitor: Visitor): void {
+  Cookies.set(visitor.config.cookieName, visitor.getId(), {
+    expires: 365,
+    path: '/',
+    domain: visitor.config.cookieDomain
+  });
+}
 
-  constructor() {
-    this._visitorLoaded = new Promise(resolve => (loaded = resolve));
-  }
+export function createSession() {
+  let resolveVisitor: (visitor: Visitor) => void;
+  const visitorLoaded = new Promise<Visitor>(resolve => (resolveVisitor = resolve));
 
-  initialize(options: SessionOptions) {
-    const config = loadConfig();
-    const visitorId = Cookies.get(config.cookieName);
+  return {
+    async initialize(options: SessionOptions): Promise<Visitor> {
+      const config = loadConfig();
+      const visitorId = Cookies.get(config.cookieName);
+      const visitor = await Visitor.loadVisitor(config, visitorId);
 
-    Visitor.loadVisitor(config, visitorId).then(visitor => {
-      if (options && options.analytics) {
+      if (options.analytics) {
         visitor.setAnalytics(options.analytics);
       }
 
-      if (options && options.errorLogger) {
+      if (options.errorLogger) {
         visitor.setErrorLogger(options.errorLogger);
       }
 
-      if (options && typeof options.onVisitorLoaded === 'function') {
-        options.onVisitorLoaded.call(null, visitor);
+      if (options.onVisitorLoaded) {
+        options.onVisitorLoaded(visitor);
       }
 
       visitor.notifyUnsyncedAssignments();
 
-      if (loaded) {
-        loaded(visitor);
-      }
-    });
+      resolveVisitor(visitor);
+      setCookie(visitor);
 
-    this._setCookie();
+      return visitor;
+    },
 
-    return this._visitorLoaded;
-  }
-
-  vary(splitName: string, options: VaryOptions) {
-    return this._visitorLoaded.then(function (visitor) {
+    async vary(splitName: string, options: VaryOptions): Promise<void> {
+      const visitor = await visitorLoaded;
       visitor.vary(splitName, options);
-    });
-  }
+    },
 
-  ab(splitName: string, options: AbOptions) {
-    return this._visitorLoaded.then(function (visitor) {
+    async ab(splitName: string, options: AbOptions): Promise<void> {
+      const visitor = await visitorLoaded;
       visitor.ab(splitName, options);
-    });
-  }
+    },
 
-  logIn(identifierType: string, value: number) {
-    return this._visitorLoaded.then(visitor =>
-      visitor.linkIdentifier(identifierType, value).then(() => {
-        this._setCookie();
-        visitor.analytics.identify(visitor.getId());
-      })
-    );
-  }
+    async logIn(identifierType: string, value: number): Promise<void> {
+      const visitor = await visitorLoaded;
+      await visitor.linkIdentifier(identifierType, value);
+      setCookie(visitor);
+      visitor.analytics.identify(visitor.getId());
+    },
 
-  signUp(identifierType: string, value: number) {
-    return this._visitorLoaded.then(visitor =>
-      visitor.linkIdentifier(identifierType, value).then(() => {
-        this._setCookie();
-        visitor.analytics.alias(visitor.getId());
-      })
-    );
-  }
+    async signUp(identifierType: string, value: number): Promise<void> {
+      const visitor = await visitorLoaded;
+      await visitor.linkIdentifier(identifierType, value);
+      setCookie(visitor);
+      visitor.analytics.alias(visitor.getId());
+    },
 
-  _setCookie() {
-    return this._visitorLoaded.then(visitor => {
-      Cookies.set(visitor.config.cookieName, visitor.getId(), {
-        expires: 365,
-        path: '/',
-        domain: visitor.config.cookieDomain
-      });
-    });
-  }
+    _crx: {
+      async loadInfo(): Promise<CrxInfo> {
+        const visitor = await visitorLoaded;
 
-  getPublicAPI() {
-    return {
-      vary: this.vary.bind(this),
-      ab: this.ab.bind(this),
-      logIn: this.logIn.bind(this),
-      signUp: this.signUp.bind(this),
-      initialize: this.initialize.bind(this),
-      _crx: {
-        loadInfo: () =>
-          this._visitorLoaded.then(visitor => {
-            const assignmentRegistry: Registry = {};
-            for (const splitName in visitor.getAssignmentRegistry()) {
-              assignmentRegistry[splitName] = visitor.getAssignmentRegistry()[splitName].getVariant();
-            }
+        return {
+          visitorId: visitor.getId(),
+          splitRegistry: visitor.config.splitRegistry.asV1Hash(),
+          assignmentRegistry: Object.fromEntries(
+            Object.entries(visitor.getAssignmentRegistry()).map(([splitName, assignment]) => [
+              splitName,
+              assignment.getVariant()
+            ])
+          )
+        };
+      },
 
-            return {
-              visitorId: visitor.getId(),
-              splitRegistry: visitor.config.splitRegistry.asV1Hash(),
-              assignmentRegistry: assignmentRegistry
-            };
-          }),
-
-        persistAssignment: (splitName: string, variant: string, username: string, password: string) =>
-          this._visitorLoaded.then(function (visitor) {
-            return persistAssignmentOverride({
-              visitor,
-              username,
-              password,
-              assignment: new Assignment({
-                splitName,
-                variant,
-                context: 'chrome_extension',
-                isUnsynced: true
-              })
-            });
-          })
+      async persistAssignment(splitName: string, variant: string, username: string, password: string): Promise<void> {
+        const visitor = await visitorLoaded;
+        const assignment = new Assignment({ splitName, variant, context: 'chrome_extension', isUnsynced: true });
+        await persistAssignmentOverride({ visitor, username, password, assignment });
       }
-    };
-  }
+    }
+  };
 }
 
-export default Session;
+export type Session = ReturnType<typeof createSession>;

@@ -232,6 +232,7 @@ describe('createSession', () => {
           await session._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
           expect(mockPersistAssignmentOverride).toHaveBeenCalledTimes(1);
           expect(mockPersistAssignmentOverride).toHaveBeenCalledWith({
+            config: expect.any(Object),
             visitor: expect.any(Visitor),
             username: 'the_username',
             password: 'the_password',

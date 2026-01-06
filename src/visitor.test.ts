@@ -189,7 +189,11 @@ describe('Visitor', () => {
         const visitor = createVisitor(config);
         varyWineSplit(visitor);
 
-        expect(mockCalculateVariant).toHaveBeenCalledWith(visitor, 'wine');
+        expect(mockCalculateVariant).toHaveBeenCalledWith({
+          visitor,
+          splitRegistry: config.splitRegistry,
+          splitName: 'wine'
+        });
       });
 
       it('adds new assignments to the assignment registry', () => {
@@ -218,7 +222,8 @@ describe('Visitor', () => {
         varyWineSplit(visitor);
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-          visitor: visitor,
+          config,
+          visitor,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'red',
@@ -237,7 +242,8 @@ describe('Visitor', () => {
         varyWineSplit(visitor);
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-          visitor: visitor,
+          config,
+          visitor,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'white',
@@ -260,7 +266,8 @@ describe('Visitor', () => {
         varyWineSplit(visitor);
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-          visitor: visitor,
+          config,
+          visitor,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'red',
@@ -306,7 +313,8 @@ describe('Visitor', () => {
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-          visitor: visitor,
+          config,
+          visitor,
           assignment: new Assignment({
             splitName: 'jabba',
             variant: 'cgi',
@@ -333,7 +341,11 @@ describe('Visitor', () => {
         varyJabbaSplit(offlineVisitor);
 
         expect(mockCalculateVariant).toHaveBeenCalledTimes(1);
-        expect(mockCalculateVariant).toHaveBeenCalledWith(offlineVisitor, 'jabba');
+        expect(mockCalculateVariant).toHaveBeenCalledWith({
+          visitor: offlineVisitor,
+          splitRegistry: offlineVisitor.config.splitRegistry,
+          splitName: 'jabba'
+        });
       });
 
       it('does not send an AssignmentNotification', () => {
@@ -589,7 +601,8 @@ describe('Visitor', () => {
       await visitor.linkIdentifier('myappdb_user_id', 444);
       expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-        visitor: visitor,
+        config,
+        visitor,
         assignment: blueButtonAssignment
       });
       expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
@@ -686,6 +699,7 @@ describe('Visitor', () => {
       expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
 
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
+        config: visitor.config,
         visitor: visitor,
         assignment: blueButtonAssignment
       });

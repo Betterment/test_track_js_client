@@ -143,7 +143,8 @@ class Visitor {
     const variants = getABVariants({
       splitName,
       trueVariant: options.trueVariant || 'true',
-      visitor: this
+      visitor: this,
+      splitRegistry: this.config.splitRegistry
     });
     const variantConfiguration: VaryOptions['variants'] = {};
 

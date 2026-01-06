@@ -1,14 +1,16 @@
 import { getSplitVariants } from './split';
 import Visitor from './visitor';
+import type { SplitRegistry } from './splitRegistry';
 
 type Options = {
   splitName: string;
   trueVariant: string;
   visitor: Visitor;
+  splitRegistry: SplitRegistry;
 };
 
-export function getABVariants({ splitName, trueVariant, visitor }: Options) {
-  const split = visitor.config.splitRegistry.getSplit(splitName);
+export function getABVariants({ splitName, trueVariant, visitor, splitRegistry }: Options) {
+  const split = splitRegistry.getSplit(splitName);
   const splitVariants = split && getSplitVariants(split);
 
   if (splitVariants && splitVariants.length > 2) {

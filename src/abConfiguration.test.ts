@@ -36,7 +36,8 @@ describe('getABVariants()', () => {
     getABVariants({
       splitName: 'element',
       trueVariant: 'water',
-      visitor: visitor
+      visitor: visitor,
+      splitRegistry: config.splitRegistry
     });
 
     expect(visitor.logError).toHaveBeenCalledWith('A/B for element configures split with more than 2 variants');
@@ -49,7 +50,8 @@ describe('getABVariants()', () => {
     getABVariants({
       splitName: 'element',
       trueVariant: 'water',
-      visitor
+      visitor,
+      splitRegistry: config.splitRegistry
     });
 
     expect(visitor.logError).not.toHaveBeenCalled();
@@ -61,7 +63,8 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'button_color',
         trueVariant: 'true',
-        visitor: createVisitor(config)
+        visitor: createVisitor(config),
+        splitRegistry: config.splitRegistry
       });
 
       expect(variants.true).toBe('true');
@@ -72,7 +75,8 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'new_feature',
         trueVariant: 'true',
-        visitor: createVisitor(config)
+        visitor: createVisitor(config),
+        splitRegistry: config.splitRegistry
       });
 
       expect(variants.true).toBe('true');
@@ -83,7 +87,8 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'button_color',
         trueVariant: 'red',
-        visitor: createVisitor(config)
+        visitor: createVisitor(config),
+        splitRegistry: config.splitRegistry
       });
 
       expect(variants.true).toBe('red');
@@ -96,7 +101,8 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'button_color',
         trueVariant: 'red',
-        visitor: createVisitor(config)
+        visitor: createVisitor(config),
+        splitRegistry: config.splitRegistry
       });
 
       expect(variants.false).toBe('blue');
@@ -107,7 +113,8 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'button_color',
         trueVariant: 'red',
-        visitor: createVisitor(config)
+        visitor: createVisitor(config),
+        splitRegistry: config.splitRegistry
       });
 
       expect(variants.false).toBe('false');
@@ -118,7 +125,8 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'element',
         trueVariant: 'earth',
-        visitor: createVisitor(config)
+        visitor: createVisitor(config),
+        splitRegistry: config.splitRegistry
       });
 
       expect(variants.false).toBe('fire');
@@ -129,7 +137,8 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'new_feature',
         trueVariant: 'true',
-        visitor: createVisitor(config)
+        visitor: createVisitor(config),
+        splitRegistry: config.splitRegistry
       });
 
       expect(variants.false).toBe('false');

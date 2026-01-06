@@ -1,38 +1,37 @@
 import ABConfiguration from './abConfiguration';
-import SplitRegistry from './splitRegistry';
-import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';
-import { mockSplitRegistry } from './test-utils';
+import { createConfig } from './test-utils';
+import type { Config } from './config';
 
-vi.mock('./testTrackConfig');
+function setupConfig() {
+  return createConfig({
+    splits: {
+      element: {
+        feature_gate: false,
+        weights: { earth: 25, wind: 25, fire: 25, water: 25 }
+      },
+      button_color: {
+        feature_gate: false,
+        weights: { red: 50, blue: 50 }
+      },
+      new_feature: {
+        feature_gate: false,
+        weights: { true: 100 }
+      }
+    }
+  });
+}
 
-function createVisitor() {
-  const visitor = new Visitor({ id: 'visitor_id', assignments: [] });
+function createVisitor(config: Config) {
+  const visitor = new Visitor({ config, id: 'visitor_id', assignments: [] });
   visitor.logError = vi.fn();
   return visitor;
 }
 
 describe('ABConfiguration', () => {
-  beforeEach(() => {
-    TestTrackConfig.getSplitRegistry = mockSplitRegistry({
-      element: {
-        earth: 25,
-        wind: 25,
-        fire: 25,
-        water: 25
-      },
-      button_color: {
-        red: 50,
-        blue: 50
-      },
-      new_feature: {
-        true: 100
-      }
-    });
-  });
-
   it('requires a splitName', () => {
-    const visitor = createVisitor();
+    const config = setupConfig();
+    const visitor = createVisitor(config);
 
     expect(() => {
       // @ts-expect-error Testing missing required property
@@ -41,7 +40,8 @@ describe('ABConfiguration', () => {
   });
 
   it('requires an trueVariant', () => {
-    const visitor = createVisitor();
+    const config = setupConfig();
+    const visitor = createVisitor(config);
 
     expect(() => {
       new ABConfiguration({ splitName: 'button_color', visitor: visitor });
@@ -56,7 +56,8 @@ describe('ABConfiguration', () => {
   });
 
   it('allows a null trueVariant', () => {
-    const visitor = createVisitor();
+    const config = setupConfig();
+    const visitor = createVisitor(config);
 
     expect(() => {
       new ABConfiguration({
@@ -70,7 +71,8 @@ describe('ABConfiguration', () => {
 
   describe('#getVariants()', () => {
     it('logs an error if the split does not have exactly two variants', () => {
-      const visitor = createVisitor();
+      const config = setupConfig();
+      const visitor = createVisitor(config);
       const abConfiguration = new ABConfiguration({
         splitName: 'element',
         trueVariant: 'water',
@@ -83,9 +85,9 @@ describe('ABConfiguration', () => {
     });
 
     it('does not log an error if the split registry is not loaded', () => {
-      vi.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+      const config = createConfig();
 
-      const visitor = createVisitor();
+      const visitor = createVisitor(config);
       const abConfiguration = new ABConfiguration({
         splitName: 'element',
         trueVariant: 'water',
@@ -99,32 +101,35 @@ describe('ABConfiguration', () => {
 
     describe('true variant', () => {
       it('is true if null was passed in during instantiation', () => {
+        const config = setupConfig();
         const abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           // @ts-expect-error Testing null value
           trueVariant: null,
-          visitor: createVisitor()
+          visitor: createVisitor(config)
         });
 
         expect(abConfiguration.getVariants().true).toBe('true');
       });
 
       it('is true if only one variant in the split', () => {
+        const config = setupConfig();
         const abConfiguration = new ABConfiguration({
           splitName: 'new_feature',
           // @ts-expect-error Testing null value
           trueVariant: null,
-          visitor: createVisitor()
+          visitor: createVisitor(config)
         });
 
         expect(abConfiguration.getVariants().true).toBe('true');
       });
 
       it('is whatever was passed in during instantiation', () => {
+        const config = setupConfig();
         const abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red',
-          visitor: createVisitor()
+          visitor: createVisitor(config)
         });
 
         expect(abConfiguration.getVariants().true).toBe('red');
@@ -133,43 +138,46 @@ describe('ABConfiguration', () => {
 
     describe('false variant', () => {
       it('is the variant of the split that is not the true_variant', () => {
+        const config = setupConfig();
         const abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red',
-          visitor: createVisitor()
+          visitor: createVisitor(config)
         });
 
         expect(abConfiguration.getVariants().false).toBe('blue');
       });
 
       it('is false when there is no split_registry', () => {
-        vi.mocked(TestTrackConfig.getSplitRegistry).mockReturnValue(new SplitRegistry(null));
+        const config = createConfig();
 
         const abConfiguration = new ABConfiguration({
           splitName: 'button_color',
           trueVariant: 'red',
-          visitor: createVisitor()
+          visitor: createVisitor(config)
         });
 
         expect(abConfiguration.getVariants().false).toBe('false');
       });
 
       it('is always the same if the split has more than two variants', () => {
+        const config = setupConfig();
         const abConfiguration = new ABConfiguration({
           splitName: 'element',
           trueVariant: 'earth',
-          visitor: createVisitor()
+          visitor: createVisitor(config)
         });
 
         expect(abConfiguration.getVariants().false).toBe('fire');
       });
 
       it('is false if only one variant in the split', () => {
+        const config = setupConfig();
         const abConfiguration = new ABConfiguration({
           splitName: 'new_feature',
           // @ts-expect-error Testing null value
           trueVariant: null,
-          visitor: createVisitor()
+          visitor: createVisitor(config)
         });
 
         expect(abConfiguration.getVariants().false).toBe('false');

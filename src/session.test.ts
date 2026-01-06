@@ -4,34 +4,32 @@ import Cookies from 'js-cookie';
 import Session from './session';
 import Visitor from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
+import type { RawConfig } from './config';
+import { v4 as uuid } from 'uuid';
+import { http, HttpResponse } from 'msw';
+import { server } from './setupTests';
+
+const rawConfig: RawConfig = {
+  url: 'http://testtrack.dev',
+  cookieDomain: '.example.com',
+  cookieName: 'custom_cookie_name',
+  experienceSamplingWeight: 1,
+  assignments: { jabba: 'puppet', wine: 'rose' },
+  splits: {
+    jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
+    wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
+  }
+};
 
 vi.mock('./assignmentOverride');
-
-vi.mock('./configParser', () => {
-  class MockConfigParser {
-    getConfig() {
-      return {
-        url: 'http://testtrack.dev',
-        cookieDomain: '.example.com',
-        cookieName: 'custom_cookie_name',
-        splits: {
-          jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
-          wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
-        },
-        assignments: {
-          jabba: 'puppet',
-          wine: 'rose'
-        }
-      };
-    }
-  }
-
-  return { default: MockConfigParser };
-});
-
 vi.mock('js-cookie');
+vi.mock('uuid');
 
 describe('Session', () => {
+  beforeAll(() => {
+    window.TT = btoa(JSON.stringify(rawConfig));
+  });
+
   beforeEach(() => {
     // @ts-expect-error Cookies.get returns different types in practice
     vi.mocked(Cookies.get).mockReturnValue('existing_visitor_id');
@@ -39,11 +37,7 @@ describe('Session', () => {
 
   describe('Cookie behavior', () => {
     it('reads the visitor id from a cookie and sets it back in the cookie', async () => {
-      const v = new Visitor({ id: 'existing_visitor_id', assignments: [] });
-      Visitor.loadVisitor = vi.fn().mockResolvedValue(v);
-
       await new Session().getPublicAPI().initialize({});
-      expect(Visitor.loadVisitor).toHaveBeenCalledWith('existing_visitor_id');
       expect(Cookies.get).toHaveBeenCalledTimes(1);
       expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
       expect(Cookies.set).toHaveBeenCalledTimes(1);
@@ -56,13 +50,11 @@ describe('Session', () => {
 
     it('saves the visitor id in a cookie', async () => {
       // @ts-expect-error Cookies.get returns different types depending on arguments
-      vi.mocked(Cookies.get).mockReturnValue(null);
-
-      const v = new Visitor({ id: 'generated_visitor_id', assignments: [] });
-      Visitor.loadVisitor = vi.fn().mockResolvedValue(v);
+      vi.mocked(Cookies.get).mockReturnValue(undefined);
+      // @ts-expect-error uuid mock return type
+      vi.mocked(uuid).mockReturnValue('generated_visitor_id');
 
       await new Session().getPublicAPI().initialize({});
-      expect(Visitor.loadVisitor).toHaveBeenCalledWith(null);
       expect(Cookies.get).toHaveBeenCalledTimes(1);
       expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
       expect(Cookies.set).toHaveBeenCalledTimes(1);
@@ -75,35 +67,10 @@ describe('Session', () => {
   });
 
   describe('with stubbed visitor and split registry', () => {
-    let jabbaAssignment: Assignment;
-    let visitorInstance: Visitor;
     let session: Session;
 
     beforeEach(async () => {
-      jabbaAssignment = new Assignment({
-        splitName: 'jabba',
-        variant: 'cgi',
-        isUnsynced: false
-      });
-
-      visitorInstance = new Visitor({
-        id: 'dummy_visitor_id',
-        assignments: [jabbaAssignment]
-      });
-
-      visitorInstance.analytics = {
-        trackAssignment: vi.fn(),
-        alias: vi.fn(),
-        identify: vi.fn()
-      };
-
-      visitorInstance.linkIdentifier = vi.fn().mockImplementation(() => {
-        visitorInstance.getId = vi.fn(() => 'other_visitor_id'); // mimic behavior of linkIdentifier that we care about
-        return Promise.resolve();
-      });
-
-      Visitor.loadVisitor = vi.fn().mockResolvedValue(visitorInstance);
-
+      window.TT = btoa(JSON.stringify(rawConfig));
       session = new Session();
       await session.initialize({});
       vi.mocked(Cookies.set).mockClear();
@@ -111,9 +78,9 @@ describe('Session', () => {
 
     describe('#initialize()', () => {
       it('calls notifyUnsyncedAssignments when a visitor is loaded', async () => {
-        visitorInstance.notifyUnsyncedAssignments = vi.fn();
+        const notifySpy = vi.spyOn(Visitor.prototype, 'notifyUnsyncedAssignments');
         await new Session().getPublicAPI().initialize({});
-        expect(visitorInstance.notifyUnsyncedAssignments).toHaveBeenCalledTimes(1);
+        expect(notifySpy).toHaveBeenCalledTimes(1);
       });
 
       it('sets the analytics lib', async () => {
@@ -123,29 +90,39 @@ describe('Session', () => {
           alias: vi.fn()
         };
 
-        visitorInstance.setAnalytics = vi.fn();
+        const setAnalyticsSpy = vi.spyOn(Visitor.prototype, 'setAnalytics');
 
         await new Session().getPublicAPI().initialize({ analytics });
-        expect(visitorInstance.setAnalytics).toHaveBeenCalledTimes(1);
-        expect(visitorInstance.setAnalytics).toHaveBeenCalledTimes(1);
-        expect(visitorInstance.setAnalytics).toHaveBeenCalledWith(analytics);
+        expect(setAnalyticsSpy).toHaveBeenCalledTimes(1);
+        expect(setAnalyticsSpy).toHaveBeenCalledWith(analytics);
       });
 
       it('sets the error logger', async () => {
         const errorLogger = function () {};
-        visitorInstance.setErrorLogger = vi.fn();
+        const setErrorLoggerSpy = vi.spyOn(Visitor.prototype, 'setErrorLogger');
 
         await new Session().getPublicAPI().initialize({ errorLogger: errorLogger });
-        expect(visitorInstance.setErrorLogger).toHaveBeenCalledTimes(1);
-        expect(visitorInstance.setErrorLogger).toHaveBeenCalledWith(errorLogger);
+        expect(setErrorLoggerSpy).toHaveBeenCalledTimes(1);
+        expect(setErrorLoggerSpy).toHaveBeenCalledWith(errorLogger);
       });
     });
 
     describe('#logIn()', () => {
+      beforeEach(() => {
+        server.use(
+          http.post('http://testtrack.dev/api/v1/identifier', () => {
+            return HttpResponse.json({
+              visitor: {
+                id: 'other_visitor_id',
+                assignments: []
+              }
+            });
+          })
+        );
+      });
+
       it('updates the visitor id in the cookie', async () => {
         await session.logIn('myappdb_user_id', 444);
-        expect(visitorInstance.linkIdentifier).toHaveBeenCalledTimes(1);
-        expect(visitorInstance.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
         expect(Cookies.set).toHaveBeenCalledTimes(1);
         expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
           expires: 365,
@@ -155,17 +132,32 @@ describe('Session', () => {
       });
 
       it('calls analytics.identify with the resolved visitor id', async () => {
-        await session.logIn('myappdb_user_id', 444);
-        expect(visitorInstance.analytics.identify).toHaveBeenCalledTimes(1);
-        expect(visitorInstance.analytics.identify).toHaveBeenCalledWith('other_visitor_id');
+        const testSession = new Session();
+        const visitor = await testSession.initialize({});
+        const identifySpy = vi.spyOn(visitor.analytics, 'identify');
+
+        await testSession.logIn('myappdb_user_id', 444);
+        expect(identifySpy).toHaveBeenCalledTimes(1);
+        expect(identifySpy).toHaveBeenCalledWith('other_visitor_id');
       });
     });
 
     describe('#signUp()', () => {
+      beforeEach(() => {
+        server.use(
+          http.post('http://testtrack.dev/api/v1/identifier', () => {
+            return HttpResponse.json({
+              visitor: {
+                id: 'other_visitor_id',
+                assignments: []
+              }
+            });
+          })
+        );
+      });
+
       it('updates the visitor id in the cookie', async () => {
         await session.signUp('myappdb_user_id', 444);
-        expect(visitorInstance.linkIdentifier).toHaveBeenCalledTimes(1);
-        expect(visitorInstance.linkIdentifier).toHaveBeenCalledWith('myappdb_user_id', 444);
         expect(Cookies.set).toHaveBeenCalledTimes(1);
         expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'other_visitor_id', {
           expires: 365,
@@ -175,9 +167,13 @@ describe('Session', () => {
       });
 
       it('calls analytics.alias with the resolved visitor id', async () => {
-        await session.signUp('myappdb_user_id', 444);
-        expect(visitorInstance.analytics.alias).toHaveBeenCalledTimes(1);
-        expect(visitorInstance.analytics.alias).toHaveBeenCalledWith('other_visitor_id');
+        const testSession = new Session();
+        const visitor = await testSession.initialize({});
+        const aliasSpy = vi.spyOn(visitor.analytics, 'alias');
+
+        await testSession.signUp('myappdb_user_id', 444);
+        expect(aliasSpy).toHaveBeenCalledTimes(1);
+        expect(aliasSpy).toHaveBeenCalledWith('other_visitor_id');
       });
     });
 
@@ -195,8 +191,8 @@ describe('Session', () => {
           defaultVariant: 'puppet'
         });
 
-        expect(mockCgi).toHaveBeenCalled();
-        expect(mockPuppet).not.toHaveBeenCalled();
+        expect(mockPuppet).toHaveBeenCalled();
+        expect(mockCgi).not.toHaveBeenCalled();
       });
     });
 
@@ -206,7 +202,7 @@ describe('Session', () => {
           context: 'spec',
           trueVariant: 'cgi',
           callback(cgi) {
-            expect(cgi).toBe(true);
+            expect(cgi).toBe(false);
           }
         });
       });
@@ -248,7 +244,7 @@ describe('Session', () => {
             await publicApi._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
             expect(AssignmentOverride).toHaveBeenCalledTimes(1);
             expect(AssignmentOverride).toHaveBeenCalledWith({
-              visitor: visitorInstance,
+              visitor: expect.any(Visitor),
               username: 'the_username',
               password: 'the_password',
               assignment: new Assignment({
@@ -264,12 +260,12 @@ describe('Session', () => {
         describe('#loadInfo()', () => {
           it('returns a promise that resolves with the split registry, assignment registry and visitor id', async () => {
             const info = await publicApi._crx.loadInfo();
-            expect(info.visitorId).toEqual('dummy_visitor_id');
+            expect(info.visitorId).toEqual('existing_visitor_id');
             expect(info.splitRegistry).toEqual({
               jabba: { cgi: 50, puppet: 50 },
               wine: { red: 50, white: 25, rose: 25 }
             });
-            expect(info.assignmentRegistry).toEqual({ jabba: 'cgi' });
+            expect(info.assignmentRegistry).toEqual({ jabba: 'puppet', wine: 'rose' });
           });
         });
       });

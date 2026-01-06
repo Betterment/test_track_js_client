@@ -1,6 +1,4 @@
-import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';
-import SplitRegistry from './splitRegistry';
 
 export type ABConfigurationOptions = {
   splitName: string;
@@ -12,7 +10,6 @@ class ABConfiguration {
   private _splitName: string;
   private _trueVariant?: string;
   private _visitor: Visitor;
-  private _splitRegistry: SplitRegistry;
 
   constructor(options: ABConfigurationOptions) {
     if (!options.splitName) {
@@ -26,7 +23,6 @@ class ABConfiguration {
     this._splitName = options.splitName;
     this._trueVariant = options.trueVariant;
     this._visitor = options.visitor;
-    this._splitRegistry = TestTrackConfig.getSplitRegistry();
   }
 
   getVariants() {
@@ -68,7 +64,7 @@ class ABConfiguration {
   }
 
   _getSplit() {
-    return this._splitRegistry.getSplit(this._splitName);
+    return this._visitor.config.splitRegistry.getSplit(this._splitName);
   }
 
   _getSplitVariants() {

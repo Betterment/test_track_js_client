@@ -1,8 +1,10 @@
-import { request, toSearchParams } from './api';
+import { request, toSearchParams, urlFor } from './api';
 import Assignment, { type AssignmentData } from './assignment';
 import Visitor from './visitor';
+import type { Config } from './config';
 
 type IdentifierOptions = {
+  config: Config;
   visitorId: string;
   identifierType: string;
   value: string | number;
@@ -18,11 +20,13 @@ type IdentifierResponse = {
 };
 
 class Identifier {
+  config: Config;
   visitorId: string;
   identifierType: string;
   value: string | number;
 
   constructor(options: IdentifierOptions) {
+    this.config = options.config;
     this.visitorId = options.visitorId;
     this.identifierType = options.identifierType;
     this.value = options.value;
@@ -39,7 +43,7 @@ class Identifier {
   save() {
     return request({
       method: 'POST',
-      url: '/api/v1/identifier',
+      url: urlFor(this.config, '/api/v1/identifier'),
       body: toSearchParams({
         identifier_type: this.identifierType,
         value: this.value.toString(),
@@ -47,6 +51,7 @@ class Identifier {
       })
     }).then(({ data }: IdentifierResponse) => {
       return new Visitor({
+        config: this.config,
         id: data.visitor.id,
         assignments: Assignment.fromJsonArray(data.visitor.assignments)
       });

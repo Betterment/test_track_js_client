@@ -3,19 +3,13 @@ import Identifier from './identifier';
 import Visitor from './visitor';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
-
-vi.mock('./testTrackConfig', () => {
-  return {
-    default: {
-      getUrl: () => 'http://testtrack.dev'
-    }
-  };
-});
+import { createConfig } from './test-utils';
 
 vi.mock('./visitor');
 
 function createIdentifier() {
   return new Identifier({
+    config: createConfig(),
     visitorId: 'transient_visitor_id',
     identifierType: 'myappdb_user_id',
     value: 444
@@ -50,20 +44,24 @@ describe('Identifier', () => {
   });
 
   it('requires a visitorId', () => {
-    // @ts-expect-error Testing missing required property
-    expect(() => new Identifier({ identifierType: 'myappdb_user_id', value: 444 })).toThrow('must provide visitorId');
+    expect(() => {
+      // @ts-expect-error Testing missing required property
+      new Identifier({ config: createConfig(), identifierType: 'myappdb_user_id', value: 444 });
+    }).toThrow('must provide visitorId');
   });
 
   it('requires a identifierType', () => {
-    // @ts-expect-error Testing missing required property
-    expect(() => new Identifier({ visitorId: 'visitorId', value: 444 })).toThrow('must provide identifierType');
+    expect(() => {
+      // @ts-expect-error Testing missing required property
+      new Identifier({ config: createConfig(), visitorId: 'visitorId', value: 444 });
+    }).toThrow('must provide identifierType');
   });
 
   it('requires a value', () => {
-    // @ts-expect-error Testing missing required property
-    expect(() => new Identifier({ visitorId: 'visitorId', identifierType: 'myappdb_user_id' })).toThrow(
-      'must provide value'
-    );
+    expect(() => {
+      // @ts-expect-error Testing missing required property
+      new Identifier({ config: createConfig(), visitorId: 'visitorId', identifierType: 'myappdb_user_id' });
+    }).toThrow('must provide value');
   });
 
   describe('#save()', () => {
@@ -90,6 +88,7 @@ describe('Identifier', () => {
       await identifier.save();
       expect(Visitor).toHaveBeenCalledTimes(1);
       expect(Visitor).toHaveBeenCalledWith({
+        config: identifier.config,
         id: 'actual_visitor_id',
         assignments: [jabbaAssignment, wineAssignment]
       });

@@ -1,12 +1,16 @@
 import { http, HttpResponse } from 'msw';
-import { request, toSearchParams } from './api';
+import { request, toSearchParams, urlFor } from './api';
 import { server } from './setupTests';
+import { createConfig } from './test-utils';
 
-vi.mock('./testTrackConfig', () => ({
-  default: {
-    getUrl: vi.fn(() => 'http://testtrack.dev')
-  }
-}));
+const url = 'https://testtrack.dev/api/v1/test';
+
+describe('urlFor', () => {
+  it('appends the path to the configured URL', () => {
+    const config = createConfig({ url: 'http://example.org' });
+    expect(urlFor(config, '/api/v1/foo')).toEqual(new URL('http://example.org/api/v1/foo'));
+  });
+});
 
 describe('toSearchParams', () => {
   it('constructs URLSearchParams without empty values', () => {
@@ -18,19 +22,15 @@ describe('toSearchParams', () => {
 
 describe('request', () => {
   it('sends a GET request', async () => {
-    server.use(
-      http.get('http://testtrack.dev/api/v1/data', () => {
-        return HttpResponse.json({ foo: 'bar' });
-      })
-    );
+    server.use(http.get(url, () => HttpResponse.json({ foo: 'bar' })));
 
-    const result = await request({ method: 'GET', url: '/api/v1/data' });
+    const result = await request({ method: 'GET', url: new URL(url) });
     expect(result).toEqual({ data: { foo: 'bar' } });
   });
 
   it('sends a POST request', async () => {
     server.use(
-      http.post('http://testtrack.dev/api/v1/test', async ({ request }) => {
+      http.post(url, async ({ request }) => {
         const params = new URLSearchParams(await request.text());
         expect(params.get('foo')).toEqual('bar');
         return HttpResponse.text('', { status: 204 });
@@ -39,7 +39,7 @@ describe('request', () => {
 
     const result = await request({
       method: 'POST',
-      url: '/api/v1/test',
+      url: new URL(url),
       body: new URLSearchParams({ foo: 'bar' })
     });
 
@@ -48,7 +48,7 @@ describe('request', () => {
 
   it('performs basic authentication', async () => {
     server.use(
-      http.post('http://testtrack.dev/api/v1/test', ({ request }) => {
+      http.post(url, ({ request }) => {
         const authorization = request.headers.get('authorization');
         expect(authorization).toEqual('Basic dXNlcjpwYXNz');
         return HttpResponse.json({ ok: true });
@@ -57,7 +57,7 @@ describe('request', () => {
 
     const result = await request({
       method: 'POST',
-      url: '/api/v1/test',
+      url: new URL(url),
       auth: { username: 'user', password: 'pass' }
     });
 
@@ -65,25 +65,15 @@ describe('request', () => {
   });
 
   it('throws when response is not ok', async () => {
-    server.use(
-      http.get('http://testtrack.dev/api/v1/test', () => {
-        return new HttpResponse(null, { status: 500 });
-      })
-    );
+    server.use(http.get(url, () => new HttpResponse(null, { status: 500 })));
 
-    await expect(request({ url: '/api/v1/test', method: 'GET' })).rejects.toThrow(
-      'HTTP request failed with 500 status'
-    );
+    await expect(request({ url: new URL(url), method: 'GET' })).rejects.toThrow('HTTP request failed with 500 status');
   });
 
   it('aborts request after timeout', async () => {
-    server.use(
-      http.get('http://testtrack.dev/api/v1/slow', async () => {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      })
-    );
+    server.use(http.get(url, () => new Promise(resolve => setTimeout(resolve, 100))));
 
-    await expect(request({ url: '/api/v1/slow', method: 'GET', timeout: 5 })).rejects.toThrow(
+    await expect(request({ url: new URL(url), method: 'GET', timeout: 5 })).rejects.toThrow(
       'This operation was aborted'
     );
   });

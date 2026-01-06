@@ -1,7 +1,7 @@
 import Cookies from 'js-cookie';
 import Assignment from './assignment';
 import AssignmentOverride from './assignmentOverride';
-import TestTrackConfig from './testTrackConfig';
+import { loadConfig } from './config';
 import Visitor, { type VaryOptions, type AbOptions } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 
@@ -25,9 +25,10 @@ class Session {
   }
 
   initialize(options: SessionOptions) {
-    const visitorId = Cookies.get(TestTrackConfig.getCookieName());
+    const config = loadConfig();
+    const visitorId = Cookies.get(config.cookieName);
 
-    Visitor.loadVisitor(visitorId).then(visitor => {
+    Visitor.loadVisitor(config, visitorId).then(visitor => {
       if (options && options.analytics) {
         visitor.setAnalytics(options.analytics);
       }
@@ -83,11 +84,11 @@ class Session {
   }
 
   _setCookie() {
-    return this._visitorLoaded.then(function (visitor) {
-      Cookies.set(TestTrackConfig.getCookieName(), visitor.getId(), {
+    return this._visitorLoaded.then(visitor => {
+      Cookies.set(visitor.config.cookieName, visitor.getId(), {
         expires: 365,
         path: '/',
-        domain: TestTrackConfig.getCookieDomain()
+        domain: visitor.config.cookieDomain
       });
     });
   }
@@ -101,7 +102,7 @@ class Session {
       initialize: this.initialize.bind(this),
       _crx: {
         loadInfo: () =>
-          this._visitorLoaded.then(function (visitor) {
+          this._visitorLoaded.then(visitor => {
             const assignmentRegistry: Registry = {};
             for (const splitName in visitor.getAssignmentRegistry()) {
               assignmentRegistry[splitName] = visitor.getAssignmentRegistry()[splitName].getVariant();
@@ -109,7 +110,7 @@ class Session {
 
             return {
               visitorId: visitor.getId(),
-              splitRegistry: TestTrackConfig.getSplitRegistry().asV1Hash(),
+              splitRegistry: visitor.config.splitRegistry.asV1Hash(),
               assignmentRegistry: assignmentRegistry
             };
           }),

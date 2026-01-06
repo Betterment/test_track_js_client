@@ -1,13 +1,13 @@
-import { request } from './api';
+import { request, urlFor } from './api';
 import ABConfiguration from './abConfiguration';
 import Assignment from './assignment';
 import AssignmentNotification from './assignmentNotification';
 import Identifier from './identifier';
 import MixpanelAnalytics from './mixpanelAnalytics';
-import TestTrackConfig from './testTrackConfig';
 import { v4 as uuid } from 'uuid';
 import VariantCalculator from './variantCalculator';
 import VaryDSL from './varyDSL';
+import type { Config } from './config';
 
 type Variants = {
   [key: string]: () => void;
@@ -26,6 +26,7 @@ export type AbOptions = {
 };
 
 export type VisitorOptions = {
+  config: Config;
   id: string;
   assignments: Assignment[];
   ttOffline?: boolean;
@@ -36,21 +37,23 @@ type AssignmentRegistry = {
 };
 
 class Visitor {
-  static loadVisitor(visitorId?: string) {
+  static loadVisitor(config: Config, visitorId: string | undefined) {
     if (visitorId) {
-      const assignments = TestTrackConfig.getAssignments();
+      const assignments = config.assignments;
       if (assignments) {
         return Promise.resolve(
           new Visitor({
+            config,
             id: visitorId,
             assignments,
             ttOffline: false
           })
         );
       } else {
-        return request({ method: 'GET', url: `/api/v1/visitors/${visitorId}`, timeout: 5000 })
+        return request({ method: 'GET', url: urlFor(config, `/api/v1/visitors/${visitorId}`), timeout: 5000 })
           .then(({ data }) => {
             return new Visitor({
+              config,
               id: data.id,
               assignments: Assignment.fromJsonArray(data.assignments),
               ttOffline: false
@@ -58,6 +61,7 @@ class Visitor {
           })
           .catch(() => {
             return new Visitor({
+              config,
               id: visitorId,
               assignments: [],
               ttOffline: true
@@ -67,6 +71,7 @@ class Visitor {
     } else {
       return Promise.resolve(
         new Visitor({
+          config,
           id: uuid(),
           assignments: [],
           ttOffline: false
@@ -74,6 +79,9 @@ class Visitor {
       );
     }
   }
+
+  /** @internal */
+  config: Config;
 
   private _id: string;
   private _assignments: Assignment[];
@@ -83,7 +91,8 @@ class Visitor {
 
   public analytics: MixpanelAnalytics;
 
-  constructor({ id, assignments, ttOffline }: VisitorOptions) {
+  constructor({ config, id, assignments, ttOffline }: VisitorOptions) {
+    this.config = config;
     this._id = id;
     this._assignments = assignments;
     this._ttOffline = ttOffline;
@@ -199,6 +208,7 @@ class Visitor {
 
   linkIdentifier(identifierType: string, value: number) {
     const identifier = new Identifier({
+      config: this.config,
       identifierType,
       value,
       visitorId: this.getId()

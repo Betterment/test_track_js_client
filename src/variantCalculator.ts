@@ -1,5 +1,4 @@
 import { md5 } from 'js-md5';
-import TestTrackConfig from './testTrackConfig';
 import Visitor from './visitor';
 
 export type VariantCalculatorOptions = {
@@ -23,7 +22,7 @@ class VariantCalculator {
   }
 
   getVariant() {
-    if (!TestTrackConfig.getSplitRegistry().isLoaded()) {
+    if (!this.visitor.config.splitRegistry.isLoaded()) {
       return null;
     }
 
@@ -72,7 +71,7 @@ class VariantCalculator {
   }
 
   getWeighting() {
-    const split = TestTrackConfig.getSplitRegistry().getSplit(this.splitName);
+    const split = this.visitor.config.splitRegistry.getSplit(this.splitName);
 
     if (!split) {
       const message = 'Unknown split: "' + this.splitName + '"';

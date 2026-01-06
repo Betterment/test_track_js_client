@@ -1,3 +1,4 @@
+import { getSplitVariants } from './split';
 import Visitor from './visitor';
 
 type Options = {
@@ -8,7 +9,7 @@ type Options = {
 
 export function getABVariants({ splitName, trueVariant, visitor }: Options) {
   const split = visitor.config.splitRegistry.getSplit(splitName);
-  const splitVariants = split?.getVariants();
+  const splitVariants = split && getSplitVariants(split);
 
   if (splitVariants && splitVariants.length > 2) {
     visitor.logError(`A/B for ${splitName} configures split with more than 2 variants`);

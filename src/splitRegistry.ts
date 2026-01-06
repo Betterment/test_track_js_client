@@ -1,4 +1,4 @@
-import Split, { type Weighting } from './split';
+import type { Split, Weighting } from './split';
 
 export type V1Hash = {
   [splitName: string]: Weighting;

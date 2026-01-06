@@ -1,4 +1,5 @@
 import Assignment from './assignment';
+import { getSplitVariants } from './split';
 import Visitor from './visitor';
 
 type Handler = () => void;
@@ -23,7 +24,7 @@ function validateVariants(visitor: Visitor, assignment: Assignment, variants: Va
   const split = visitor.config.splitRegistry.getSplit(assignment.getSplitName());
   if (!split) return;
 
-  const splitVariants = split.getVariants();
+  const splitVariants = getSplitVariants(split);
   const unknownVariants = configuredVariants.filter(variant => !splitVariants.includes(variant));
   const missingVariants = splitVariants.filter(variant => !configuredVariants.includes(variant));
 

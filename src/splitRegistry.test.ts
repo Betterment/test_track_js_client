@@ -1,10 +1,10 @@
-import Split from './split';
 import { createSplitRegistry } from './splitRegistry';
 
 function setupSplitRegistry() {
-  const split1 = new Split('split1', true, { foo: 50, bar: 50, baz: 0 });
-  const split2 = new Split('split2', true, { up: 50, down: 50 });
-  return createSplitRegistry([split1, split2]);
+  return createSplitRegistry([
+    { name: 'split1', isFeatureGate: true, weighting: { foo: 50, bar: 50, baz: 0 } },
+    { name: 'split2', isFeatureGate: true, weighting: { up: 50, down: 50 } }
+  ]);
 }
 
 describe('SplitRegistry', () => {

@@ -1,7 +1,7 @@
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { saveIdentifier } from './identifier';
-import MixpanelAnalytics from './mixpanelAnalytics';
+import { mixpanelAnalytics } from './mixpanelAnalytics';
 import type { Config } from './config';
 import { calculateVariant } from './calculateVariant';
 import Visitor from './visitor';
@@ -9,6 +9,7 @@ import { v4 as uuid } from 'uuid';
 import { createConfig } from './test-utils';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
+import type { AnalyticsProvider } from './analyticsProvider';
 
 vi.mock('uuid');
 vi.mock('./calculateVariant');
@@ -643,11 +644,24 @@ describe('Visitor', () => {
     });
   });
 
+  describe('.analytics', () => {
+    it('defaults to mixpanel analytics', () => {
+      const config = setupConfig();
+      const visitor = createVisitor(config);
+
+      expect(visitor.analytics).toBe(mixpanelAnalytics);
+    });
+  });
+
   describe('#setAnalytics()', () => {
     it('sets the analytics object on the visitor', () => {
       const config = setupConfig();
       const visitor = createVisitor(config);
-      const analytics = new MixpanelAnalytics();
+      const analytics: AnalyticsProvider = {
+        trackAssignment: vi.fn(),
+        alias: vi.fn(),
+        identify: vi.fn()
+      };
 
       visitor.setAnalytics(analytics);
 

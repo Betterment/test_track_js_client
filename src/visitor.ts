@@ -3,11 +3,12 @@ import { getABVariants } from './abConfiguration';
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { saveIdentifier } from './identifier';
-import MixpanelAnalytics from './mixpanelAnalytics';
+import { mixpanelAnalytics } from './mixpanelAnalytics';
 import { v4 as uuid } from 'uuid';
 import { calculateVariant } from './calculateVariant';
 import { vary, type Variants } from './vary';
 import type { Config } from './config';
+import type { AnalyticsProvider } from './analyticsProvider';
 
 export type VaryOptions = {
   variants: Variants;
@@ -85,7 +86,7 @@ class Visitor {
   private _errorLogger: (errorMessage: string) => void;
   private _assignmentRegistry?: AssignmentRegistry | null;
 
-  public analytics: MixpanelAnalytics;
+  public analytics: AnalyticsProvider;
 
   constructor({ config, id, assignments, ttOffline }: VisitorOptions) {
     this.config = config;
@@ -97,7 +98,7 @@ class Visitor {
       window.console.error(errorMessage);
     };
 
-    this.analytics = new MixpanelAnalytics();
+    this.analytics = mixpanelAnalytics;
   }
 
   getId() {
@@ -181,7 +182,7 @@ class Visitor {
     this.notifyUnsyncedAssignments();
   }
 
-  setAnalytics(analytics: MixpanelAnalytics) {
+  setAnalytics(analytics: AnalyticsProvider) {
     this.analytics = analytics;
   }
 

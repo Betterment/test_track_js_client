@@ -1,4 +1,3 @@
-import Assignment from './assignment';
 import type { AnalyticsProvider } from './analyticsProvider';
 
 type EventProperties = {
@@ -10,7 +9,7 @@ type EventProperties = {
 
 declare global {
   interface Window {
-    mixpanel: {
+    mixpanel?: {
       track(eventName: string, properties: EventProperties, callback: (value: boolean) => void): void;
       identify(id: string): void;
       alias(id: string): void;
@@ -18,8 +17,8 @@ declare global {
   }
 }
 
-class MixpanelAnalytics implements AnalyticsProvider {
-  trackAssignment(visitorId: string, assignment: Assignment, callback: (value: boolean) => void) {
+export const mixpanelAnalytics: AnalyticsProvider = {
+  trackAssignment(visitorId, assignment, callback) {
     const assignmentProperties = {
       TTVisitorID: visitorId,
       SplitName: assignment.getSplitName(),
@@ -27,21 +26,12 @@ class MixpanelAnalytics implements AnalyticsProvider {
       SplitContext: assignment.getContext()
     };
 
-    if (window.mixpanel) {
-      window.mixpanel.track('SplitAssigned', assignmentProperties, callback);
-    }
-  }
-
+    window.mixpanel?.track('SplitAssigned', assignmentProperties, callback);
+  },
   identify(visitorId: string) {
-    if (window.mixpanel) {
-      window.mixpanel.identify(visitorId);
-    }
-  }
-
+    window.mixpanel?.identify(visitorId);
+  },
   alias(visitorId: string) {
-    if (window.mixpanel) {
-      window.mixpanel.alias(visitorId);
-    }
+    window.mixpanel?.alias(visitorId);
   }
-}
-export default MixpanelAnalytics;
+};

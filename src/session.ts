@@ -33,8 +33,12 @@ export function createSession() {
       const config = loadConfig();
       const client = createClient(config);
       const storage = createCookieStorage(config);
-      const visitorId = storage.getVisitorId();
-      const visitor = await Visitor.loadVisitor(config, visitorId);
+      const visitor = await Visitor.loadVisitor({
+        client,
+        splitRegistry: config.splitRegistry,
+        id: storage.getVisitorId(),
+        assignments: config.assignments
+      });
 
       if (options.analytics) {
         visitor.setAnalytics(options.analytics);

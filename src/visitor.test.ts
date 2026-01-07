@@ -1,7 +1,6 @@
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './mixpanelAnalytics';
-import { createConfig } from './test-utils';
 import { calculateVariant } from './calculateVariant';
 import Visitor from './visitor';
 import { v4 as uuid } from 'uuid';
@@ -77,26 +76,21 @@ describe('Visitor', () => {
     });
 
     it('does not hit the server when not passed a visitorId', async () => {
-      const config = createConfig({
-        splits: {
-          element: {
-            feature_gate: false,
-            weights: { earth: 25, wind: 25, fire: 25, water: 25 }
-          }
-        }
-      });
       // @ts-expect-error `uuid` has overloads
       vi.mocked(uuid).mockReturnValue('generated_uuid');
 
-      const visitor = await Visitor.loadVisitor(config, undefined);
+      const visitor = await Visitor.loadVisitor({
+        client,
+        splitRegistry,
+        id: undefined,
+        assignments: null
+      });
       expect(requests.length).toBe(0);
       expect(visitor.getId()).toEqual('generated_uuid');
       expect(visitor.getAssignmentRegistry()).toEqual({});
     });
 
     it('does not hit the server when passed a visitorId and there are baked assignments', async () => {
-      const config = createConfig({ assignments: { jabba: 'puppet', wine: 'rose' } });
-
       const jabbaAssignment = new Assignment({
         splitName: 'jabba',
         variant: 'puppet',
@@ -109,7 +103,12 @@ describe('Visitor', () => {
         isUnsynced: false
       });
 
-      const visitor = await Visitor.loadVisitor(config, 'baked_visitor_id');
+      const visitor = await Visitor.loadVisitor({
+        client,
+        splitRegistry,
+        id: 'baked_visitor_id',
+        assignments: [jabbaAssignment, wineAssignment]
+      });
       expect(requests.length).toBe(0);
       expect(visitor.getId()).toEqual('baked_visitor_id');
       expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
@@ -120,15 +119,12 @@ describe('Visitor', () => {
     });
 
     it('loads a visitor from the server for an existing visitor if there are no baked assignments', async () => {
-      const config = createConfig({
-        splits: {
-          element: {
-            feature_gate: false,
-            weights: { earth: 25, wind: 25, fire: 25, water: 25 }
-          }
-        }
+      const visitor = await Visitor.loadVisitor({
+        client,
+        splitRegistry,
+        id: 'puppeteer_visitor_id',
+        assignments: null
       });
-      const visitor = await Visitor.loadVisitor(config, 'puppeteer_visitor_id');
       expect(requests.length).toBe(1);
       expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id');
       const jabbaAssignment = new Assignment({
@@ -143,21 +139,18 @@ describe('Visitor', () => {
     });
 
     it('builds a visitor in offline mode if the request fails', async () => {
-      const config = createConfig({
-        splits: {
-          element: {
-            feature_gate: false,
-            weights: { earth: 25, wind: 25, fire: 25, water: 25 }
-          }
-        }
-      });
       server.use(
         http.get('http://testtrack.dev/api/v1/visitors/failed_visitor_id', () => {
           return HttpResponse.error();
         })
       );
 
-      const visitor = await Visitor.loadVisitor(config, 'failed_visitor_id');
+      const visitor = await Visitor.loadVisitor({
+        client,
+        splitRegistry,
+        id: 'failed_visitor_id',
+        assignments: null
+      });
       expect(requests.length).toBe(1);
       expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/visitors/failed_visitor_id');
       expect(visitor.getId()).toEqual('failed_visitor_id');

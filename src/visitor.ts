@@ -5,9 +5,8 @@ import { mixpanelAnalytics } from './mixpanelAnalytics';
 import { v4 as uuid } from 'uuid';
 import { calculateVariant } from './calculateVariant';
 import { vary, type Variants } from './vary';
-import type { Config } from './config';
 import type { AnalyticsProvider } from './analyticsProvider';
-import { createClient, type Client } from './client';
+import type { Client } from './client';
 import type { SplitRegistry } from './splitRegistry';
 
 export type VaryOptions = {
@@ -30,59 +29,35 @@ type VisitorOptions = {
   ttOffline?: boolean;
 };
 
+type LoadVisitorOptions = {
+  client: Client;
+  splitRegistry: SplitRegistry;
+  id: string | undefined;
+  assignments: Assignment[] | null;
+};
+
 type AssignmentRegistry = {
   [splitName: string]: Assignment;
 };
 
 class Visitor {
-  static loadVisitor(config: Config, visitorId: string | undefined) {
-    const client = createClient(config);
-    const splitRegistry = config.splitRegistry;
+  static async loadVisitor(options: LoadVisitorOptions): Promise<Visitor> {
+    const { id, client, splitRegistry } = options;
 
-    if (visitorId) {
-      const assignments = config.assignments;
-      if (assignments) {
-        return Promise.resolve(
-          new Visitor({
-            client,
-            splitRegistry,
-            id: visitorId,
-            assignments,
-            ttOffline: false
-          })
-        );
-      } else {
-        return client
-          .getVisitor(visitorId)
-          .then(data => {
-            return new Visitor({
-              client,
-              splitRegistry,
-              id: data.id,
-              assignments: Assignment.fromJsonArray(data.assignments),
-              ttOffline: false
-            });
-          })
-          .catch(() => {
-            return new Visitor({
-              client,
-              splitRegistry,
-              id: visitorId,
-              assignments: [],
-              ttOffline: true
-            });
-          });
-      }
-    } else {
-      return Promise.resolve(
-        new Visitor({
-          client,
-          splitRegistry,
-          id: uuid(),
-          assignments: [],
-          ttOffline: false
-        })
-      );
+    if (!id) {
+      return new Visitor({ client, splitRegistry, id: uuid(), assignments: [], ttOffline: false });
+    }
+
+    if (options.assignments) {
+      return new Visitor({ client, splitRegistry, id, assignments: options.assignments, ttOffline: false });
+    }
+
+    try {
+      const data = await client.getVisitor(id);
+      const assignments = Assignment.fromJsonArray(data.assignments);
+      return new Visitor({ client, splitRegistry, id: data.id, assignments, ttOffline: false });
+    } catch {
+      return new Visitor({ client, splitRegistry, id, assignments: [], ttOffline: true });
     }
   }
 

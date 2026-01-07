@@ -2,29 +2,26 @@ import { md5 } from 'js-md5';
 import Visitor from './visitor';
 import { getSplitVariants, type SplitRegistry } from './splitRegistry';
 
+type Options = {
+  visitor: Visitor;
+  splitRegistry: SplitRegistry;
+  splitName: string;
+};
+
 export function getAssignmentBucket(visitor: Visitor, splitName: string): number {
   const hash = md5(`${splitName}${visitor.getId()}`);
   const hashFixnum = parseInt(hash.substring(0, 8), 16);
   return hashFixnum % 100;
 }
 
-type CalculateVariantOptions = {
-  visitor: Visitor;
-  splitRegistry: SplitRegistry;
-  splitName: string;
-};
-
-export function calculateVariant({ visitor, splitRegistry, splitName }: CalculateVariantOptions): string | null {
+export function calculateVariant({ visitor, splitRegistry, splitName }: Options): string | null {
   if (!splitRegistry.isLoaded) {
     return null;
   }
 
   const split = splitRegistry.getSplit(splitName);
-
   if (!split) {
-    const message = `Unknown split: "${splitName}"`;
-    visitor.logError(message);
-    throw new Error(message);
+    throw new Error(`Unknown split: "${splitName}"`);
   }
 
   let bucketCeiling = 0;

@@ -72,16 +72,12 @@ describe('calculateVariant()', () => {
     expect(calculateVariant({ visitor, splitRegistry: emptySplitRegistry, splitName: 'logoSize' })).toBeNull();
   });
 
-  it('throws and logs an error when given an unknown splitName', () => {
+  it('throws an error when given an unknown splitName', () => {
     const visitor = createVisitor(splitRegistry);
-    const errorLogger = vi.fn();
-
-    visitor.setErrorLogger(errorLogger);
 
     expect(() => calculateVariant({ visitor, splitRegistry, splitName: 'nonExistentSplit' })).toThrow(
       'Unknown split: "nonExistentSplit"'
     );
-    expect(errorLogger).toHaveBeenCalledWith('Unknown split: "nonExistentSplit"');
   });
 
   it('deterministically assigns the same visitor to the same variant', () => {

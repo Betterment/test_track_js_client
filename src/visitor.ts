@@ -2,14 +2,13 @@ import { request, urlFor } from './client/request';
 import { getABVariants } from './abConfiguration';
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
-import { saveIdentifier } from './identifier';
 import { mixpanelAnalytics } from './mixpanelAnalytics';
 import { v4 as uuid } from 'uuid';
 import { calculateVariant } from './calculateVariant';
 import { vary, type Variants } from './vary';
 import type { Config } from './config';
 import type { AnalyticsProvider } from './analyticsProvider';
-import type { V1Visitor } from './client';
+import { createClient, type V1Visitor } from './client';
 
 export type VaryOptions = {
   variants: Variants;
@@ -178,11 +177,17 @@ class Visitor {
   }
 
   async linkIdentifier(identifierType: string, value: number) {
-    const otherVisitor = await saveIdentifier({
+    const client = createClient({ url: this.config.url.toString() });
+    const response = await client.postIdentifier({
+      visitor_id: this.getId(),
+      identifier_type: identifierType,
+      value: value.toString()
+    });
+
+    const otherVisitor = new Visitor({
       config: this.config,
-      identifierType,
-      value,
-      visitorId: this.getId()
+      id: response.visitor.id,
+      assignments: Assignment.fromJsonArray(response.visitor.assignments)
     });
 
     this._merge(otherVisitor);

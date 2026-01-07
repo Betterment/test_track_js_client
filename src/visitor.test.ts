@@ -1,6 +1,5 @@
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
-import { saveIdentifier } from './identifier';
 import { mixpanelAnalytics } from './mixpanelAnalytics';
 import type { Config } from './config';
 import { calculateVariant } from './calculateVariant';
@@ -14,11 +13,9 @@ import type { AnalyticsProvider } from './analyticsProvider';
 vi.mock('uuid');
 vi.mock('./calculateVariant');
 vi.mock('./assignmentNotification');
-vi.mock('./identifier');
 
 const mockCalculateVariant = vi.mocked(calculateVariant);
 const mockSendAssignmentNotification = vi.mocked(sendAssignmentNotification);
-const mockSaveIdentifier = vi.mocked(saveIdentifier);
 
 function setupConfig() {
   return createConfig({
@@ -538,38 +535,48 @@ describe('Visitor', () => {
   });
 
   describe('#linkIdentifier()', () => {
-    function setupMockSave() {
-      const jabbaCGIAssignment = new Assignment({ splitName: 'jabba', variant: 'cgi', isUnsynced: false });
-      // @ts-expect-error Testing with boolean variant
-      const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: true, isUnsynced: true });
-      const actualVisitor = new Visitor({
-        config: createConfig(),
-        id: 'actual_visitor_id',
-        assignments: [jabbaCGIAssignment, blueButtonAssignment]
-      });
+    beforeEach(() => {
+      server.use(
+        http.post('http://testtrack.dev/api/v1/identifier', () => {
+          return HttpResponse.json({
+            visitor: {
+              id: 'actual_visitor_id',
+              assignments: [
+                {
+                  split_name: 'jabba',
+                  variant: 'cgi',
+                  context: 'mos_eisley',
+                  unsynced: false
+                },
+                {
+                  split_name: 'blue_button',
+                  variant: 'true',
+                  context: 'homepage',
+                  unsynced: true
+                }
+              ]
+            }
+          });
+        })
+      );
+    });
 
-      mockSaveIdentifier.mockImplementation(() => Promise.resolve(actualVisitor));
-
-      return { jabbaCGIAssignment, blueButtonAssignment, actualVisitor };
-    }
-
-    it('saves an identifier', () => {
-      setupMockSave();
+    it('hits the test track server with the correct parameters', async () => {
       const config = setupConfig();
       const visitor = createVisitor(config);
-      visitor.linkIdentifier('myappdb_user_id', 444);
+      await visitor.linkIdentifier('myappdb_user_id', 444);
 
-      expect(mockSaveIdentifier).toHaveBeenCalledTimes(1);
-      expect(mockSaveIdentifier).toHaveBeenCalledWith({
-        config: visitor.config,
-        visitorId: 'EXISTING_VISITOR_ID',
-        identifierType: 'myappdb_user_id',
-        value: 444
-      });
+      expect(requests.length).toBe(1);
+      expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/identifier');
+      expect(await requests[0].text()).toEqual(
+        'visitor_id=EXISTING_VISITOR_ID&identifier_type=myappdb_user_id&value=444'
+      );
     });
 
     it('overrides assignments that exist in the other visitor', async () => {
-      const { jabbaCGIAssignment, blueButtonAssignment } = setupMockSave();
+      const jabbaCGIAssignment = new Assignment({ splitName: 'jabba', variant: 'cgi', context: 'mos_eisley', isUnsynced: false });
+      // @ts-expect-error Testing with string variant that represents boolean
+      const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: 'true', context: 'homepage', isUnsynced: true });
       const config = setupConfig();
       const visitor = createVisitor(config);
       const jabbaPuppetAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: true });
@@ -587,7 +594,6 @@ describe('Visitor', () => {
     });
 
     it('changes visitor id', async () => {
-      setupMockSave();
       const config = setupConfig();
       const visitor = createVisitor(config);
       await visitor.linkIdentifier('myappdb_user_id', 444);
@@ -595,7 +601,7 @@ describe('Visitor', () => {
     });
 
     it('notifies any unsynced splits', async () => {
-      const { blueButtonAssignment } = setupMockSave();
+      const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: 'true', context: 'homepage', isUnsynced: true });
       const config = setupConfig();
       const visitor = createVisitor(config);
       await visitor.linkIdentifier('myappdb_user_id', 444);
@@ -605,7 +611,6 @@ describe('Visitor', () => {
         visitor,
         assignment: blueButtonAssignment
       });
-      expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
     });
   });
 

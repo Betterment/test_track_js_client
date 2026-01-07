@@ -24,8 +24,7 @@
     "noUncheckedSideEffectImports": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    // FIXME: Enable this setting:
-    // "noUncheckedIndexedAccess": true,
+    "noUncheckedIndexedAccess": true,
 
     /* Interop */
     "erasableSyntaxOnly": true,

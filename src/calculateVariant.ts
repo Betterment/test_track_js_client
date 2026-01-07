@@ -33,6 +33,7 @@ export function calculateVariant({ visitor, splitRegistry, splitName }: Calculat
   const sortedVariants = getSplitVariants(split).sort();
 
   for (const variant of sortedVariants) {
+    // @ts-expect-error `weighting[variant]` could be undefined
     bucketCeiling += weighting[variant];
     if (bucketCeiling > assignmentBucket) {
       return variant;

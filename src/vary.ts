@@ -37,18 +37,15 @@ function validateVariants({ variants, splitRegistry, assignment, logError }: Opt
   }
 }
 
-function validateDefaultVariant({ variants, defaultVariant }: Options): void {
-  if (!variants.hasOwnProperty(defaultVariant)) {
-    throw new Error(`defaultVariant: ${defaultVariant} must be represented in variants object`);
-  }
-}
-
 export function vary(options: Options): { isDefaulted: boolean } {
   validateVariants(options);
-  validateDefaultVariant(options);
 
   const { assignment, variants, defaultVariant } = options;
   const assignedVariant = assignment.getVariant();
+
+  if (!variants[defaultVariant]) {
+    throw new Error(`defaultVariant: ${defaultVariant} must be represented in variants object`);
+  }
 
   if (assignedVariant && variants[assignedVariant]) {
     variants[assignedVariant]();

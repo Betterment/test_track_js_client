@@ -16,5 +16,5 @@ export function getFalseVariant({ splitName, splitRegistry, trueVariant, logErro
   }
 
   const otherVariants = splitVariants.filter(v => v !== trueVariant);
-  return otherVariants.length > 0 ? otherVariants.sort()[0] : 'false';
+  return otherVariants.sort()[0] ?? 'false';
 }

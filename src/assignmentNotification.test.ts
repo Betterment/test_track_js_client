@@ -50,8 +50,8 @@ describe('sendAssignmentNotification', () => {
 
     await sendAssignmentNotification({ client, visitor, assignment });
     expect(requests.length).toBe(2);
-    expect(await requests[0].text()).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
-    expect(await requests[1].text()).toEqual(
+    expect(await requests[0]!.text()).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
+    expect(await requests[1]!.text()).toEqual(
       'visitor_id=visitorId&split_name=jabba&context=spec&mixpanel_result=success'
     );
   });
@@ -62,8 +62,8 @@ describe('sendAssignmentNotification', () => {
 
     await sendAssignmentNotification({ client, visitor, assignment });
     expect(requests.length).toBe(2);
-    expect(await requests[0].text()).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
-    expect(await requests[1].text()).toEqual(
+    expect(await requests[0]!.text()).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
+    expect(await requests[1]!.text()).toEqual(
       'visitor_id=visitorId&split_name=jabba&context=spec&mixpanel_result=failure'
     );
   });

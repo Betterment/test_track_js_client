@@ -126,7 +126,7 @@ describe('Visitor', () => {
         assignments: null
       });
       expect(requests.length).toBe(1);
-      expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id');
+      expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id');
       const jabbaAssignment = new Assignment({
         splitName: 'jabba',
         variant: 'puppet',
@@ -152,7 +152,7 @@ describe('Visitor', () => {
         assignments: null
       });
       expect(requests.length).toBe(1);
-      expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/visitors/failed_visitor_id');
+      expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/visitors/failed_visitor_id');
       expect(visitor.getId()).toEqual('failed_visitor_id');
       expect(visitor.getAssignmentRegistry()).toEqual({});
     });
@@ -450,7 +450,7 @@ describe('Visitor', () => {
         visitor.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
-          callback: (isPuppet) => {
+          callback: isPuppet => {
             expect(isPuppet).toBe(true);
           }
         });
@@ -468,7 +468,7 @@ describe('Visitor', () => {
         visitor.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
-          callback: (isPuppet) => {
+          callback: isPuppet => {
             expect(isPuppet).toBe(false);
           }
         });
@@ -487,7 +487,7 @@ describe('Visitor', () => {
 
         visitor.ab('blue_button', {
           context: 'spec',
-          callback: (isBlue) => {
+          callback: isBlue => {
             expect(isBlue).toBe(true);
           }
         });
@@ -504,7 +504,7 @@ describe('Visitor', () => {
 
         visitor.ab('blue_button', {
           context: 'spec',
-          callback: (isBlue) => {
+          callback: isBlue => {
             expect(isBlue).toBe(false);
           }
         });
@@ -514,7 +514,7 @@ describe('Visitor', () => {
         const visitor = createVisitor();
         visitor.ab('jabba', {
           context: 'spec',
-          callback: (isTrue) => {
+          callback: isTrue => {
             expect(isTrue).toBe(false);
           }
         });
@@ -554,8 +554,8 @@ describe('Visitor', () => {
       await visitor.linkIdentifier('myappdb_user_id', 444);
 
       expect(requests.length).toBe(1);
-      expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/identifier');
-      expect(await requests[0].text()).toEqual(
+      expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/identifier');
+      expect(await requests[0]!.text()).toEqual(
         'visitor_id=EXISTING_VISITOR_ID&identifier_type=myappdb_user_id&value=444'
       );
     });

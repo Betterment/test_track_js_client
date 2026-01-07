@@ -236,11 +236,11 @@ describe('createSession', () => {
 
         await session._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
         expect(requests.length).toBe(1);
-        expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/assignment_override');
-        expect(await requests[0].text()).toEqual(
+        expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/assignment_override');
+        expect(await requests[0]!.text()).toEqual(
           'visitor_id=existing_visitor_id&split_name=split&variant=variant&context=chrome_extension&mixpanel_result=success'
         );
-        expect(requests[0].headers.get('authorization')).toEqual(`Basic ${btoa('the_username:the_password')}`);
+        expect(requests[0]!.headers.get('authorization')).toEqual(`Basic ${btoa('the_username:the_password')}`);
       });
 
       it('logs an error on an error response', async () => {

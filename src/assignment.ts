@@ -17,7 +17,7 @@ export default class Assignment {
     });
   };
 
-  #splitName: string;
+  readonly #splitName: string;
   #variant: string | null;
   #context: string | undefined;
   #isUnsynced: boolean;

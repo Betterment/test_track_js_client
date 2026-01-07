@@ -1,18 +1,18 @@
-export type V1Assignment = {
+export type V1Assignment = Readonly<{
   split_name: string;
   variant: string;
   context: string;
   unsynced: boolean;
-};
+}>;
 
-export type V1Visitor = {
+export type V1Visitor = Readonly<{
   id: string;
   assignments: V1Assignment[];
-};
+}>;
 
-export type V1Identifier = {
+export type V1Identifier = Readonly<{
   visitor: V1Visitor;
-};
+}>;
 
 export type V1IdentifierParams = {
   visitor_id: string;

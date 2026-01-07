@@ -36,9 +36,9 @@ type LoadVisitorOptions = {
   assignments: Assignment[] | null;
 };
 
-type AssignmentRegistry = {
+type AssignmentRegistry = Readonly<{
   [splitName: string]: Assignment;
-};
+}>;
 
 export default class Visitor {
   static async loadVisitor(options: LoadVisitorOptions): Promise<Visitor> {
@@ -61,14 +61,15 @@ export default class Visitor {
     }
   }
 
-  #client: Client;
-  #splitRegistry: SplitRegistry;
+  readonly #client: Client;
+  readonly #splitRegistry: SplitRegistry;
+
   #id: string;
   #assignments: AssignmentRegistry;
   #ttOffline: boolean | undefined;
   #errorLogger: (errorMessage: string) => void;
 
-  public analytics: AnalyticsProvider;
+  analytics: AnalyticsProvider;
 
   constructor({ client, splitRegistry, id, assignments, ttOffline }: VisitorOptions) {
     this.#client = client;
@@ -190,7 +191,7 @@ export default class Visitor {
       isUnsynced: true
     });
 
-    this.#assignments[splitName] = assignment;
+    this.#assignments = { ...this.#assignments, [splitName]: assignment };
     return assignment;
   }
 

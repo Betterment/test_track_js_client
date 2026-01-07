@@ -7,19 +7,19 @@ declare global {
   }
 }
 
-export type Config = {
+export type Config = Readonly<{
   url: string;
   cookieDomain: string;
   cookieName?: string;
   experienceSamplingWeight: number;
-  assignments?: { [splitName: string]: string };
-  splits?: {
-    [splitName: string]: {
+  assignments?: Readonly<{ [splitName: string]: string }>;
+  splits?: Readonly<{
+    [splitName: string]: Readonly<{
       feature_gate: boolean;
-      weights: { [variant: string]: number };
-    };
-  };
-};
+      weights: Readonly<{ [variant: string]: number }>;
+    }>;
+  }>;
+}>;
 
 export function parseSplitRegistry(rawSplits: Config['splits']): SplitRegistry {
   if (!rawSplits) {

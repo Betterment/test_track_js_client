@@ -1,5 +1,3 @@
-import type { Config } from '../config';
-
 type RequestOptions = {
   url: URL;
   method: 'GET' | 'POST';
@@ -7,10 +5,6 @@ type RequestOptions = {
   body?: URLSearchParams;
   auth?: { username: string; password: string };
 };
-
-export function urlFor(config: Config, path: `/api/${string}`): URL {
-  return new URL(path, config.url);
-}
 
 export function toSearchParams(values: Record<string, string | null | undefined>): URLSearchParams {
   const params = new URLSearchParams();

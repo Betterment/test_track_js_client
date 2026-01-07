@@ -125,23 +125,17 @@ class Visitor {
     const variants = getABVariants({
       splitName,
       trueVariant: options.trueVariant || 'true',
-      visitor: this,
-      splitRegistry: this.splitRegistry
+      splitRegistry: this.splitRegistry,
+      logError: message => this.logError(message)
     });
-    const variantConfiguration: VaryOptions['variants'] = {};
-
-    variantConfiguration[variants.true.toString()] = function () {
-      options.callback(true);
-    };
-
-    variantConfiguration[variants.false.toString()] = function () {
-      options.callback(false);
-    };
 
     this.vary(splitName, {
       context: options.context,
-      variants: variantConfiguration,
-      defaultVariant: variants.false
+      defaultVariant: variants.false,
+      variants: {
+        [variants.true]: () => options.callback(true),
+        [variants.false]: () => options.callback(false)
+      }
     });
   }
 

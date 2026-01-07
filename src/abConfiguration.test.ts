@@ -1,9 +1,6 @@
 import { getABVariants } from './abConfiguration';
-import Visitor from './visitor';
-import { createClient } from './client';
-import { createSplitRegistry, type SplitRegistry } from './splitRegistry';
+import { createSplitRegistry } from './splitRegistry';
 
-const client = createClient({ url: 'http://testtrack.dev' });
 const emptySplitRegistry = createSplitRegistry(null);
 
 const splitRegistry = createSplitRegistry([
@@ -24,42 +21,31 @@ const splitRegistry = createSplitRegistry([
   }
 ]);
 
-function createVisitor(splitRegistry: SplitRegistry) {
-  const visitor = new Visitor({
-    client,
-    splitRegistry,
-    id: 'visitor_id',
-    assignments: []
-  });
-  visitor.logError = vi.fn();
-  return visitor;
-}
-
 describe('getABVariants()', () => {
   it('logs an error if the split does not have exactly two variants', () => {
-    const visitor = createVisitor(splitRegistry);
+    const logError = vi.fn();
 
     getABVariants({
       splitName: 'element',
       trueVariant: 'water',
-      visitor: visitor,
+      logError,
       splitRegistry
     });
 
-    expect(visitor.logError).toHaveBeenCalledWith('A/B for element configures split with more than 2 variants');
+    expect(logError).toHaveBeenCalledWith('A/B for element configures split with more than 2 variants');
   });
 
   it('does not log an error if the split registry is not loaded', () => {
-    const visitor = createVisitor(emptySplitRegistry);
+    const logError = vi.fn();
 
     getABVariants({
       splitName: 'element',
       trueVariant: 'water',
-      visitor,
+      logError,
       splitRegistry: emptySplitRegistry
     });
 
-    expect(visitor.logError).not.toHaveBeenCalled();
+    expect(logError).not.toHaveBeenCalled();
   });
 
   describe('true variant', () => {
@@ -67,7 +53,7 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'button_color',
         trueVariant: 'true',
-        visitor: createVisitor(splitRegistry),
+        logError: vi.fn(),
         splitRegistry
       });
 
@@ -78,7 +64,7 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'new_feature',
         trueVariant: 'true',
-        visitor: createVisitor(splitRegistry),
+        logError: vi.fn(),
         splitRegistry
       });
 
@@ -89,7 +75,7 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'button_color',
         trueVariant: 'red',
-        visitor: createVisitor(splitRegistry),
+        logError: vi.fn(),
         splitRegistry
       });
 
@@ -102,7 +88,7 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'button_color',
         trueVariant: 'red',
-        visitor: createVisitor(splitRegistry),
+        logError: vi.fn(),
         splitRegistry
       });
 
@@ -113,7 +99,7 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'button_color',
         trueVariant: 'red',
-        visitor: createVisitor(emptySplitRegistry),
+        logError: vi.fn(),
         splitRegistry: emptySplitRegistry
       });
 
@@ -124,7 +110,7 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'element',
         trueVariant: 'earth',
-        visitor: createVisitor(splitRegistry),
+        logError: vi.fn(),
         splitRegistry
       });
 
@@ -135,7 +121,7 @@ describe('getABVariants()', () => {
       const variants = getABVariants({
         splitName: 'new_feature',
         trueVariant: 'true',
-        visitor: createVisitor(splitRegistry),
+        logError: vi.fn(),
         splitRegistry
       });
 

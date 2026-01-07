@@ -64,10 +64,9 @@ export default class Visitor {
   #client: Client;
   #splitRegistry: SplitRegistry;
   #id: string;
-  #assignments: Assignment[];
+  #assignments: AssignmentRegistry;
   #ttOffline: boolean | undefined;
   #errorLogger: (errorMessage: string) => void;
-  #assignmentRegistry?: AssignmentRegistry;
 
   public analytics: AnalyticsProvider;
 
@@ -75,27 +74,18 @@ export default class Visitor {
     this.#client = client;
     this.#splitRegistry = splitRegistry;
     this.#id = id;
-    this.#assignments = assignments;
     this.#ttOffline = ttOffline;
     this.#errorLogger = errorMessage => console.error(errorMessage);
     this.analytics = mixpanelAnalytics;
+    this.#assignments = Object.fromEntries(assignments.map(assignment => [assignment.getSplitName(), assignment]));
   }
 
   getId() {
     return this.#id;
   }
 
-  getAssignmentRegistry() {
-    if (!this.#assignmentRegistry) {
-      this.#assignmentRegistry = this.#assignments.reduce((registry, assignment) => {
-        return {
-          ...registry,
-          [assignment.getSplitName()]: assignment
-        };
-      }, {});
-    }
-
-    return this.#assignmentRegistry;
+  getAssignmentRegistry(): AssignmentRegistry {
+    return this.#assignments;
   }
 
   vary(splitName: string, options: VaryOptions): void {
@@ -215,11 +205,7 @@ export default class Visitor {
       isUnsynced: true
     });
 
-    this.#assignments.push(assignment);
-
-    // reset derived datastores to trigger rebuilding
-    this.#assignmentRegistry = undefined;
-
+    this.#assignments[splitName] = assignment;
     return assignment;
   }
 

@@ -28,7 +28,7 @@ describe('createSession', () => {
   });
 
   beforeEach(() => {
-    // @ts-expect-error Cookies.get returns different types in practice
+    // @ts-expect-error Cookies.get returns different types depending on arguments
     vi.mocked(Cookies.get).mockReturnValue('existing_visitor_id');
   });
 

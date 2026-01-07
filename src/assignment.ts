@@ -8,7 +8,7 @@ export type AssignmentOptions = {
 };
 
 export default class Assignment {
-  static fromV1Assignment(data: V1Assignment) {
+  static fromV1Assignment(data: V1Assignment): Assignment {
     return new Assignment({
       context: data.context,
       variant: data.variant,
@@ -29,31 +29,31 @@ export default class Assignment {
     this.#isUnsynced = options.isUnsynced;
   }
 
-  getSplitName() {
+  getSplitName(): string {
     return this.#splitName;
   }
 
-  getVariant() {
+  getVariant(): string | null {
     return this.#variant;
   }
 
-  setVariant(variant: string) {
+  setVariant(variant: string): void {
     this.#variant = variant;
   }
 
-  getContext() {
+  getContext(): string | undefined {
     return this.#context;
   }
 
-  setContext(context: string) {
+  setContext(context: string): void {
     this.#context = context;
   }
 
-  isUnsynced() {
+  isUnsynced(): boolean {
     return this.#isUnsynced;
   }
 
-  setUnsynced(unsynced: boolean) {
+  setUnsynced(unsynced: boolean): void {
     this.#isUnsynced = unsynced;
   }
 }

@@ -13,7 +13,7 @@ async function persistAssignment(
   visitor: Visitor,
   assignment: Assignment,
   trackResult?: 'success' | 'failure'
-) {
+): Promise<void> {
   await client
     .postAssignmentEvent({
       visitor_id: visitor.getId(),

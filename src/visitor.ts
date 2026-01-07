@@ -80,7 +80,7 @@ export default class Visitor {
     this.#assignments = Object.fromEntries(assignments.map(assignment => [assignment.getSplitName(), assignment]));
   }
 
-  getId() {
+  getId(): string {
     return this.#id;
   }
 
@@ -110,7 +110,7 @@ export default class Visitor {
     this.notifyUnsyncedAssignments();
   }
 
-  ab(splitName: string, options: AbOptions) {
+  ab(splitName: string, options: AbOptions): void {
     const trueVariant = options.trueVariant ?? 'true';
     const falseVariant = getFalseVariant({
       splitName,
@@ -129,15 +129,15 @@ export default class Visitor {
     });
   }
 
-  setErrorLogger(errorLogger: (errorMessage: string) => void) {
+  setErrorLogger(errorLogger: (errorMessage: string) => void): void {
     this.#errorLogger = errorLogger;
   }
 
-  logError(errorMessage: string) {
+  logError(errorMessage: string): void {
     this.#errorLogger.call(null, errorMessage); // call with null context to ensure we don't leak the visitor object to the outside world
   }
 
-  async linkIdentifier(identifierType: string, value: number) {
+  async linkIdentifier(identifierType: string, value: number): Promise<void> {
     const data = await this.#client.postIdentifier({
       visitor_id: this.getId(),
       identifier_type: identifierType,
@@ -156,23 +156,23 @@ export default class Visitor {
     this.notifyUnsyncedAssignments();
   }
 
-  setAnalytics(analytics: AnalyticsProvider) {
+  setAnalytics(analytics: AnalyticsProvider): void {
     this.analytics = analytics;
   }
 
-  notifyUnsyncedAssignments() {
+  notifyUnsyncedAssignments(): void {
     this._getUnsyncedAssignments().forEach(assignment => this._notify(assignment));
   }
 
-  _getUnsyncedAssignments() {
+  _getUnsyncedAssignments(): Assignment[] {
     return Object.values(this.getAssignmentRegistry()).filter(assignment => assignment.isUnsynced());
   }
 
-  _getAssignmentFor(splitName: string, context: string) {
+  _getAssignmentFor(splitName: string, context: string): Assignment {
     return this.getAssignmentRegistry()[splitName] || this._generateAssignmentFor(splitName, context);
   }
 
-  _generateAssignmentFor(splitName: string, context: string) {
+  _generateAssignmentFor(splitName: string, context: string): Assignment {
     const variant = calculateVariant({
       visitor: this,
       splitRegistry: this.#splitRegistry,
@@ -194,7 +194,7 @@ export default class Visitor {
     return assignment;
   }
 
-  _notify(assignment: Assignment) {
+  _notify(assignment: Assignment): void {
     try {
       if (this.#ttOffline) {
         return;

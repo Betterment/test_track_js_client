@@ -7,7 +7,7 @@ type Options = {
   logError: (message: string) => void;
 };
 
-export function getFalseVariant({ splitName, splitRegistry, trueVariant, logError }: Options) {
+export function getFalseVariant({ splitName, splitRegistry, trueVariant, logError }: Options): string {
   const split = splitRegistry.getSplit(splitName);
   const splitVariants = split ? getSplitVariants(split) : [];
 

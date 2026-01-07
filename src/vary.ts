@@ -43,7 +43,7 @@ function validateDefaultVariant({ variants, defaultVariant }: Options): void {
   }
 }
 
-export function vary(options: Options) {
+export function vary(options: Options): { isDefaulted: boolean } {
   validateVariants(options);
   validateDefaultVariant(options);
 

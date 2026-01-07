@@ -2,21 +2,19 @@ import { getSplitVariants, type SplitRegistry } from './splitRegistry';
 
 type Options = {
   splitName: string;
+  splitRegistry: SplitRegistry;
   trueVariant: string;
   logError: (message: string) => void;
-  splitRegistry: SplitRegistry;
 };
 
-export function getABVariants({ splitName, trueVariant, logError, splitRegistry }: Options) {
+export function getFalseVariant({ splitName, splitRegistry, trueVariant, logError }: Options) {
   const split = splitRegistry.getSplit(splitName);
-  const splitVariants = split && getSplitVariants(split);
+  const splitVariants = split ? getSplitVariants(split) : [];
 
-  if (splitVariants && splitVariants.length > 2) {
+  if (splitVariants.length > 2) {
     logError(`A/B for ${splitName} configures split with more than 2 variants`);
   }
 
-  const nonTrueVariants = splitVariants?.filter(v => v !== trueVariant) || [];
-  const falseVariant = nonTrueVariants.length > 0 ? nonTrueVariants.sort()[0] : 'false';
-
-  return { true: trueVariant, false: falseVariant };
+  const otherVariants = splitVariants.filter(v => v !== trueVariant);
+  return otherVariants.length > 0 ? otherVariants.sort()[0] : 'false';
 }

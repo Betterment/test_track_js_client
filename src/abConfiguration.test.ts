@@ -1,4 +1,4 @@
-import { getABVariants } from './abConfiguration';
+import { getFalseVariant } from './abConfiguration';
 import { createSplitRegistry } from './splitRegistry';
 
 const emptySplitRegistry = createSplitRegistry(null);
@@ -21,11 +21,11 @@ const splitRegistry = createSplitRegistry([
   }
 ]);
 
-describe('getABVariants()', () => {
+describe('getFalseVariant()', () => {
   it('logs an error if the split does not have exactly two variants', () => {
     const logError = vi.fn();
 
-    getABVariants({
+    getFalseVariant({
       splitName: 'element',
       trueVariant: 'water',
       logError,
@@ -38,7 +38,7 @@ describe('getABVariants()', () => {
   it('does not log an error if the split registry is not loaded', () => {
     const logError = vi.fn();
 
-    getABVariants({
+    getFalseVariant({
       splitName: 'element',
       trueVariant: 'water',
       logError,
@@ -48,84 +48,47 @@ describe('getABVariants()', () => {
     expect(logError).not.toHaveBeenCalled();
   });
 
-  describe('true variant', () => {
-    it('accepts `true` as a fallback value', () => {
-      const variants = getABVariants({
-        splitName: 'button_color',
-        trueVariant: 'true',
-        logError: vi.fn(),
-        splitRegistry
-      });
-
-      expect(variants.true).toBe('true');
+  it('returns the variant of the split that is not the true_variant', () => {
+    const falseVariant = getFalseVariant({
+      splitName: 'button_color',
+      trueVariant: 'red',
+      logError: vi.fn(),
+      splitRegistry
     });
 
-    it('is true if only one variant in the split', () => {
-      const variants = getABVariants({
-        splitName: 'new_feature',
-        trueVariant: 'true',
-        logError: vi.fn(),
-        splitRegistry
-      });
-
-      expect(variants.true).toBe('true');
-    });
-
-    it('is whatever was passed in', () => {
-      const variants = getABVariants({
-        splitName: 'button_color',
-        trueVariant: 'red',
-        logError: vi.fn(),
-        splitRegistry
-      });
-
-      expect(variants.true).toBe('red');
-    });
+    expect(falseVariant).toBe('blue');
   });
 
-  describe('false variant', () => {
-    it('is the variant of the split that is not the true_variant', () => {
-      const variants = getABVariants({
-        splitName: 'button_color',
-        trueVariant: 'red',
-        logError: vi.fn(),
-        splitRegistry
-      });
-
-      expect(variants.false).toBe('blue');
+  it('returns false when there is no split_registry', () => {
+    const falseVariant = getFalseVariant({
+      splitName: 'button_color',
+      trueVariant: 'red',
+      logError: vi.fn(),
+      splitRegistry: emptySplitRegistry
     });
 
-    it('is false when there is no split_registry', () => {
-      const variants = getABVariants({
-        splitName: 'button_color',
-        trueVariant: 'red',
-        logError: vi.fn(),
-        splitRegistry: emptySplitRegistry
-      });
+    expect(falseVariant).toBe('false');
+  });
 
-      expect(variants.false).toBe('false');
+  it('returns the same variant if the split has more than two variants', () => {
+    const falseVariant = getFalseVariant({
+      splitName: 'element',
+      trueVariant: 'earth',
+      logError: vi.fn(),
+      splitRegistry
     });
 
-    it('is always the same if the split has more than two variants', () => {
-      const variants = getABVariants({
-        splitName: 'element',
-        trueVariant: 'earth',
-        logError: vi.fn(),
-        splitRegistry
-      });
+    expect(falseVariant).toBe('fire');
+  });
 
-      expect(variants.false).toBe('fire');
+  it('returns false if only one variant in the split', () => {
+    const falseVariant = getFalseVariant({
+      splitName: 'new_feature',
+      trueVariant: 'true',
+      logError: vi.fn(),
+      splitRegistry
     });
 
-    it('is false if only one variant in the split', () => {
-      const variants = getABVariants({
-        splitName: 'new_feature',
-        trueVariant: 'true',
-        logError: vi.fn(),
-        splitRegistry
-      });
-
-      expect(variants.false).toBe('false');
-    });
+    expect(falseVariant).toBe('false');
   });
 });

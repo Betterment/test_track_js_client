@@ -1,4 +1,4 @@
-import { getABVariants } from './abConfiguration';
+import { getFalseVariant } from './abConfiguration';
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
@@ -122,19 +122,20 @@ class Visitor {
   }
 
   ab(splitName: string, options: AbOptions) {
-    const variants = getABVariants({
+    const trueVariant = options.trueVariant || 'true';
+    const falseVariant = getFalseVariant({
       splitName,
-      trueVariant: options.trueVariant || 'true',
+      trueVariant,
       splitRegistry: this.splitRegistry,
       logError: message => this.logError(message)
     });
 
     this.vary(splitName, {
       context: options.context,
-      defaultVariant: variants.false,
+      defaultVariant: falseVariant,
       variants: {
-        [variants.true]: () => options.callback(true),
-        [variants.false]: () => options.callback(false)
+        [trueVariant]: () => options.callback(true),
+        [falseVariant]: () => options.callback(false)
       }
     });
   }

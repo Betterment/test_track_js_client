@@ -265,7 +265,7 @@ describe('Visitor', () => {
         const errorLogger = vi.fn();
 
         visitor.setErrorLogger(errorLogger);
-        mockSendAssignmentNotification.mockImplementation(() => {
+        mockSendAssignmentNotification.mockImplementationOnce(() => {
           throw new Error('something bad happened');
         });
 
@@ -321,7 +321,7 @@ describe('Visitor', () => {
             splitName: 'jabba',
             variant: 'cgi',
             context: 'defaulted',
-            isUnsynced: true
+            isUnsynced: false // Marked as unsynced after the assignment notification
           })
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalled();
@@ -567,12 +567,7 @@ describe('Visitor', () => {
         context: 'mos_eisley',
         isUnsynced: false
       });
-      const blueButtonAssignment = new Assignment({
-        splitName: 'blue_button',
-        variant: 'true',
-        context: 'homepage',
-        isUnsynced: true
-      });
+
       const jabbaPuppetAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: true });
       const wineAssignment = new Assignment({ splitName: 'wine', variant: 'white', isUnsynced: true });
 
@@ -582,7 +577,12 @@ describe('Visitor', () => {
       expect(visitor.getAssignmentRegistry()).toEqual({
         jabba: jabbaCGIAssignment,
         wine: wineAssignment,
-        blue_button: blueButtonAssignment
+        blue_button: new Assignment({
+          splitName: 'blue_button',
+          variant: 'true',
+          context: 'homepage',
+          isUnsynced: false // Marked as unsynced after the assignment notification
+        })
       });
     });
 
@@ -593,19 +593,18 @@ describe('Visitor', () => {
     });
 
     it('notifies any unsynced splits', async () => {
-      const blueButtonAssignment = new Assignment({
-        splitName: 'blue_button',
-        variant: 'true',
-        context: 'homepage',
-        isUnsynced: true
-      });
       const visitor = createVisitor();
       await visitor.linkIdentifier('myappdb_user_id', 444);
       expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         client,
         visitor,
-        assignment: blueButtonAssignment
+        assignment: new Assignment({
+          splitName: 'blue_button',
+          variant: 'true',
+          context: 'homepage',
+          isUnsynced: false // Marked as unsynced after the assignment notification
+        })
       });
     });
   });
@@ -631,13 +630,11 @@ describe('Visitor', () => {
 
     it('does a console.error if the error logger was never set', () => {
       const visitor = createVisitor();
-      const errorLogger = vi.fn();
-      const consoleSpy = vi.spyOn(window.console, 'error');
+      const consoleSpy = vi.spyOn(console, 'error').mockReturnValueOnce();
       visitor.logError('something bad happened');
 
       expect(consoleSpy).toHaveBeenCalledTimes(1);
       expect(consoleSpy).toHaveBeenCalledWith('something bad happened');
-      expect(errorLogger).not.toHaveBeenCalled();
     });
   });
 

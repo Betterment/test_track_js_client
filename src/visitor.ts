@@ -78,7 +78,7 @@ class Visitor {
     this._id = id;
     this._assignments = assignments;
     this._ttOffline = ttOffline;
-    this._errorLogger = errorMessage => window.console.error(errorMessage);
+    this._errorLogger = errorMessage => console.error(errorMessage);
     this.analytics = mixpanelAnalytics;
   }
 

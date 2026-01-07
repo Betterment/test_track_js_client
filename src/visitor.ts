@@ -78,9 +78,7 @@ class Visitor {
     }
   }
 
-  /** @internal */
-  config: Config;
-
+  private config: Config;
   private _id: string;
   private _assignments: Assignment[];
   private _ttOffline?: boolean;

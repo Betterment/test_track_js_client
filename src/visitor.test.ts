@@ -324,29 +324,26 @@ describe('Visitor', () => {
     });
 
     describe('Offline Visitor', () => {
-      function createOfflineVisitor() {
-        return new Visitor({
-          config: createConfig(),
-          id: 'offline_visitor_id',
-          assignments: [],
-          ttOffline: true
-        });
+      function createOfflineVisitor(config: Config) {
+        return new Visitor({ config, id: 'offline_visitor_id', assignments: [], ttOffline: true });
       }
 
       it('generates a new assignment via calculateVariant', () => {
-        const offlineVisitor = createOfflineVisitor();
+        const config = createConfig();
+        const offlineVisitor = createOfflineVisitor(config);
         varyJabbaSplit(offlineVisitor);
 
         expect(mockCalculateVariant).toHaveBeenCalledTimes(1);
         expect(mockCalculateVariant).toHaveBeenCalledWith({
           visitor: offlineVisitor,
-          splitRegistry: offlineVisitor.config.splitRegistry,
+          splitRegistry: config.splitRegistry,
           splitName: 'jabba'
         });
       });
 
       it('does not send an AssignmentNotification', () => {
-        const offlineVisitor = createOfflineVisitor();
+        const config = createConfig();
+        const offlineVisitor = createOfflineVisitor(config);
         varyWineSplit(offlineVisitor);
 
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();

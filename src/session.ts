@@ -1,7 +1,7 @@
 import { loadConfig } from './config';
 import Visitor, { type AbOptions, type VaryOptions } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
-import type { V1Hash } from './splitRegistry';
+import type { SplitRegistry, V1Hash } from './splitRegistry';
 import { createCookieStorage, type Storage } from './storage';
 import { createClient, type Client } from './client';
 
@@ -15,6 +15,7 @@ type SessionContext = {
   client: Client;
   storage: Storage;
   visitor: Visitor;
+  splitRegistry: SplitRegistry;
 };
 
 type CrxInfo = {
@@ -49,7 +50,7 @@ export function createSession() {
 
       visitor.notifyUnsyncedAssignments();
 
-      resolveContext({ client, storage, visitor });
+      resolveContext({ client, storage, visitor, splitRegistry: config.splitRegistry });
       storage.setVisitorId(visitor.getId());
 
       return visitor;
@@ -81,11 +82,11 @@ export function createSession() {
 
     _crx: {
       async loadInfo(): Promise<CrxInfo> {
-        const { visitor } = await sessionContext;
+        const { visitor, splitRegistry } = await sessionContext;
 
         return {
           visitorId: visitor.getId(),
-          splitRegistry: visitor.config.splitRegistry.asV1Hash(),
+          splitRegistry: splitRegistry.asV1Hash(),
           assignmentRegistry: Object.fromEntries(
             Object.entries(visitor.getAssignmentRegistry()).map(([splitName, assignment]) => [
               splitName,

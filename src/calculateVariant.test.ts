@@ -82,7 +82,9 @@ describe('calculateVariant()', () => {
   it('throws and logs an error when given an unknown splitName', () => {
     const visitor = createVisitor(splitRegistry);
 
-    expect(() => calculateVariant({ visitor, splitRegistry, splitName: 'nonExistentSplit' })).toThrow('Unknown split: "nonExistentSplit"');
+    expect(() => calculateVariant({ visitor, splitRegistry, splitName: 'nonExistentSplit' })).toThrow(
+      'Unknown split: "nonExistentSplit"'
+    );
     expect(visitor.logError).toHaveBeenCalledTimes(1);
     expect(visitor.logError).toHaveBeenCalledWith('Unknown split: "nonExistentSplit"');
   });

@@ -14,14 +14,16 @@ async function persistAssignment(
   assignment: Assignment,
   trackResult?: 'success' | 'failure'
 ) {
-  await client.postAssignmentEvent({
-    visitor_id: visitor.getId(),
-    split_name: assignment.getSplitName(),
-    context: assignment.getContext(),
-    mixpanel_result: trackResult
-  }).catch(error => {
-    visitor.logError(`test_track persistAssignment error: ${error}`);
-  });
+  await client
+    .postAssignmentEvent({
+      visitor_id: visitor.getId(),
+      split_name: assignment.getSplitName(),
+      context: assignment.getContext(),
+      mixpanel_result: trackResult
+    })
+    .catch(error => {
+      visitor.logError(`test_track persistAssignment error: ${error}`);
+    });
 }
 
 export async function sendAssignmentNotification({ client, visitor, assignment }: Options): Promise<void> {

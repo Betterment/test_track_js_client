@@ -3,12 +3,14 @@ import { sendAssignmentNotification } from './assignmentNotification';
 import Visitor from './visitor';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
-import { createConfig } from './test-utils';
 import { createClient, type Client } from './client';
+import { createSplitRegistry } from './splitRegistry';
+
+const client = createClient({ url: 'http://testtrack.dev' });
+const splitRegistry = createSplitRegistry(null);
 
 function createVisitor(options: { trackSuccess: boolean }): { visitor: Visitor; client: Client } {
-  const config = createConfig();
-  const visitor = new Visitor({ config, id: 'visitorId', assignments: [] });
+  const visitor = new Visitor({ client, splitRegistry, id: 'visitorId', assignments: [] });
 
   visitor.setAnalytics({
     identify: vi.fn(),
@@ -16,8 +18,6 @@ function createVisitor(options: { trackSuccess: boolean }): { visitor: Visitor; 
     trackAssignment: vi.fn().mockImplementation((_visitorId, _assignment, callback) => callback(options.trackSuccess))
   });
   visitor.logError = vi.fn();
-
-  const client = createClient({ url: config.url.toString() });
 
   return { visitor, client };
 }

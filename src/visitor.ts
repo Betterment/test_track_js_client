@@ -7,7 +7,8 @@ import { calculateVariant } from './calculateVariant';
 import { vary, type Variants } from './vary';
 import type { Config } from './config';
 import type { AnalyticsProvider } from './analyticsProvider';
-import { createClient } from './client';
+import { createClient, type Client } from './client';
+import type { SplitRegistry } from './splitRegistry';
 
 export type VaryOptions = {
   variants: Variants;
@@ -21,8 +22,9 @@ export type AbOptions = {
   trueVariant?: string;
 };
 
-export type VisitorOptions = {
-  config: Config;
+type VisitorOptions = {
+  client: Client;
+  splitRegistry: SplitRegistry;
   id: string;
   assignments: Assignment[];
   ttOffline?: boolean;
@@ -34,12 +36,16 @@ type AssignmentRegistry = {
 
 class Visitor {
   static loadVisitor(config: Config, visitorId: string | undefined) {
+    const client = createClient({ url: config.url.toString() });
+    const splitRegistry = config.splitRegistry;
+
     if (visitorId) {
       const assignments = config.assignments;
       if (assignments) {
         return Promise.resolve(
           new Visitor({
-            config,
+            client,
+            splitRegistry,
             id: visitorId,
             assignments,
             ttOffline: false
@@ -51,7 +57,8 @@ class Visitor {
           .getVisitor(visitorId)
           .then(data => {
             return new Visitor({
-              config,
+              client,
+              splitRegistry,
               id: data.id,
               assignments: Assignment.fromJsonArray(data.assignments),
               ttOffline: false
@@ -59,7 +66,8 @@ class Visitor {
           })
           .catch(() => {
             return new Visitor({
-              config,
+              client,
+              splitRegistry,
               id: visitorId,
               assignments: [],
               ttOffline: true
@@ -69,7 +77,8 @@ class Visitor {
     } else {
       return Promise.resolve(
         new Visitor({
-          config,
+          client,
+          splitRegistry,
           id: uuid(),
           assignments: [],
           ttOffline: false
@@ -78,7 +87,9 @@ class Visitor {
     }
   }
 
-  private config: Config;
+  private client: Client;
+  private splitRegistry: SplitRegistry;
+
   private _id: string;
   private _assignments: Assignment[];
   private _ttOffline?: boolean;
@@ -87,16 +98,13 @@ class Visitor {
 
   public analytics: AnalyticsProvider;
 
-  constructor({ config, id, assignments, ttOffline }: VisitorOptions) {
-    this.config = config;
+  constructor({ client, splitRegistry, id, assignments, ttOffline }: VisitorOptions) {
+    this.client = client;
+    this.splitRegistry = splitRegistry;
     this._id = id;
     this._assignments = assignments;
     this._ttOffline = ttOffline;
-
-    this._errorLogger = function (errorMessage) {
-      window.console.error(errorMessage);
-    };
-
+    this._errorLogger = errorMessage => window.console.error(errorMessage);
     this.analytics = mixpanelAnalytics;
   }
 
@@ -127,7 +135,7 @@ class Visitor {
       visitor: this,
       defaultVariant,
       variants,
-      splitRegistry: this.config.splitRegistry
+      splitRegistry: this.splitRegistry
     });
 
     if (isDefaulted) {
@@ -144,7 +152,7 @@ class Visitor {
       splitName,
       trueVariant: options.trueVariant || 'true',
       visitor: this,
-      splitRegistry: this.config.splitRegistry
+      splitRegistry: this.splitRegistry
     });
     const variantConfiguration: VaryOptions['variants'] = {};
 
@@ -172,15 +180,15 @@ class Visitor {
   }
 
   async linkIdentifier(identifierType: string, value: number) {
-    const client = createClient({ url: this.config.url.toString() });
-    const response = await client.postIdentifier({
+    const response = await this.client.postIdentifier({
       visitor_id: this.getId(),
       identifier_type: identifierType,
       value: value.toString()
     });
 
     const otherVisitor = new Visitor({
-      config: this.config,
+      client: this.client,
+      splitRegistry: this.splitRegistry,
       id: response.visitor.id,
       assignments: Assignment.fromJsonArray(response.visitor.assignments)
     });
@@ -224,7 +232,7 @@ class Visitor {
   _generateAssignmentFor(splitName: string, context: string) {
     const variant = calculateVariant({
       visitor: this,
-      splitRegistry: this.config.splitRegistry,
+      splitRegistry: this.splitRegistry,
       splitName
     });
 
@@ -255,7 +263,7 @@ class Visitor {
 
       // Potential bug here: This function returns a promise.
       sendAssignmentNotification({
-        client: createClient({ url: this.config.url.toString() }),
+        client: this.client,
         visitor: this,
         assignment
       });

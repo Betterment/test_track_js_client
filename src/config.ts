@@ -2,8 +2,6 @@ import Assignment from './assignment';
 import { type Split } from './split';
 import { createSplitRegistry, type SplitRegistry } from './splitRegistry';
 
-const DEFAULT_VISITOR_COOKIE_NAME = 'tt_visitor_id';
-
 declare global {
   interface Window {
     TT?: string;
@@ -25,9 +23,9 @@ export type RawConfig = {
 };
 
 export type Config = {
-  url: URL;
+  url: string;
   cookieDomain: string;
-  cookieName: string;
+  cookieName?: string;
   experienceSamplingWeight: number;
   splitRegistry: SplitRegistry;
   assignments: Assignment[] | null;
@@ -59,9 +57,9 @@ function parseAssignments(rawAssignments: RawConfig['assignments']): Assignment[
 
 export function parseConfig(rawConfig: RawConfig): Config {
   return {
-    url: new URL(rawConfig.url),
+    url: rawConfig.url,
     cookieDomain: rawConfig.cookieDomain,
-    cookieName: rawConfig.cookieName || DEFAULT_VISITOR_COOKIE_NAME,
+    cookieName: rawConfig.cookieName,
     experienceSamplingWeight: rawConfig.experienceSamplingWeight,
     splitRegistry: parseSplitRegistry(rawConfig.splits),
     assignments: parseAssignments(rawConfig.assignments)

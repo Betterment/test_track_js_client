@@ -36,7 +36,7 @@ type AssignmentRegistry = {
 
 class Visitor {
   static loadVisitor(config: Config, visitorId: string | undefined) {
-    const client = createClient({ url: config.url.toString() });
+    const client = createClient(config);
     const splitRegistry = config.splitRegistry;
 
     if (visitorId) {
@@ -52,7 +52,6 @@ class Visitor {
           })
         );
       } else {
-        const client = createClient({ url: config.url.toString() });
         return client
           .getVisitor(visitorId)
           .then(data => {

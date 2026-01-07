@@ -20,7 +20,7 @@ describe('TestTrackConfig', () => {
 
   describe('.url', () => {
     it('is a URL', () => {
-      expect(loadConfig().url).toEqual(new URL('http://testtrack.dev'));
+      expect(loadConfig().url).toEqual('http://testtrack.dev');
     });
   });
 
@@ -47,7 +47,7 @@ describe('TestTrackConfig', () => {
       });
 
       it('uses the default cookie name', () => {
-        expect(loadConfig().cookieName).toBe('tt_visitor_id');
+        expect(loadConfig().cookieName).toBeUndefined();
       });
     });
   });

@@ -7,16 +7,18 @@ export type Storage = {
 
 type CookieStorageConfig = {
   cookieDomain: string;
-  cookieName: string;
+  cookieName?: string;
 };
 
 export function createCookieStorage(config: CookieStorageConfig): Storage {
+  const cookieName = config.cookieName || 'tt_visitor_id';
+
   return {
     getVisitorId() {
-      return Cookies.get(config.cookieName);
+      return Cookies.get(cookieName);
     },
     setVisitorId(visitorId) {
-      Cookies.set(config.cookieName, visitorId, {
+      Cookies.set(cookieName, visitorId, {
         expires: 365,
         path: '/',
         domain: config.cookieDomain

@@ -10,7 +10,7 @@ export type V1Visitor = {
   assignments: V1Assignment[];
 };
 
-export type V1IdentifierResponse = {
+export type V1Identifier = {
   visitor: V1Visitor;
 };
 

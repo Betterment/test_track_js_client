@@ -2,7 +2,7 @@ import { request, toSearchParams } from './request';
 import type {
   V1Visitor,
   V1IdentifierParams,
-  V1IdentifierResponse,
+  V1Identifier,
   V1AssignmentOverrideParams,
   V1AssignmentEventParams
 } from './types';
@@ -27,8 +27,8 @@ export function createClient(config: ClientConfig) {
       return data;
     },
 
-    async postIdentifier(params: V1IdentifierParams) {
-      const { data } = await request<V1IdentifierResponse>({
+    async postIdentifier(params: V1IdentifierParams): Promise<V1Identifier> {
+      const { data } = await request<V1Identifier>({
         method: 'POST',
         url: new URL('/api/v1/identifier', config.url),
         body: toSearchParams(params)

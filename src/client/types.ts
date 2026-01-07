@@ -32,6 +32,6 @@ export type V1AssignmentOverrideParams = {
 export type V1AssignmentEventParams = {
   visitor_id: string;
   split_name: string;
-  context: string;
-  mixpanel_result?: string;
+  context: string | undefined;
+  mixpanel_result: string | undefined;
 };

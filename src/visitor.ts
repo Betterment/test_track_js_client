@@ -7,7 +7,7 @@ import { calculateVariant } from './calculateVariant';
 import { vary, type Variants } from './vary';
 import type { Config } from './config';
 import type { AnalyticsProvider } from './analyticsProvider';
-import { createClient, type V1Visitor } from './client';
+import { createClient } from './client';
 
 export type VaryOptions = {
   variants: Variants;
@@ -49,7 +49,7 @@ class Visitor {
         const client = createClient({ url: config.url.toString() });
         return client
           .getVisitor(visitorId)
-          .then((data) => {
+          .then(data => {
             return new Visitor({
               config,
               id: data.id,

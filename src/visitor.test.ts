@@ -574,9 +574,18 @@ describe('Visitor', () => {
     });
 
     it('overrides assignments that exist in the other visitor', async () => {
-      const jabbaCGIAssignment = new Assignment({ splitName: 'jabba', variant: 'cgi', context: 'mos_eisley', isUnsynced: false });
-      // @ts-expect-error Testing with string variant that represents boolean
-      const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: 'true', context: 'homepage', isUnsynced: true });
+      const jabbaCGIAssignment = new Assignment({
+        splitName: 'jabba',
+        variant: 'cgi',
+        context: 'mos_eisley',
+        isUnsynced: false
+      });
+      const blueButtonAssignment = new Assignment({
+        splitName: 'blue_button',
+        variant: 'true',
+        context: 'homepage',
+        isUnsynced: true
+      });
       const config = setupConfig();
       const visitor = createVisitor(config);
       const jabbaPuppetAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: true });
@@ -601,7 +610,12 @@ describe('Visitor', () => {
     });
 
     it('notifies any unsynced splits', async () => {
-      const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: 'true', context: 'homepage', isUnsynced: true });
+      const blueButtonAssignment = new Assignment({
+        splitName: 'blue_button',
+        variant: 'true',
+        context: 'homepage',
+        isUnsynced: true
+      });
       const config = setupConfig();
       const visitor = createVisitor(config);
       await visitor.linkIdentifier('myappdb_user_id', 444);

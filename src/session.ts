@@ -2,7 +2,7 @@ import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
 import Visitor, { type AbOptions, type VaryOptions } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { SplitRegistry, V1Hash } from './splitRegistry';
-import { createCookieStorage, type Storage } from './storage';
+import { createCookieStorage, type StorageProvider } from './storageProvider';
 import { createClient, type Client } from './client';
 
 type SessionOptions = {
@@ -13,7 +13,7 @@ type SessionOptions = {
 
 type SessionContext = {
   client: Client;
-  storage: Storage;
+  storage: StorageProvider;
   visitor: Visitor;
   splitRegistry: SplitRegistry;
 };

@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 
-export type Storage = {
+export type StorageProvider = {
   getVisitorId(): string | undefined;
   setVisitorId(visitorId: string): void;
 };
@@ -10,7 +10,7 @@ type CookieStorageConfig = {
   cookieName?: string;
 };
 
-export function createCookieStorage(config: CookieStorageConfig): Storage {
+export function createCookieStorage(config: CookieStorageConfig): StorageProvider {
   const cookieName = config.cookieName || 'tt_visitor_id';
 
   return {

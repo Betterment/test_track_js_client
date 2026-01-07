@@ -77,20 +77,16 @@ describe('createSession', () => {
         alias: vi.fn()
       };
 
-      const setAnalyticsSpy = vi.spyOn(Visitor.prototype, 'setAnalytics');
-
-      await createSession().initialize({ analytics });
-      expect(setAnalyticsSpy).toHaveBeenCalledTimes(1);
-      expect(setAnalyticsSpy).toHaveBeenCalledWith(analytics);
+      const visitor = await createSession().initialize({ analytics });
+      expect(visitor.analytics).toBe(analytics);
     });
 
     it('sets the error logger', async () => {
-      const errorLogger = function () {};
-      const setErrorLoggerSpy = vi.spyOn(Visitor.prototype, 'setErrorLogger');
+      const errorLogger = vi.fn();
+      const visitor = await createSession().initialize({ errorLogger: errorLogger });
 
-      await createSession().initialize({ errorLogger: errorLogger });
-      expect(setErrorLoggerSpy).toHaveBeenCalledTimes(1);
-      expect(setErrorLoggerSpy).toHaveBeenCalledWith(errorLogger);
+      visitor.logError('kaboom');
+      expect(errorLogger).toHaveBeenCalledWith('kaboom');
     });
   });
 
@@ -254,13 +250,12 @@ describe('createSession', () => {
           })
         );
 
+        const errorLogger = vi.fn();
         const session = createSession();
-        await session.initialize({});
-        const logErrorSpy = vi.spyOn(Visitor.prototype, 'logError');
+        await session.initialize({ errorLogger });
 
         await session._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
-        expect(logErrorSpy).toHaveBeenCalledTimes(1);
-        expect(logErrorSpy).toHaveBeenCalledWith(
+        expect(errorLogger).toHaveBeenCalledWith(
           'test_track persistAssignment error: Error: HTTP request failed with 500 status'
         );
       });
@@ -272,13 +267,12 @@ describe('createSession', () => {
           })
         );
 
+        const errorLogger = vi.fn();
         const session = createSession();
-        await session.initialize({});
-        const logErrorSpy = vi.spyOn(Visitor.prototype, 'logError');
+        await session.initialize({ errorLogger });
 
         await session._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
-        expect(logErrorSpy).toHaveBeenCalledTimes(1);
-        expect(logErrorSpy).toHaveBeenCalledWith('test_track persistAssignment error: TypeError: Failed to fetch');
+        expect(errorLogger).toHaveBeenCalledWith('test_track persistAssignment error: TypeError: Failed to fetch');
       });
     });
 

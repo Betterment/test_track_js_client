@@ -6,22 +6,22 @@ export type StorageProvider = {
 };
 
 type CookieStorageConfig = {
-  cookieDomain: string;
-  cookieName?: string;
+  domain: string;
+  name?: string;
 };
 
 export function createCookieStorage(config: CookieStorageConfig): StorageProvider {
-  const cookieName = config.cookieName || 'tt_visitor_id';
+  const name = config.name || 'tt_visitor_id';
 
   return {
     getVisitorId() {
-      return Cookies.get(cookieName);
+      return Cookies.get(name);
     },
     setVisitorId(visitorId) {
-      Cookies.set(cookieName, visitorId, {
+      Cookies.set(name, visitorId, {
         expires: 365,
         path: '/',
-        domain: config.cookieDomain
+        domain: config.domain
       });
     }
   };

@@ -31,8 +31,8 @@ export function createSession() {
   return {
     async initialize(options: SessionOptions): Promise<Visitor> {
       const config = loadConfig();
-      const client = createClient(config);
-      const storage = createCookieStorage(config);
+      const client = createClient({ url: config.url });
+      const storage = createCookieStorage({ domain: config.cookieDomain, name: config.cookieName });
       const splitRegistry = parseSplitRegistry(config.splits);
       const visitor = await Visitor.loadVisitor({
         client,

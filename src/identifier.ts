@@ -1,4 +1,4 @@
-import { request, toSearchParams, urlFor } from './api';
+import { request, toSearchParams, urlFor } from './client/request';
 import Assignment, { type AssignmentData } from './assignment';
 import Visitor from './visitor';
 import type { Config } from './config';

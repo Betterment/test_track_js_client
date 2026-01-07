@@ -1,4 +1,4 @@
-import { request, urlFor } from './api';
+import { request, urlFor } from './client/request';
 import { getABVariants } from './abConfiguration';
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
@@ -9,6 +9,7 @@ import { calculateVariant } from './calculateVariant';
 import { vary, type Variants } from './vary';
 import type { Config } from './config';
 import type { AnalyticsProvider } from './analyticsProvider';
+import type { V1Visitor } from './client';
 
 export type VaryOptions = {
   variants: Variants;
@@ -47,7 +48,11 @@ class Visitor {
           })
         );
       } else {
-        return request({ method: 'GET', url: urlFor(config, `/api/v1/visitors/${visitorId}`), timeout: 5000 })
+        return request<V1Visitor>({
+          method: 'GET',
+          url: urlFor(config, `/api/v1/visitors/${visitorId}`),
+          timeout: 5000
+        })
           .then(({ data }) => {
             return new Visitor({
               config,

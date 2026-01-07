@@ -1,16 +1,8 @@
 import { http, HttpResponse } from 'msw';
-import { request, toSearchParams, urlFor } from './api';
-import { server } from './setupTests';
-import { createConfig } from './test-utils';
+import { request, toSearchParams } from './request';
+import { server } from '../setupTests';
 
 const url = 'https://testtrack.dev/api/v1/test';
-
-describe('urlFor', () => {
-  it('appends the path to the configured URL', () => {
-    const config = createConfig({ url: 'http://example.org' });
-    expect(urlFor(config, '/api/v1/foo')).toEqual(new URL('http://example.org/api/v1/foo'));
-  });
-});
 
 describe('toSearchParams', () => {
   it('constructs URLSearchParams without empty values', () => {

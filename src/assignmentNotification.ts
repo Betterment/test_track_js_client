@@ -1,4 +1,4 @@
-import { request, toSearchParams, urlFor } from './api';
+import { request, toSearchParams, urlFor } from './client/request';
 import Visitor from './visitor';
 import Assignment from './assignment';
 import type { Config } from './config';
@@ -9,8 +9,13 @@ type Options = {
   assignment: Assignment;
 };
 
-async function persistAssignment(config: Config, visitor: Visitor, assignment: Assignment, trackResult?: 'success' | 'failure') {
-  await request({
+async function persistAssignment(
+  config: Config,
+  visitor: Visitor,
+  assignment: Assignment,
+  trackResult?: 'success' | 'failure'
+) {
+  await request<void>({
     method: 'POST',
     url: urlFor(config, '/api/v1/assignment_event'),
     body: toSearchParams({

@@ -1,4 +1,4 @@
-import { request, toSearchParams, urlFor } from './api';
+import { request, toSearchParams, urlFor } from './client/request';
 import Assignment from './assignment';
 import Visitor from './visitor';
 import type { Config } from './config';
@@ -11,7 +11,13 @@ type Options = {
   password: string;
 };
 
-export async function persistAssignmentOverride({ config, visitor, assignment, username, password }: Options): Promise<void> {
+export async function persistAssignmentOverride({
+  config,
+  visitor,
+  assignment,
+  username,
+  password
+}: Options): Promise<void> {
   await request({
     method: 'POST',
     url: urlFor(config, '/api/v1/assignment_override'),

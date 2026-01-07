@@ -40,7 +40,7 @@ type AssignmentRegistry = {
   [splitName: string]: Assignment;
 };
 
-class Visitor {
+export default class Visitor {
   static async loadVisitor(options: LoadVisitorOptions): Promise<Visitor> {
     const { id, client, splitRegistry } = options;
 
@@ -242,5 +242,3 @@ class Visitor {
     }
   }
 }
-
-export default Visitor;

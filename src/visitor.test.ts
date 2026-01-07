@@ -1,6 +1,6 @@
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
-import { mixpanelAnalytics } from './mixpanelAnalytics';
+import { mixpanelAnalytics } from './analyticsProvider';
 import { calculateVariant } from './calculateVariant';
 import Visitor from './visitor';
 import { v4 as uuid } from 'uuid';
@@ -332,7 +332,13 @@ describe('Visitor', () => {
 
     describe('Offline Visitor', () => {
       function createOfflineVisitor() {
-        return new Visitor({ client, splitRegistry: emptySplitRegistry, id: 'offline_visitor_id', assignments: [], ttOffline: true });
+        return new Visitor({
+          client,
+          splitRegistry: emptySplitRegistry,
+          id: 'offline_visitor_id',
+          assignments: [],
+          ttOffline: true
+        });
       }
 
       it('generates a new assignment via calculateVariant', () => {

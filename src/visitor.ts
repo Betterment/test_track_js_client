@@ -1,7 +1,7 @@
 import { getABVariants } from './abConfiguration';
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
-import { mixpanelAnalytics } from './mixpanelAnalytics';
+import { mixpanelAnalytics } from './analyticsProvider';
 import { v4 as uuid } from 'uuid';
 import { calculateVariant } from './calculateVariant';
 import { vary, type Variants } from './vary';

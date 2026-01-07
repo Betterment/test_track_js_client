@@ -1,5 +1,5 @@
 import Assignment from './assignment';
-import { mixpanelAnalytics } from './mixpanelAnalytics';
+import { mixpanelAnalytics } from './analyticsProvider';
 
 const mixpanel = {
   track: vi.fn(),

@@ -260,7 +260,7 @@ class Visitor {
 
       // Potential bug here: This function returns a promise.
       sendAssignmentNotification({
-        config: this.config,
+        client: createClient({ url: this.config.url.toString() }),
         visitor: this,
         assignment
       });

@@ -1,5 +1,3 @@
-import Assignment from './assignment';
-import { persistAssignmentOverride } from './assignmentOverride';
 import Cookies from 'js-cookie';
 import { createSession, type Session } from './session';
 import Visitor from './visitor';
@@ -7,7 +5,7 @@ import type { AnalyticsProvider } from './analyticsProvider';
 import type { RawConfig } from './config';
 import { v4 as uuid } from 'uuid';
 import { http, HttpResponse } from 'msw';
-import { server } from './setupTests';
+import { server, requests } from './setupTests';
 
 const rawConfig: RawConfig = {
   url: 'http://testtrack.dev',
@@ -21,11 +19,8 @@ const rawConfig: RawConfig = {
   }
 };
 
-vi.mock('./assignmentOverride');
 vi.mock('js-cookie');
 vi.mock('uuid');
-
-const mockPersistAssignmentOverride = vi.mocked(persistAssignmentOverride);
 
 describe('createSession', () => {
   beforeAll(() => {
@@ -226,23 +221,52 @@ describe('createSession', () => {
 
     describe('_crx', () => {
       describe('#persistAssignment()', () => {
-        it('calls persistAssignmentOverride with the correct parameters', async () => {
-          mockPersistAssignmentOverride.mockResolvedValue();
+        beforeEach(() => {
+          server.use(
+            http.post('http://testtrack.dev/api/v1/assignment_override', () => {
+              return HttpResponse.json(null, { status: 200 });
+            })
+          );
+        });
+
+        it('creates an assignment override on the test track server', async () => {
+          await session._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
+          expect(requests.length).toBe(1);
+          expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/assignment_override');
+          expect(await requests[0].text()).toEqual(
+            'visitor_id=existing_visitor_id&split_name=split&variant=variant&context=chrome_extension&mixpanel_result=success'
+          );
+          expect(requests[0].headers.get('authorization')).toEqual(`Basic ${btoa('the_username:the_password')}`);
+        });
+
+        it('logs an error on an error response', async () => {
+          server.use(
+            http.post('http://testtrack.dev/api/v1/assignment_override', () => {
+              return HttpResponse.json(null, { status: 500 });
+            })
+          );
+
+          const logErrorSpy = vi.spyOn(Visitor.prototype, 'logError');
 
           await session._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
-          expect(mockPersistAssignmentOverride).toHaveBeenCalledTimes(1);
-          expect(mockPersistAssignmentOverride).toHaveBeenCalledWith({
-            config: expect.any(Object),
-            visitor: expect.any(Visitor),
-            username: 'the_username',
-            password: 'the_password',
-            assignment: new Assignment({
-              splitName: 'split',
-              variant: 'variant',
-              context: 'chrome_extension',
-              isUnsynced: true
+          expect(logErrorSpy).toHaveBeenCalledTimes(1);
+          expect(logErrorSpy).toHaveBeenCalledWith(
+            'test_track persistAssignment error: Error: HTTP request failed with 500 status'
+          );
+        });
+
+        it('logs an error on a network error', async () => {
+          server.use(
+            http.post('http://testtrack.dev/api/v1/assignment_override', () => {
+              return HttpResponse.error();
             })
-          });
+          );
+
+          const logErrorSpy = vi.spyOn(Visitor.prototype, 'logError');
+
+          await session._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
+          expect(logErrorSpy).toHaveBeenCalledTimes(1);
+          expect(logErrorSpy).toHaveBeenCalledWith('test_track persistAssignment error: TypeError: Failed to fetch');
         });
       });
 

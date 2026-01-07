@@ -1,10 +1,9 @@
-import Assignment from './assignment';
-import { persistAssignmentOverride } from './assignmentOverride';
 import { loadConfig } from './config';
 import Visitor, { type AbOptions, type VaryOptions } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { V1Hash } from './splitRegistry';
 import { createCookieStorage, type Storage } from './storage';
+import { createClient, type Client } from './client';
 
 type SessionOptions = {
   analytics?: AnalyticsProvider;
@@ -13,8 +12,9 @@ type SessionOptions = {
 };
 
 type SessionContext = {
-  visitor: Visitor;
+  client: Client;
   storage: Storage;
+  visitor: Visitor;
 };
 
 type CrxInfo = {
@@ -30,6 +30,7 @@ export function createSession() {
   return {
     async initialize(options: SessionOptions): Promise<Visitor> {
       const config = loadConfig();
+      const client = createClient({ url: config.url.toString() });
       const storage = createCookieStorage(config);
       const visitorId = storage.getVisitorId();
       const visitor = await Visitor.loadVisitor(config, visitorId);
@@ -48,7 +49,7 @@ export function createSession() {
 
       visitor.notifyUnsyncedAssignments();
 
-      resolveContext({ visitor, storage });
+      resolveContext({ client, storage, visitor });
       storage.setVisitorId(visitor.getId());
 
       return visitor;
@@ -95,9 +96,17 @@ export function createSession() {
       },
 
       async persistAssignment(splitName: string, variant: string, username: string, password: string): Promise<void> {
-        const { visitor } = await sessionContext;
-        const assignment = new Assignment({ splitName, variant, context: 'chrome_extension', isUnsynced: true });
-        await persistAssignmentOverride({ config: visitor.config, visitor, username, password, assignment });
+        const { visitor, client } = await sessionContext;
+        await client.postAssignmentOverride({
+          visitor_id: visitor.getId(),
+          split_name: splitName,
+          variant,
+          context: 'chrome_extension',
+          mixpanel_result: 'success',
+          auth: { username, password }
+        }).catch(error => {
+          visitor.logError(`test_track persistAssignment error: ${error}`);
+        });
       }
     }
   };

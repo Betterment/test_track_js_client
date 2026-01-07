@@ -447,13 +447,14 @@ describe('Visitor', () => {
           })
         ]);
 
+        const callback = vi.fn();
         visitor.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
-          callback: isPuppet => {
-            expect(isPuppet).toBe(true);
-          }
+          callback
         });
+
+        expect(callback).toHaveBeenCalledWith(true);
       });
 
       it('returns false when not assigned to the trueVariant', () => {
@@ -465,13 +466,14 @@ describe('Visitor', () => {
           })
         ]);
 
+        const callback = vi.fn();
         visitor.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
-          callback: isPuppet => {
-            expect(isPuppet).toBe(false);
-          }
+          callback
         });
+
+        expect(callback).toHaveBeenCalledWith(false);
       });
     });
 
@@ -485,12 +487,10 @@ describe('Visitor', () => {
           })
         ]);
 
-        visitor.ab('blue_button', {
-          context: 'spec',
-          callback: isBlue => {
-            expect(isBlue).toBe(true);
-          }
-        });
+        const callback = vi.fn();
+        visitor.ab('blue_button', { context: 'spec', callback });
+
+        expect(callback).toHaveBeenCalledWith(true);
       });
 
       it('returns false when variant is false', () => {
@@ -502,22 +502,17 @@ describe('Visitor', () => {
           })
         ]);
 
-        visitor.ab('blue_button', {
-          context: 'spec',
-          callback: isBlue => {
-            expect(isBlue).toBe(false);
-          }
-        });
+        const callback = vi.fn();
+        visitor.ab('blue_button', { context: 'spec', callback });
+        expect(callback).toHaveBeenCalledWith(false);
       });
 
       it('returns false when split variants are not true and false', () => {
         const visitor = createVisitor();
-        visitor.ab('jabba', {
-          context: 'spec',
-          callback: isTrue => {
-            expect(isTrue).toBe(false);
-          }
-        });
+        const callback = vi.fn();
+
+        visitor.ab('jabba', { context: 'spec', callback });
+        expect(callback).toHaveBeenCalledWith(false);
       });
     });
   });

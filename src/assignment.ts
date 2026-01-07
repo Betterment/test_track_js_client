@@ -1,9 +1,4 @@
-export type AssignmentData = {
-  split_name: string;
-  variant: string;
-  context?: string;
-  unsynced: boolean;
-};
+import type { V1Assignment } from './client';
 
 export type AssignmentOptions = {
   splitName: string;
@@ -12,17 +7,14 @@ export type AssignmentOptions = {
   isUnsynced: boolean;
 };
 
-class Assignment {
-  static fromJsonArray(assignmentsJson: AssignmentData[]) {
-    return assignmentsJson.map(
-      ({ split_name, variant, context, unsynced }) =>
-        new Assignment({
-          context,
-          variant,
-          splitName: split_name,
-          isUnsynced: unsynced
-        })
-    );
+export default class Assignment {
+  static fromV1Assignment(data: V1Assignment) {
+    return new Assignment({
+      context: data.context,
+      variant: data.variant,
+      splitName: data.split_name,
+      isUnsynced: data.unsynced
+    });
   }
 
   private _splitName: string;
@@ -65,5 +57,3 @@ class Assignment {
     this._isUnsynced = unsynced;
   }
 }
-
-export default Assignment;

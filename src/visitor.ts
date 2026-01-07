@@ -54,7 +54,7 @@ class Visitor {
 
     try {
       const data = await client.getVisitor(id);
-      const assignments = Assignment.fromJsonArray(data.assignments);
+      const assignments = data.assignments.map(Assignment.fromV1Assignment);
       return new Visitor({ client, splitRegistry, id: data.id, assignments, ttOffline: false });
     } catch {
       return new Visitor({ client, splitRegistry, id, assignments: [], ttOffline: true });
@@ -154,7 +154,7 @@ class Visitor {
   }
 
   async linkIdentifier(identifierType: string, value: number) {
-    const response = await this.client.postIdentifier({
+    const data = await this.client.postIdentifier({
       visitor_id: this.getId(),
       identifier_type: identifierType,
       value: value.toString()
@@ -163,8 +163,8 @@ class Visitor {
     const otherVisitor = new Visitor({
       client: this.client,
       splitRegistry: this.splitRegistry,
-      id: response.visitor.id,
-      assignments: Assignment.fromJsonArray(response.visitor.assignments)
+      id: data.visitor.id,
+      assignments: data.visitor.assignments.map(Assignment.fromV1Assignment)
     });
 
     this._merge(otherVisitor);

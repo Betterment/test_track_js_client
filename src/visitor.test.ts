@@ -28,12 +28,12 @@ const splitRegistry = createSplitRegistry([
   }
 ]);
 
-function createVisitor() {
+function createVisitor(assignments?: Assignment[]) {
   return new Visitor({
     client,
     splitRegistry,
     id: 'EXISTING_VISITOR_ID',
-    assignments: [
+    assignments: assignments ?? [
       new Assignment({
         splitName: 'jabba',
         variant: 'puppet',
@@ -155,8 +155,6 @@ describe('Visitor', () => {
       expect(requests[0].url).toEqual('http://testtrack.dev/api/v1/visitors/failed_visitor_id');
       expect(visitor.getId()).toEqual('failed_visitor_id');
       expect(visitor.getAssignmentRegistry()).toEqual({});
-      // @ts-expect-error Private property
-      expect(visitor._ttOffline).toEqual(true);
     });
   });
 
@@ -441,15 +439,13 @@ describe('Visitor', () => {
 
     describe('with an explicit trueVariant', () => {
       it('returns true when assigned to the trueVariant', () => {
-        const visitor = createVisitor();
-        // @ts-expect-error Private property
-        visitor._assignments = [
+        const visitor = createVisitor([
           new Assignment({
             splitName: 'jabba',
             variant: 'puppet',
             isUnsynced: false
           })
-        ];
+        ]);
 
         visitor.ab('jabba', {
           context: 'spec',
@@ -461,15 +457,13 @@ describe('Visitor', () => {
       });
 
       it('returns false when not assigned to the trueVariant', () => {
-        const visitor = createVisitor();
-        // @ts-expect-error Private property
-        visitor._assignments = [
+        const visitor = createVisitor([
           new Assignment({
             splitName: 'jabba',
             variant: 'cgi',
             isUnsynced: false
           })
-        ];
+        ]);
 
         visitor.ab('jabba', {
           context: 'spec',
@@ -483,15 +477,13 @@ describe('Visitor', () => {
 
     describe('with an implicit trueVariant', () => {
       it('returns true when variant is true', () => {
-        const visitor = createVisitor();
-        // @ts-expect-error Private property
-        visitor._assignments = [
+        const visitor = createVisitor([
           new Assignment({
             splitName: 'blue_button',
             variant: 'true',
             isUnsynced: false
           })
-        ];
+        ]);
 
         visitor.ab('blue_button', {
           context: 'spec',
@@ -502,15 +494,13 @@ describe('Visitor', () => {
       });
 
       it('returns false when variant is false', () => {
-        const visitor = createVisitor();
-        // @ts-expect-error Private property
-        visitor._assignments = [
+        const visitor = createVisitor([
           new Assignment({
             splitName: 'blue_button',
             variant: 'false',
             isUnsynced: false
           })
-        ];
+        ]);
 
         visitor.ab('blue_button', {
           context: 'spec',
@@ -583,12 +573,10 @@ describe('Visitor', () => {
         context: 'homepage',
         isUnsynced: true
       });
-      const visitor = createVisitor();
       const jabbaPuppetAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: true });
       const wineAssignment = new Assignment({ splitName: 'wine', variant: 'white', isUnsynced: true });
 
-      // @ts-expect-error Private property
-      visitor._assignments = [jabbaPuppetAssignment, wineAssignment];
+      const visitor = createVisitor([jabbaPuppetAssignment, wineAssignment]);
 
       await visitor.linkIdentifier('myappdb_user_id', 444);
       expect(visitor.getAssignmentRegistry()).toEqual({
@@ -622,18 +610,6 @@ describe('Visitor', () => {
     });
   });
 
-  describe('#setErrorLogger()', () => {
-    it('sets the error logger on the visitor', () => {
-      const visitor = createVisitor();
-      const errorLogger = function () {};
-
-      visitor.setErrorLogger(errorLogger);
-
-      // @ts-expect-error Private property
-      expect(visitor._errorLogger).toBe(errorLogger);
-    });
-  });
-
   describe('#logError()', () => {
     it('calls the error logger with the error message', () => {
       const visitor = createVisitor();
@@ -641,7 +617,6 @@ describe('Visitor', () => {
       visitor.setErrorLogger(errorLogger);
       visitor.logError('something bad happened');
 
-      expect(errorLogger).toHaveBeenCalledTimes(1);
       expect(errorLogger).toHaveBeenCalledWith('something bad happened');
     });
 

@@ -1,43 +1,24 @@
 import Assignment from './assignment';
-import AssignmentNotification from './assignmentNotification';
-import Identifier from './identifier';
-import MixpanelAnalytics from './mixpanelAnalytics';
+import { sendAssignmentNotification } from './assignmentNotification';
+import { saveIdentifier } from './identifier';
+import { mixpanelAnalytics } from './mixpanelAnalytics';
 import type { Config } from './config';
-import VariantCalculator from './variantCalculator';
+import { calculateVariant } from './calculateVariant';
 import Visitor from './visitor';
 import { v4 as uuid } from 'uuid';
 import { createConfig } from './test-utils';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
+import type { AnalyticsProvider } from './analyticsProvider';
 
 vi.mock('uuid');
+vi.mock('./calculateVariant');
+vi.mock('./assignmentNotification');
+vi.mock('./identifier');
 
-const mockGetVariant = vi.fn();
-vi.mock('./variantCalculator', () => {
-  const MockVariantCalculator = vi.fn(function () {
-    return { getVariant: mockGetVariant };
-  });
-
-  return { default: MockVariantCalculator };
-});
-
-const mockSend = vi.fn();
-vi.mock('./assignmentNotification', () => {
-  const MockAssignmentNotification = vi.fn(function () {
-    return { send: mockSend };
-  });
-
-  return { default: MockAssignmentNotification };
-});
-
-const mockSave = vi.fn();
-vi.mock('./identifier', () => {
-  const MockIdentifier = vi.fn(function () {
-    return { save: mockSave };
-  });
-
-  return { default: MockIdentifier };
-});
+const mockCalculateVariant = vi.mocked(calculateVariant);
+const mockSendAssignmentNotification = vi.mocked(sendAssignmentNotification);
+const mockSaveIdentifier = vi.mocked(saveIdentifier);
 
 function setupConfig() {
   return createConfig({
@@ -65,26 +46,6 @@ function createVisitor(config: Config) {
 }
 
 describe('Visitor', () => {
-  describe('instantiation', () => {
-    it('requires an id', () => {
-      expect(() => {
-        // @ts-expect-error id is required
-        new Visitor({
-          assignments: []
-        });
-      }).toThrow('must provide id');
-    });
-
-    it('requires assignments', () => {
-      expect(() => {
-        // @ts-expect-error assignments are required
-        new Visitor({
-          id: 'visitor_id'
-        });
-      }).toThrow('must provide assignments');
-    });
-  });
-
   describe('.loadVisitor()', () => {
     beforeEach(() => {
       server.use(
@@ -204,49 +165,7 @@ describe('Visitor', () => {
     }
 
     beforeEach(() => {
-      mockGetVariant.mockReturnValue('red');
-    });
-
-    it('throws an error if a variants object is not provided', () => {
-      const config = setupConfig();
-      const visitor = createVisitor(config);
-      expect(() => {
-        // @ts-expect-error Testing missing required property
-        visitor.vary('wine', {
-          context: 'spec',
-          defaultVariant: 'white'
-        });
-      }).toThrow('must provide variants object to `vary` for wine');
-    });
-
-    it('throws an error if a context is not provided', () => {
-      const config = setupConfig();
-      const visitor = createVisitor(config);
-      expect(() => {
-        // @ts-expect-error Testing missing required property
-        visitor.vary('wine', {
-          defaultVariant: 'white',
-          variants: {
-            white: function () {},
-            red: function () {}
-          }
-        });
-      }).toThrow('must provide context to `vary` for wine');
-    });
-
-    it('throws an error if a defaultVariant is not provided', () => {
-      const config = setupConfig();
-      const visitor = createVisitor(config);
-      expect(() => {
-        // @ts-expect-error Testing missing required property
-        visitor.vary('wine', {
-          context: 'spec',
-          variants: {
-            white: function () {},
-            red: function () {}
-          }
-        });
-      }).toThrow('must provide defaultVariant to `vary` for wine');
+      mockCalculateVariant.mockReturnValue('red');
     });
 
     it('throws an error if the defaultVariant is not represented in the variants object', () => {
@@ -265,16 +184,12 @@ describe('Visitor', () => {
     });
 
     describe('New Assignment', () => {
-      it('generates a new assignment via VariantCalculator', () => {
+      it('generates a new assignment via calculateVariant', () => {
         const config = setupConfig();
         const visitor = createVisitor(config);
         varyWineSplit(visitor);
 
-        expect(VariantCalculator).toHaveBeenCalledWith({
-          visitor: visitor,
-          splitName: 'wine'
-        });
-        expect(mockGetVariant).toHaveBeenCalled();
+        expect(mockCalculateVariant).toHaveBeenCalledWith(visitor, 'wine');
       });
 
       it('adds new assignments to the assignment registry', () => {
@@ -302,7 +217,7 @@ describe('Visitor', () => {
         const visitor = createVisitor(config);
         varyWineSplit(visitor);
 
-        expect(AssignmentNotification).toHaveBeenCalledWith({
+        expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           visitor: visitor,
           assignment: new Assignment({
             splitName: 'wine',
@@ -311,17 +226,17 @@ describe('Visitor', () => {
             isUnsynced: false
           })
         });
-        expect(mockSend).toHaveBeenCalledTimes(1);
+        expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       });
 
       it('only sends one AssignmentNotification with the default if it is defaulted', () => {
-        mockGetVariant.mockReturnValue('rose');
+        mockCalculateVariant.mockReturnValue('rose');
         const config = setupConfig();
         const visitor = createVisitor(config);
 
         varyWineSplit(visitor);
 
-        expect(AssignmentNotification).toHaveBeenCalledWith({
+        expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           visitor: visitor,
           assignment: new Assignment({
             splitName: 'wine',
@@ -330,7 +245,7 @@ describe('Visitor', () => {
             isUnsynced: false
           })
         });
-        expect(mockSend).toHaveBeenCalledTimes(1);
+        expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       });
 
       it('logs an error if the AssignmentNotification throws an error', () => {
@@ -338,13 +253,13 @@ describe('Visitor', () => {
         const visitor = createVisitor(config);
         visitor.logError = vi.fn();
 
-        mockSend.mockImplementation(() => {
+        mockSendAssignmentNotification.mockImplementation(() => {
           throw new Error('something bad happened');
         });
 
         varyWineSplit(visitor);
 
-        expect(AssignmentNotification).toHaveBeenCalledWith({
+        expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           visitor: visitor,
           assignment: new Assignment({
             splitName: 'wine',
@@ -353,7 +268,7 @@ describe('Visitor', () => {
             isUnsynced: true
           })
         });
-        expect(mockSend).toHaveBeenCalledTimes(1);
+        expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
 
         expect(visitor.logError).toHaveBeenCalledWith('test_track notify error: Error: something bad happened');
       });
@@ -365,7 +280,7 @@ describe('Visitor', () => {
         const visitor = createVisitor(config);
         varyJabbaSplit(visitor);
 
-        expect(VariantCalculator).not.toHaveBeenCalled();
+        expect(mockCalculateVariant).not.toHaveBeenCalled();
       });
 
       it('does not send an AssignmentNotification', () => {
@@ -373,8 +288,8 @@ describe('Visitor', () => {
         const visitor = createVisitor(config);
         varyJabbaSplit(visitor);
 
-        expect(AssignmentNotification).not.toHaveBeenCalled();
-        expect(mockSend).not.toHaveBeenCalled();
+        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
+        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
       });
 
       it('sends an AssignmentNotification with the default if it is defaulted', () => {
@@ -389,8 +304,8 @@ describe('Visitor', () => {
           defaultVariant: 'cgi'
         });
 
-        expect(AssignmentNotification).toHaveBeenCalledTimes(1);
-        expect(AssignmentNotification).toHaveBeenCalledWith({
+        expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
+        expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           visitor: visitor,
           assignment: new Assignment({
             splitName: 'jabba',
@@ -399,7 +314,7 @@ describe('Visitor', () => {
             isUnsynced: true
           })
         });
-        expect(mockSend).toHaveBeenCalled();
+        expect(mockSendAssignmentNotification).toHaveBeenCalled();
       });
     });
 
@@ -413,30 +328,26 @@ describe('Visitor', () => {
         });
       }
 
-      it('generates a new assignment via VariantCalculator', () => {
+      it('generates a new assignment via calculateVariant', () => {
         const offlineVisitor = createOfflineVisitor();
         varyJabbaSplit(offlineVisitor);
 
-        expect(VariantCalculator).toHaveBeenCalledTimes(1);
-        expect(VariantCalculator).toHaveBeenCalledWith({
-          visitor: offlineVisitor,
-          splitName: 'jabba'
-        });
-        expect(mockGetVariant).toHaveBeenCalledTimes(1);
+        expect(mockCalculateVariant).toHaveBeenCalledTimes(1);
+        expect(mockCalculateVariant).toHaveBeenCalledWith(offlineVisitor, 'jabba');
       });
 
       it('does not send an AssignmentNotification', () => {
         const offlineVisitor = createOfflineVisitor();
         varyWineSplit(offlineVisitor);
 
-        expect(AssignmentNotification).not.toHaveBeenCalled();
-        expect(mockSend).not.toHaveBeenCalled();
+        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
+        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
       });
     });
 
-    describe('Receives a null variant from VariantCalculator', () => {
+    describe('Receives a null variant from calculateVariant', () => {
       beforeEach(() => {
-        mockGetVariant.mockReturnValue(null);
+        mockCalculateVariant.mockReturnValue(null);
       });
 
       it('adds the assignment to the assignment registry', () => {
@@ -452,14 +363,14 @@ describe('Visitor', () => {
         const visitor = createVisitor(config);
         varyWineSplit(visitor);
 
-        expect(AssignmentNotification).not.toHaveBeenCalled();
-        expect(mockSend).not.toHaveBeenCalled();
+        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
+        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
       });
     });
 
     describe('Boolean split', () => {
       it('chooses the correct handler when given a true boolean', () => {
-        mockGetVariant.mockReturnValue('true');
+        mockCalculateVariant.mockReturnValue('true');
         const config = setupConfig();
         const visitor = createVisitor(config);
         const trueHandler = vi.fn();
@@ -479,7 +390,7 @@ describe('Visitor', () => {
       });
 
       it('picks the correct handler when given a false boolean', () => {
-        mockGetVariant.mockReturnValue('false');
+        mockCalculateVariant.mockReturnValue('false');
         const config = setupConfig();
         const visitor = createVisitor(config);
         const trueHandler = vi.fn();
@@ -625,7 +536,7 @@ describe('Visitor', () => {
         assignments: [jabbaCGIAssignment, blueButtonAssignment]
       });
 
-      mockSave.mockImplementation(() => Promise.resolve(actualVisitor));
+      mockSaveIdentifier.mockImplementation(() => Promise.resolve(actualVisitor));
 
       return { jabbaCGIAssignment, blueButtonAssignment, actualVisitor };
     }
@@ -636,14 +547,13 @@ describe('Visitor', () => {
       const visitor = createVisitor(config);
       visitor.linkIdentifier('myappdb_user_id', 444);
 
-      expect(Identifier).toHaveBeenCalledTimes(1);
-      expect(Identifier).toHaveBeenCalledWith({
+      expect(mockSaveIdentifier).toHaveBeenCalledTimes(1);
+      expect(mockSaveIdentifier).toHaveBeenCalledWith({
         config: visitor.config,
         visitorId: 'EXISTING_VISITOR_ID',
         identifierType: 'myappdb_user_id',
         value: 444
       });
-      expect(mockSave).toHaveBeenCalledTimes(1);
     });
 
     it('overrides assignments that exist in the other visitor', async () => {
@@ -677,25 +587,16 @@ describe('Visitor', () => {
       const config = setupConfig();
       const visitor = createVisitor(config);
       await visitor.linkIdentifier('myappdb_user_id', 444);
-      expect(AssignmentNotification).toHaveBeenCalledTimes(1);
-      expect(AssignmentNotification).toHaveBeenCalledWith({
+      expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
+      expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         visitor: visitor,
         assignment: blueButtonAssignment
       });
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('#setErrorLogger()', () => {
-    it('throws an error if not provided with a function', () => {
-      const config = setupConfig();
-      const visitor = createVisitor(config);
-      expect(() => {
-        // @ts-expect-error Testing with wrong argument type
-        visitor.setErrorLogger('teapot');
-      }).toThrow('must provide function for errorLogger');
-    });
-
     it('sets the error logger on the visitor', () => {
       const config = setupConfig();
       const visitor = createVisitor(config);
@@ -743,20 +644,24 @@ describe('Visitor', () => {
     });
   });
 
-  describe('#setAnalytics()', () => {
-    it('throws an error if not provided with an object', () => {
+  describe('.analytics', () => {
+    it('defaults to mixpanel analytics', () => {
       const config = setupConfig();
       const visitor = createVisitor(config);
-      expect(() => {
-        // @ts-expect-error Testing with wrong argument type
-        visitor.setAnalytics('teapot');
-      }).toThrow('must provide object for setAnalytics');
-    });
 
+      expect(visitor.analytics).toBe(mixpanelAnalytics);
+    });
+  });
+
+  describe('#setAnalytics()', () => {
     it('sets the analytics object on the visitor', () => {
       const config = setupConfig();
       const visitor = createVisitor(config);
-      const analytics = new MixpanelAnalytics();
+      const analytics: AnalyticsProvider = {
+        trackAssignment: vi.fn(),
+        alias: vi.fn(),
+        identify: vi.fn()
+      };
 
       visitor.setAnalytics(analytics);
 
@@ -777,10 +682,10 @@ describe('Visitor', () => {
 
       visitor.notifyUnsyncedAssignments();
 
-      expect(AssignmentNotification).toHaveBeenCalledTimes(1);
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
+      expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
 
-      expect(AssignmentNotification).toHaveBeenCalledWith({
+      expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         visitor: visitor,
         assignment: blueButtonAssignment
       });

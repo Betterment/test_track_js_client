@@ -1,6 +1,6 @@
 import Assignment from './assignment';
-import Split from './split';
-import SplitRegistry from './splitRegistry';
+import { type Split } from './split';
+import { createSplitRegistry, type SplitRegistry } from './splitRegistry';
 
 const DEFAULT_VISITOR_COOKIE_NAME = 'tt_visitor_id';
 
@@ -35,14 +35,16 @@ export type Config = {
 
 function parseSplitRegistry(rawSplits: RawConfig['splits']): SplitRegistry {
   if (!rawSplits) {
-    return new SplitRegistry(null);
+    return createSplitRegistry(null);
   }
 
-  const splits = Object.entries(rawSplits).map(([splitName, rawSplit]) => {
-    return new Split(splitName, rawSplit['feature_gate'], rawSplit['weights']);
-  });
+  const splits = Object.entries(rawSplits).map<Split>(([name, values]) => ({
+    name,
+    isFeatureGate: values.feature_gate,
+    weighting: values.weights
+  }));
 
-  return new SplitRegistry(splits);
+  return createSplitRegistry(splits);
 }
 
 function parseAssignments(rawAssignments: RawConfig['assignments']): Assignment[] | null {

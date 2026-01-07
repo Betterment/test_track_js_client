@@ -1,7 +1,7 @@
 import Assignment from './assignment';
-import AssignmentOverride from './assignmentOverride';
+import { persistAssignmentOverride } from './assignmentOverride';
 import Cookies from 'js-cookie';
-import Session from './session';
+import { createSession, type Session } from './session';
 import Visitor from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { RawConfig } from './config';
@@ -25,7 +25,9 @@ vi.mock('./assignmentOverride');
 vi.mock('js-cookie');
 vi.mock('uuid');
 
-describe('Session', () => {
+const mockPersistAssignmentOverride = vi.mocked(persistAssignmentOverride);
+
+describe('createSession', () => {
   beforeAll(() => {
     window.TT = btoa(JSON.stringify(rawConfig));
   });
@@ -37,7 +39,7 @@ describe('Session', () => {
 
   describe('Cookie behavior', () => {
     it('reads the visitor id from a cookie and sets it back in the cookie', async () => {
-      await new Session().getPublicAPI().initialize({});
+      await createSession().initialize({});
       expect(Cookies.get).toHaveBeenCalledTimes(1);
       expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
       expect(Cookies.set).toHaveBeenCalledTimes(1);
@@ -54,7 +56,7 @@ describe('Session', () => {
       // @ts-expect-error uuid mock return type
       vi.mocked(uuid).mockReturnValue('generated_visitor_id');
 
-      await new Session().getPublicAPI().initialize({});
+      await createSession().initialize({});
       expect(Cookies.get).toHaveBeenCalledTimes(1);
       expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
       expect(Cookies.set).toHaveBeenCalledTimes(1);
@@ -71,7 +73,7 @@ describe('Session', () => {
 
     beforeEach(async () => {
       window.TT = btoa(JSON.stringify(rawConfig));
-      session = new Session();
+      session = createSession();
       await session.initialize({});
       vi.mocked(Cookies.set).mockClear();
     });
@@ -79,7 +81,7 @@ describe('Session', () => {
     describe('#initialize()', () => {
       it('calls notifyUnsyncedAssignments when a visitor is loaded', async () => {
         const notifySpy = vi.spyOn(Visitor.prototype, 'notifyUnsyncedAssignments');
-        await new Session().getPublicAPI().initialize({});
+        await createSession().initialize({});
         expect(notifySpy).toHaveBeenCalledTimes(1);
       });
 
@@ -92,7 +94,7 @@ describe('Session', () => {
 
         const setAnalyticsSpy = vi.spyOn(Visitor.prototype, 'setAnalytics');
 
-        await new Session().getPublicAPI().initialize({ analytics });
+        await createSession().initialize({ analytics });
         expect(setAnalyticsSpy).toHaveBeenCalledTimes(1);
         expect(setAnalyticsSpy).toHaveBeenCalledWith(analytics);
       });
@@ -101,7 +103,7 @@ describe('Session', () => {
         const errorLogger = function () {};
         const setErrorLoggerSpy = vi.spyOn(Visitor.prototype, 'setErrorLogger');
 
-        await new Session().getPublicAPI().initialize({ errorLogger: errorLogger });
+        await createSession().initialize({ errorLogger: errorLogger });
         expect(setErrorLoggerSpy).toHaveBeenCalledTimes(1);
         expect(setErrorLoggerSpy).toHaveBeenCalledWith(errorLogger);
       });
@@ -132,7 +134,7 @@ describe('Session', () => {
       });
 
       it('calls analytics.identify with the resolved visitor id', async () => {
-        const testSession = new Session();
+        const testSession = createSession();
         const visitor = await testSession.initialize({});
         const identifySpy = vi.spyOn(visitor.analytics, 'identify');
 
@@ -167,7 +169,7 @@ describe('Session', () => {
       });
 
       it('calls analytics.alias with the resolved visitor id', async () => {
-        const testSession = new Session();
+        const testSession = createSession();
         const visitor = await testSession.initialize({});
         const aliasSpy = vi.spyOn(visitor.analytics, 'alias');
 
@@ -208,65 +210,50 @@ describe('Session', () => {
       });
     });
 
-    describe('#getPublicAPI()', () => {
-      let publicApi: ReturnType<Session['getPublicAPI']>;
-
-      beforeEach(() => {
-        session = new Session();
-        session.initialize({});
-        publicApi = session.getPublicAPI();
+    it('returns an object with a limited set of methods', () => {
+      expect(session).toEqual({
+        vary: expect.any(Function),
+        ab: expect.any(Function),
+        logIn: expect.any(Function),
+        signUp: expect.any(Function),
+        initialize: expect.any(Function),
+        _crx: {
+          loadInfo: expect.any(Function),
+          persistAssignment: expect.any(Function)
+        }
       });
+    });
 
-      it('returns an object with a limited set of methods', () => {
-        expect(publicApi).toEqual(
-          expect.objectContaining({
-            vary: expect.any(Function),
-            ab: expect.any(Function),
-            logIn: expect.any(Function),
-            signUp: expect.any(Function),
-            initialize: expect.any(Function)
-          })
-        );
+    describe('_crx', () => {
+      describe('#persistAssignment()', () => {
+        it('calls persistAssignmentOverride with the correct parameters', async () => {
+          mockPersistAssignmentOverride.mockResolvedValue();
 
-        expect(publicApi._crx).toEqual(
-          expect.objectContaining({
-            loadInfo: expect.any(Function),
-            persistAssignment: expect.any(Function)
-          })
-        );
-      });
-
-      describe('_crx', () => {
-        describe('#persistAssignment()', () => {
-          it('creates an AssignmentOverride and persists it', async () => {
-            vi.spyOn(AssignmentOverride.prototype, 'persistAssignment').mockResolvedValue();
-
-            await publicApi._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
-            expect(AssignmentOverride).toHaveBeenCalledTimes(1);
-            expect(AssignmentOverride).toHaveBeenCalledWith({
-              visitor: expect.any(Visitor),
-              username: 'the_username',
-              password: 'the_password',
-              assignment: new Assignment({
-                splitName: 'split',
-                variant: 'variant',
-                context: 'chrome_extension',
-                isUnsynced: true
-              })
-            });
+          await session._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
+          expect(mockPersistAssignmentOverride).toHaveBeenCalledTimes(1);
+          expect(mockPersistAssignmentOverride).toHaveBeenCalledWith({
+            visitor: expect.any(Visitor),
+            username: 'the_username',
+            password: 'the_password',
+            assignment: new Assignment({
+              splitName: 'split',
+              variant: 'variant',
+              context: 'chrome_extension',
+              isUnsynced: true
+            })
           });
         });
+      });
 
-        describe('#loadInfo()', () => {
-          it('returns a promise that resolves with the split registry, assignment registry and visitor id', async () => {
-            const info = await publicApi._crx.loadInfo();
-            expect(info.visitorId).toEqual('existing_visitor_id');
-            expect(info.splitRegistry).toEqual({
-              jabba: { cgi: 50, puppet: 50 },
-              wine: { red: 50, white: 25, rose: 25 }
-            });
-            expect(info.assignmentRegistry).toEqual({ jabba: 'puppet', wine: 'rose' });
+      describe('#loadInfo()', () => {
+        it('returns a promise that resolves with the split registry, assignment registry and visitor id', async () => {
+          const info = await session._crx.loadInfo();
+          expect(info.visitorId).toEqual('existing_visitor_id');
+          expect(info.splitRegistry).toEqual({
+            jabba: { cgi: 50, puppet: 50 },
+            wine: { red: 50, white: 25, rose: 25 }
           });
+          expect(info.assignmentRegistry).toEqual({ jabba: 'puppet', wine: 'rose' });
         });
       });
     });

@@ -1,17 +1,14 @@
 import { request, urlFor } from './api';
-import ABConfiguration from './abConfiguration';
+import { getABVariants } from './abConfiguration';
 import Assignment from './assignment';
-import AssignmentNotification from './assignmentNotification';
-import Identifier from './identifier';
-import MixpanelAnalytics from './mixpanelAnalytics';
+import { sendAssignmentNotification } from './assignmentNotification';
+import { saveIdentifier } from './identifier';
+import { mixpanelAnalytics } from './mixpanelAnalytics';
 import { v4 as uuid } from 'uuid';
-import VariantCalculator from './variantCalculator';
-import VaryDSL from './varyDSL';
+import { calculateVariant } from './calculateVariant';
+import { vary, type Variants } from './vary';
 import type { Config } from './config';
-
-type Variants = {
-  [key: string]: () => void;
-};
+import type { AnalyticsProvider } from './analyticsProvider';
 
 export type VaryOptions = {
   variants: Variants;
@@ -89,7 +86,7 @@ class Visitor {
   private _errorLogger: (errorMessage: string) => void;
   private _assignmentRegistry?: AssignmentRegistry | null;
 
-  public analytics: MixpanelAnalytics;
+  public analytics: AnalyticsProvider;
 
   constructor({ config, id, assignments, ttOffline }: VisitorOptions) {
     this.config = config;
@@ -97,17 +94,11 @@ class Visitor {
     this._assignments = assignments;
     this._ttOffline = ttOffline;
 
-    if (!this._id) {
-      throw new Error('must provide id');
-    } else if (!this._assignments) {
-      throw new Error('must provide assignments');
-    }
-
     this._errorLogger = function (errorMessage) {
       window.console.error(errorMessage);
     };
 
-    this.analytics = new MixpanelAnalytics();
+    this.analytics = mixpanelAnalytics;
   }
 
   getId() {
@@ -127,42 +118,20 @@ class Visitor {
     return this._assignmentRegistry;
   }
 
-  vary(splitName: string, options: VaryOptions) {
-    if (typeof options.variants !== 'object') {
-      throw new Error('must provide variants object to `vary` for ' + splitName);
-    } else if (!options.context) {
-      throw new Error('must provide context to `vary` for ' + splitName);
-    } else if (!options.defaultVariant && options.defaultVariant !== false) {
-      throw new Error('must provide defaultVariant to `vary` for ' + splitName);
-    }
-
+  vary(splitName: string, options: VaryOptions): void {
     const defaultVariant = options.defaultVariant.toString();
     const { variants, context } = options;
 
-    if (!variants.hasOwnProperty(defaultVariant)) {
-      throw new Error('defaultVariant: ' + defaultVariant + ' must be represented in variants object');
-    }
-
     const assignment = this._getAssignmentFor(splitName, context);
-    const vary = new VaryDSL({
+    const { isDefaulted } = vary({
       assignment,
-      visitor: this
+      visitor: this,
+      defaultVariant,
+      variants
     });
 
-    for (const variant in variants) {
-      if (variants.hasOwnProperty(variant)) {
-        if (variant === defaultVariant) {
-          vary.default(variant, variants[variant]);
-        } else {
-          vary.when(variant, variants[variant]);
-        }
-      }
-    }
-
-    vary.run();
-
-    if (vary.isDefaulted()) {
-      assignment.setVariant(vary.getDefaultVariant()!);
+    if (isDefaulted) {
+      assignment.setVariant(defaultVariant);
       assignment.setUnsynced(true);
       assignment.setContext(context);
     }
@@ -171,12 +140,11 @@ class Visitor {
   }
 
   ab(splitName: string, options: AbOptions) {
-    const abConfiguration = new ABConfiguration({
+    const variants = getABVariants({
       splitName,
-      trueVariant: options.trueVariant,
+      trueVariant: options.trueVariant || 'true',
       visitor: this
     });
-    const variants = abConfiguration.getVariants();
     const variantConfiguration: VaryOptions['variants'] = {};
 
     variantConfiguration[variants.true.toString()] = function () {
@@ -195,10 +163,6 @@ class Visitor {
   }
 
   setErrorLogger(errorLogger: (errorMessage: string) => void) {
-    if (typeof errorLogger !== 'function') {
-      throw new Error('must provide function for errorLogger');
-    }
-
     this._errorLogger = errorLogger;
   }
 
@@ -206,26 +170,20 @@ class Visitor {
     this._errorLogger.call(null, errorMessage); // call with null context to ensure we don't leak the visitor object to the outside world
   }
 
-  linkIdentifier(identifierType: string, value: number) {
-    const identifier = new Identifier({
+  async linkIdentifier(identifierType: string, value: number) {
+    const otherVisitor = await saveIdentifier({
       config: this.config,
       identifierType,
       value,
       visitorId: this.getId()
     });
 
-    return identifier.save().then(otherVisitor => {
-      this._merge(otherVisitor);
-      this.notifyUnsyncedAssignments();
-    });
+    this._merge(otherVisitor);
+    this.notifyUnsyncedAssignments();
   }
 
-  setAnalytics(analytics: MixpanelAnalytics) {
-    if (typeof analytics !== 'object') {
-      throw new Error('must provide object for setAnalytics');
-    } else {
-      this.analytics = analytics;
-    }
+  setAnalytics(analytics: AnalyticsProvider) {
+    this.analytics = analytics;
   }
 
   notifyUnsyncedAssignments() {
@@ -257,10 +215,7 @@ class Visitor {
   }
 
   _generateAssignmentFor(splitName: string, context: string) {
-    const variant = new VariantCalculator({
-      visitor: this,
-      splitName: splitName
-    }).getVariant();
+    const variant = calculateVariant(this, splitName);
 
     if (!variant) {
       this._ttOffline = true;
@@ -287,12 +242,11 @@ class Visitor {
         return;
       }
 
-      const notification = new AssignmentNotification({
+      // Potential bug here: This function returns a promise.
+      sendAssignmentNotification({
         visitor: this,
         assignment
       });
-
-      notification.send();
       assignment.setUnsynced(false);
     } catch (e) {
       this.logError('test_track notify error: ' + e);

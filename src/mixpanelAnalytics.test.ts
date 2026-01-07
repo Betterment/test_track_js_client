@@ -1,23 +1,23 @@
 import Assignment from './assignment';
-import MixpanelAnalytics from './mixpanelAnalytics';
+import { mixpanelAnalytics } from './mixpanelAnalytics';
 
-describe('MixpanelAnalytics', () => {
+const mixpanel = {
+  track: vi.fn(),
+  alias: vi.fn(),
+  identify: vi.fn()
+};
+
+describe('mixpanelAnalytics', () => {
   beforeEach(() => {
-    window.mixpanel = {
-      track: vi.fn(),
-      alias: vi.fn(),
-      identify: vi.fn()
-    };
+    window.mixpanel = mixpanel;
   });
 
   afterEach(() => {
-    // @ts-expect-error Cleaning up test property
     delete window.mixpanel;
   });
 
   describe('#trackAssignment()', () => {
-    it('calls window.mixpanel.track()', () => {
-      const mixpanelAnalytics = new MixpanelAnalytics();
+    it('calls mixpanel.track()', () => {
       const assignment = new Assignment({
         splitName: 'jabba',
         variant: 'cgi',
@@ -26,8 +26,8 @@ describe('MixpanelAnalytics', () => {
       });
 
       mixpanelAnalytics.trackAssignment('visitor_id', assignment, () => {
-        expect(window.mixpanel.track).toHaveBeenCalled();
-        expect(window.mixpanel.track).toHaveBeenCalledWith(
+        expect(mixpanel.track).toHaveBeenCalled();
+        expect(mixpanel.track).toHaveBeenCalledWith(
           'SplitAssigned',
           {
             TTVisitorID: 'visitor_id',
@@ -40,27 +40,25 @@ describe('MixpanelAnalytics', () => {
       });
 
       // call success
-      vi.mocked(window.mixpanel.track).mock.calls[0][2](true);
+      vi.mocked(mixpanel.track).mock.calls[0][2](true);
     });
   });
 
   describe('#alias()', () => {
-    it('calls window.mixpanel.alias()', () => {
-      const mixpanelAnalytics = new MixpanelAnalytics();
+    it('calls mixpanel.alias()', () => {
       mixpanelAnalytics.alias('id');
 
-      expect(window.mixpanel.alias).toHaveBeenCalled();
-      expect(window.mixpanel.alias).toHaveBeenCalledWith('id');
+      expect(mixpanel.alias).toHaveBeenCalled();
+      expect(mixpanel.alias).toHaveBeenCalledWith('id');
     });
   });
 
   describe('#identify()', () => {
-    it('calls window.mixpanel.identify()', () => {
-      const mixpanelAnalytics = new MixpanelAnalytics();
+    it('calls mixpanel.identify()', () => {
       mixpanelAnalytics.identify('id');
 
-      expect(window.mixpanel.identify).toHaveBeenCalled();
-      expect(window.mixpanel.identify).toHaveBeenCalledWith('id');
+      expect(mixpanel.identify).toHaveBeenCalled();
+      expect(mixpanel.identify).toHaveBeenCalledWith('id');
     });
   });
 });

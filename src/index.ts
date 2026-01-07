@@ -1,7 +1,8 @@
-import Session from './session';
+import { createSession } from './session';
 export type { AnalyticsProvider } from './analyticsProvider';
 
-const TestTrack = new Session().getPublicAPI();
+const TestTrack = createSession();
+
 const notifyListener = function () {
   window.dispatchEvent(
     new CustomEvent('tt:lib:loaded', {

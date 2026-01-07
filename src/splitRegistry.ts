@@ -1,50 +1,22 @@
-import Split, { type Weighting } from './split';
+import type { Split, Weighting } from './split';
 
 export type V1Hash = {
   [splitName: string]: Weighting;
 };
 
-class SplitRegistry {
-  private _splitArray: Split[];
-  private _loaded: boolean;
-  private _splits?: {
-    [splitName: string]: Split;
+export type SplitRegistry = {
+  isLoaded: boolean;
+  getSplit: (splitName: string) => Split | undefined;
+  asV1Hash: () => V1Hash;
+};
+
+export function createSplitRegistry(input: Split[] | null): SplitRegistry {
+  const isLoaded = input !== null;
+  const splits = Object.fromEntries((input || []).map(split => [split.name, split]));
+
+  return {
+    isLoaded,
+    getSplit: splitName => splits[splitName],
+    asV1Hash: () => Object.fromEntries(Object.entries(splits).map(([splitName, split]) => [splitName, split.weighting]))
   };
-
-  constructor(splitArray: Split[] | null) {
-    this._splitArray = splitArray || [];
-    this._loaded = splitArray !== null;
-  }
-
-  getSplit(splitName: string) {
-    return this.getSplits()[splitName];
-  }
-
-  isLoaded() {
-    return this._loaded;
-  }
-
-  asV1Hash() {
-    const v1Hash: V1Hash = {};
-    for (const splitName in this.getSplits()) {
-      const split = this.getSplits()[splitName];
-      v1Hash[splitName] = split.getWeighting();
-    }
-
-    return v1Hash;
-  }
-
-  getSplits() {
-    if (!this._loaded) {
-      return {};
-    }
-
-    if (!this._splits) {
-      this._splits = this._splitArray.reduce((result, split) => ({ ...result, [split.getName()]: split }), {});
-    }
-
-    return this._splits;
-  }
 }
-
-export default SplitRegistry;

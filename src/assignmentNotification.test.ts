@@ -3,13 +3,13 @@ import { sendAssignmentNotification } from './assignmentNotification';
 import Visitor from './visitor';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
-import { createClient, type Client } from './client';
+import { createClient } from './client';
 import { createSplitRegistry } from './splitRegistry';
 
 const client = createClient({ url: 'http://testtrack.dev' });
 const splitRegistry = createSplitRegistry(null);
 
-function createVisitor(options: { trackSuccess: boolean }): { visitor: Visitor; client: Client } {
+function createVisitor(options: { trackSuccess: boolean }) {
   const visitor = new Visitor({ client, splitRegistry, id: 'visitorId', assignments: [] });
 
   visitor.setAnalytics({
@@ -19,7 +19,7 @@ function createVisitor(options: { trackSuccess: boolean }): { visitor: Visitor; 
   });
   visitor.logError = vi.fn();
 
-  return { visitor, client };
+  return visitor;
 }
 
 function createAssignment() {
@@ -36,7 +36,7 @@ describe('sendAssignmentNotification', () => {
   });
 
   it('tracks an event', async () => {
-    const { visitor, client } = createVisitor({ trackSuccess: true });
+    const visitor = createVisitor({ trackSuccess: true });
     const assignment = createAssignment();
 
     await sendAssignmentNotification({ client, visitor, assignment });
@@ -46,7 +46,7 @@ describe('sendAssignmentNotification', () => {
   });
 
   it('notifies the test track server with an analytics success', async () => {
-    const { visitor, client } = createVisitor({ trackSuccess: true });
+    const visitor = createVisitor({ trackSuccess: true });
     const assignment = createAssignment();
 
     await sendAssignmentNotification({ client, visitor, assignment });
@@ -58,7 +58,7 @@ describe('sendAssignmentNotification', () => {
   });
 
   it('notifies the test track server with an analytics failure', async () => {
-    const { visitor, client } = createVisitor({ trackSuccess: false });
+    const visitor = createVisitor({ trackSuccess: false });
     const assignment = createAssignment();
 
     await sendAssignmentNotification({ client, visitor, assignment });
@@ -76,7 +76,7 @@ describe('sendAssignmentNotification', () => {
       })
     );
 
-    const { visitor, client } = createVisitor({ trackSuccess: false });
+    const visitor = createVisitor({ trackSuccess: false });
     const assignment = createAssignment();
 
     await sendAssignmentNotification({ client, visitor, assignment });
@@ -93,7 +93,7 @@ describe('sendAssignmentNotification', () => {
       })
     );
 
-    const { visitor, client } = createVisitor({ trackSuccess: true });
+    const visitor = createVisitor({ trackSuccess: true });
     const assignment = createAssignment();
 
     await sendAssignmentNotification({ client, visitor, assignment });

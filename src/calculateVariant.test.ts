@@ -15,12 +15,7 @@ const splitRegistry = createSplitRegistry([
 ]);
 
 function createVisitor(splitRegistry: SplitRegistry, id = '00000000-0000-0000-0000-000000000000') {
-  const visitor = new Visitor({
-    client,
-    splitRegistry,
-    id,
-    assignments: []
-  });
+  const visitor = new Visitor({ client, splitRegistry, id, assignments: [] });
   visitor.logError = vi.fn();
   return visitor;
 }

@@ -231,7 +231,7 @@ describe('Visitor', () => {
         varyWineSplit(visitor);
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-          client: expect.any(Object),
+          client,
           visitor,
           assignment: new Assignment({
             splitName: 'wine',
@@ -250,7 +250,7 @@ describe('Visitor', () => {
         varyWineSplit(visitor);
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-          client: expect.any(Object),
+          client,
           visitor,
           assignment: new Assignment({
             splitName: 'wine',
@@ -273,7 +273,7 @@ describe('Visitor', () => {
         varyWineSplit(visitor);
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-          client: expect.any(Object),
+          client,
           visitor,
           assignment: new Assignment({
             splitName: 'wine',
@@ -317,7 +317,7 @@ describe('Visitor', () => {
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-          client: expect.any(Object),
+          client,
           visitor,
           assignment: new Assignment({
             splitName: 'jabba',
@@ -615,7 +615,7 @@ describe('Visitor', () => {
       await visitor.linkIdentifier('myappdb_user_id', 444);
       expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-        client: expect.any(Object),
+        client,
         visitor,
         assignment: blueButtonAssignment
       });
@@ -707,7 +707,7 @@ describe('Visitor', () => {
       expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
 
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-        client: expect.any(Object),
+        client,
         visitor: visitor,
         assignment: blueButtonAssignment
       });

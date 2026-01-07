@@ -151,7 +151,8 @@ export default class Visitor {
       assignments: data.visitor.assignments.map(Assignment.fromV1Assignment)
     });
 
-    this._merge(otherVisitor);
+    this.#id = otherVisitor.getId();
+    Object.assign(this.#assignments, otherVisitor.getAssignmentRegistry());
     this.notifyUnsyncedAssignments();
   }
 
@@ -172,15 +173,6 @@ export default class Visitor {
       }
       return result;
     }, []);
-  }
-
-  _merge(otherVisitor: Visitor) {
-    const assignmentRegistry = this.getAssignmentRegistry();
-    const otherAssignmentRegistry = otherVisitor.getAssignmentRegistry();
-
-    this.#id = otherVisitor.getId();
-
-    Object.assign(assignmentRegistry, otherAssignmentRegistry);
   }
 
   _getAssignmentFor(splitName: string, context: string) {

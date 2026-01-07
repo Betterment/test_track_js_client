@@ -1,4 +1,3 @@
-import { request, urlFor } from './client/request';
 import { getABVariants } from './abConfiguration';
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
@@ -47,12 +46,10 @@ class Visitor {
           })
         );
       } else {
-        return request<V1Visitor>({
-          method: 'GET',
-          url: urlFor(config, `/api/v1/visitors/${visitorId}`),
-          timeout: 5000
-        })
-          .then(({ data }) => {
+        const client = createClient({ url: config.url.toString() });
+        return client
+          .getVisitor(visitorId)
+          .then((data) => {
             return new Visitor({
               config,
               id: data.id,

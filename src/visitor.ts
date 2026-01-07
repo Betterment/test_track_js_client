@@ -175,7 +175,7 @@ export default class Visitor {
 
   _generateAssignmentFor(splitName: string, context: string): Assignment {
     const variant = calculateVariant({
-      visitor: this,
+      visitorId: this.getId(),
       splitRegistry: this.#splitRegistry,
       splitName
     });

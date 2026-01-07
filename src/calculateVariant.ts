@@ -1,20 +1,24 @@
 import { md5 } from 'js-md5';
-import Visitor from './visitor';
 import { getSplitVariants, type SplitRegistry } from './splitRegistry';
 
-type Options = {
-  visitor: Visitor;
-  splitRegistry: SplitRegistry;
+type GetAssignmentBucketOptions = {
   splitName: string;
+  visitorId: string;
 };
 
-export function getAssignmentBucket(visitor: Visitor, splitName: string): number {
-  const hash = md5(`${splitName}${visitor.getId()}`);
+type CalculateVariantOptions = {
+  splitRegistry: SplitRegistry;
+  splitName: string;
+  visitorId: string;
+};
+
+export function getAssignmentBucket({ visitorId, splitName }: GetAssignmentBucketOptions): number {
+  const hash = md5(`${splitName}${visitorId}`);
   const hashFixnum = parseInt(hash.substring(0, 8), 16);
   return hashFixnum % 100;
 }
 
-export function calculateVariant({ visitor, splitRegistry, splitName }: Options): string | null {
+export function calculateVariant({ visitorId, splitRegistry, splitName }: CalculateVariantOptions): string | null {
   if (!splitRegistry.isLoaded) {
     return null;
   }
@@ -25,7 +29,7 @@ export function calculateVariant({ visitor, splitRegistry, splitName }: Options)
   }
 
   let bucketCeiling = 0;
-  const assignmentBucket = getAssignmentBucket(visitor, splitName);
+  const assignmentBucket = getAssignmentBucket({ splitName, visitorId });
   const weighting = split.weighting;
   const sortedVariants = getSplitVariants(split).sort();
 

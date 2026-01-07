@@ -199,7 +199,7 @@ describe('Visitor', () => {
         varyWineSplit(visitor);
 
         expect(mockCalculateVariant).toHaveBeenCalledWith({
-          visitor,
+          visitorId: 'EXISTING_VISITOR_ID',
           splitRegistry,
           splitName: 'wine'
         });
@@ -345,7 +345,7 @@ describe('Visitor', () => {
 
         expect(mockCalculateVariant).toHaveBeenCalledTimes(1);
         expect(mockCalculateVariant).toHaveBeenCalledWith({
-          visitor: offlineVisitor,
+          visitorId: 'offline_visitor_id',
           splitRegistry: emptySplitRegistry,
           splitName: 'jabba'
         });

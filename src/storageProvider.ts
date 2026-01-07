@@ -11,7 +11,7 @@ type CookieStorageConfig = {
 };
 
 export function createCookieStorage(config: CookieStorageConfig): StorageProvider {
-  const name = config.name || 'tt_visitor_id';
+  const name = config.name ?? 'tt_visitor_id';
 
   return {
     getVisitorId() {

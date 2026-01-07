@@ -185,8 +185,8 @@ describe('Visitor', () => {
         visitor.vary('wine', {
           context: 'spec',
           variants: {
-            white: function () {},
-            red: function () {}
+            white: () => {},
+            red: () => {}
           },
           defaultVariant: 'rose'
         });
@@ -307,8 +307,8 @@ describe('Visitor', () => {
         visitor.vary('jabba', {
           context: 'defaulted',
           variants: {
-            furry_man: function () {},
-            cgi: function () {}
+            furry_man: () => {},
+            cgi: () => {}
           },
           defaultVariant: 'cgi'
         });
@@ -450,7 +450,7 @@ describe('Visitor', () => {
         visitor.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
-          callback: function (isPuppet) {
+          callback: (isPuppet) => {
             expect(isPuppet).toBe(true);
           }
         });
@@ -468,7 +468,7 @@ describe('Visitor', () => {
         visitor.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
-          callback: function (isPuppet) {
+          callback: (isPuppet) => {
             expect(isPuppet).toBe(false);
           }
         });
@@ -487,7 +487,7 @@ describe('Visitor', () => {
 
         visitor.ab('blue_button', {
           context: 'spec',
-          callback: function (isBlue) {
+          callback: (isBlue) => {
             expect(isBlue).toBe(true);
           }
         });
@@ -504,7 +504,7 @@ describe('Visitor', () => {
 
         visitor.ab('blue_button', {
           context: 'spec',
-          callback: function (isBlue) {
+          callback: (isBlue) => {
             expect(isBlue).toBe(false);
           }
         });
@@ -514,7 +514,7 @@ describe('Visitor', () => {
         const visitor = createVisitor();
         visitor.ab('jabba', {
           context: 'spec',
-          callback: function (isTrue) {
+          callback: (isTrue) => {
             expect(isTrue).toBe(false);
           }
         });
@@ -680,7 +680,7 @@ describe('Visitor', () => {
 
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         client,
-        visitor: visitor,
+        visitor,
         assignment: blueButtonAssignment
       });
     });

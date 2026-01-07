@@ -111,7 +111,7 @@ export default class Visitor {
   }
 
   ab(splitName: string, options: AbOptions) {
-    const trueVariant = options.trueVariant || 'true';
+    const trueVariant = options.trueVariant ?? 'true';
     const falseVariant = getFalseVariant({
       splitName,
       trueVariant,
@@ -152,7 +152,7 @@ export default class Visitor {
     });
 
     this.#id = otherVisitor.getId();
-    Object.assign(this.#assignments, otherVisitor.getAssignmentRegistry());
+    this.#assignments = { ...this.#assignments, ...otherVisitor.getAssignmentRegistry() };
     this.notifyUnsyncedAssignments();
   }
 
@@ -161,7 +161,7 @@ export default class Visitor {
   }
 
   notifyUnsyncedAssignments() {
-    this._getUnsyncedAssignments().forEach(this._notify.bind(this));
+    this._getUnsyncedAssignments().forEach(assignment => this._notify(assignment));
   }
 
   _getUnsyncedAssignments() {
@@ -184,9 +184,9 @@ export default class Visitor {
     }
 
     const assignment = new Assignment({
-      splitName: splitName,
-      variant: variant,
-      context: context,
+      splitName,
+      variant,
+      context,
       isUnsynced: true
     });
 
@@ -208,7 +208,7 @@ export default class Visitor {
       });
       assignment.setUnsynced(false);
     } catch (e) {
-      this.logError('test_track notify error: ' + e);
+      this.logError(`test_track notify error: ${e}`);
     }
   }
 }

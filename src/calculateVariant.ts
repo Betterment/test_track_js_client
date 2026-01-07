@@ -3,7 +3,7 @@ import Visitor from './visitor';
 import { getSplitVariants, type SplitRegistry } from './splitRegistry';
 
 export function getAssignmentBucket(visitor: Visitor, splitName: string): number {
-  const hash = md5(splitName + visitor.getId());
+  const hash = md5(`${splitName}${visitor.getId()}`);
   const hashFixnum = parseInt(hash.substring(0, 8), 16);
   return hashFixnum % 100;
 }

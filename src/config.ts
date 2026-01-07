@@ -8,7 +8,7 @@ declare global {
   }
 }
 
-export type RawConfig = {
+export type Config = {
   url: string;
   cookieDomain: string;
   cookieName?: string;
@@ -22,16 +22,7 @@ export type RawConfig = {
   };
 };
 
-export type Config = {
-  url: string;
-  cookieDomain: string;
-  cookieName?: string;
-  experienceSamplingWeight: number;
-  splitRegistry: SplitRegistry;
-  assignments: Assignment[] | null;
-};
-
-function parseSplitRegistry(rawSplits: RawConfig['splits']): SplitRegistry {
+export function parseSplitRegistry(rawSplits: Config['splits']): SplitRegistry {
   if (!rawSplits) {
     return createSplitRegistry(null);
   }
@@ -45,7 +36,7 @@ function parseSplitRegistry(rawSplits: RawConfig['splits']): SplitRegistry {
   return createSplitRegistry(splits);
 }
 
-function parseAssignments(rawAssignments: RawConfig['assignments']): Assignment[] | null {
+export function parseAssignments(rawAssignments: Config['assignments']): Assignment[] | null {
   if (!rawAssignments) {
     return null;
   }
@@ -55,20 +46,9 @@ function parseAssignments(rawAssignments: RawConfig['assignments']): Assignment[
   });
 }
 
-export function parseConfig(rawConfig: RawConfig): Config {
-  return {
-    url: rawConfig.url,
-    cookieDomain: rawConfig.cookieDomain,
-    cookieName: rawConfig.cookieName,
-    experienceSamplingWeight: rawConfig.experienceSamplingWeight,
-    splitRegistry: parseSplitRegistry(rawConfig.splits),
-    assignments: parseAssignments(rawConfig.assignments)
-  };
-}
-
 export function loadConfig(): Config {
   try {
-    return parseConfig(JSON.parse(atob(window.TT!)));
+    return JSON.parse(atob(window.TT!));
   } catch {
     throw new Error('Unable to parse configuration');
   }

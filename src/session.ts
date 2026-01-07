@@ -1,4 +1,4 @@
-import { loadConfig } from './config';
+import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
 import Visitor, { type AbOptions, type VaryOptions } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { SplitRegistry, V1Hash } from './splitRegistry';
@@ -33,11 +33,12 @@ export function createSession() {
       const config = loadConfig();
       const client = createClient(config);
       const storage = createCookieStorage(config);
+      const splitRegistry = parseSplitRegistry(config.splits);
       const visitor = await Visitor.loadVisitor({
         client,
-        splitRegistry: config.splitRegistry,
+        splitRegistry,
         id: storage.getVisitorId(),
-        assignments: config.assignments
+        assignments: parseAssignments(config.assignments)
       });
 
       if (options.analytics) {
@@ -54,7 +55,7 @@ export function createSession() {
 
       visitor.notifyUnsyncedAssignments();
 
-      resolveContext({ client, storage, visitor, splitRegistry: config.splitRegistry });
+      resolveContext({ client, storage, visitor, splitRegistry });
       storage.setVisitorId(visitor.getId());
 
       return visitor;

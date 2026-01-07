@@ -2,12 +2,12 @@ import Cookies from 'js-cookie';
 import { createSession, type Session } from './session';
 import Visitor from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
-import type { RawConfig } from './config';
+import type { Config } from './config';
 import { v4 as uuid } from 'uuid';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 
-const rawConfig: RawConfig = {
+const rawConfig: Config = {
   url: 'http://testtrack.dev',
   cookieDomain: '.example.com',
   cookieName: 'custom_cookie_name',

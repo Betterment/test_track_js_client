@@ -61,34 +61,33 @@ export default class Visitor {
     }
   }
 
-  private client: Client;
-  private splitRegistry: SplitRegistry;
-
-  private _id: string;
-  private _assignments: Assignment[];
-  private _ttOffline?: boolean;
-  private _errorLogger: (errorMessage: string) => void;
-  private _assignmentRegistry?: AssignmentRegistry | null;
+  #client: Client;
+  #splitRegistry: SplitRegistry;
+  #id: string;
+  #assignments: Assignment[];
+  #ttOffline: boolean | undefined;
+  #errorLogger: (errorMessage: string) => void;
+  #assignmentRegistry?: AssignmentRegistry;
 
   public analytics: AnalyticsProvider;
 
   constructor({ client, splitRegistry, id, assignments, ttOffline }: VisitorOptions) {
-    this.client = client;
-    this.splitRegistry = splitRegistry;
-    this._id = id;
-    this._assignments = assignments;
-    this._ttOffline = ttOffline;
-    this._errorLogger = errorMessage => console.error(errorMessage);
+    this.#client = client;
+    this.#splitRegistry = splitRegistry;
+    this.#id = id;
+    this.#assignments = assignments;
+    this.#ttOffline = ttOffline;
+    this.#errorLogger = errorMessage => console.error(errorMessage);
     this.analytics = mixpanelAnalytics;
   }
 
   getId() {
-    return this._id;
+    return this.#id;
   }
 
   getAssignmentRegistry() {
-    if (!this._assignmentRegistry) {
-      this._assignmentRegistry = this._assignments.reduce((registry, assignment) => {
+    if (!this.#assignmentRegistry) {
+      this.#assignmentRegistry = this.#assignments.reduce((registry, assignment) => {
         return {
           ...registry,
           [assignment.getSplitName()]: assignment
@@ -96,7 +95,7 @@ export default class Visitor {
       }, {});
     }
 
-    return this._assignmentRegistry;
+    return this.#assignmentRegistry;
   }
 
   vary(splitName: string, options: VaryOptions): void {
@@ -108,7 +107,7 @@ export default class Visitor {
       assignment,
       defaultVariant,
       variants,
-      splitRegistry: this.splitRegistry,
+      splitRegistry: this.#splitRegistry,
       logError: message => this.logError(message)
     });
 
@@ -126,7 +125,7 @@ export default class Visitor {
     const falseVariant = getFalseVariant({
       splitName,
       trueVariant,
-      splitRegistry: this.splitRegistry,
+      splitRegistry: this.#splitRegistry,
       logError: message => this.logError(message)
     });
 
@@ -141,23 +140,23 @@ export default class Visitor {
   }
 
   setErrorLogger(errorLogger: (errorMessage: string) => void) {
-    this._errorLogger = errorLogger;
+    this.#errorLogger = errorLogger;
   }
 
   logError(errorMessage: string) {
-    this._errorLogger.call(null, errorMessage); // call with null context to ensure we don't leak the visitor object to the outside world
+    this.#errorLogger.call(null, errorMessage); // call with null context to ensure we don't leak the visitor object to the outside world
   }
 
   async linkIdentifier(identifierType: string, value: number) {
-    const data = await this.client.postIdentifier({
+    const data = await this.#client.postIdentifier({
       visitor_id: this.getId(),
       identifier_type: identifierType,
       value: value.toString()
     });
 
     const otherVisitor = new Visitor({
-      client: this.client,
-      splitRegistry: this.splitRegistry,
+      client: this.#client,
+      splitRegistry: this.#splitRegistry,
       id: data.visitor.id,
       assignments: data.visitor.assignments.map(Assignment.fromV1Assignment)
     });
@@ -189,7 +188,7 @@ export default class Visitor {
     const assignmentRegistry = this.getAssignmentRegistry();
     const otherAssignmentRegistry = otherVisitor.getAssignmentRegistry();
 
-    this._id = otherVisitor.getId();
+    this.#id = otherVisitor.getId();
 
     Object.assign(assignmentRegistry, otherAssignmentRegistry);
   }
@@ -201,12 +200,12 @@ export default class Visitor {
   _generateAssignmentFor(splitName: string, context: string) {
     const variant = calculateVariant({
       visitor: this,
-      splitRegistry: this.splitRegistry,
+      splitRegistry: this.#splitRegistry,
       splitName
     });
 
     if (!variant) {
-      this._ttOffline = true;
+      this.#ttOffline = true;
     }
 
     const assignment = new Assignment({
@@ -216,23 +215,23 @@ export default class Visitor {
       isUnsynced: true
     });
 
-    this._assignments.push(assignment);
+    this.#assignments.push(assignment);
 
     // reset derived datastores to trigger rebuilding
-    this._assignmentRegistry = null;
+    this.#assignmentRegistry = undefined;
 
     return assignment;
   }
 
   _notify(assignment: Assignment) {
     try {
-      if (this._ttOffline) {
+      if (this.#ttOffline) {
         return;
       }
 
       // Potential bug here: This function returns a promise.
       sendAssignmentNotification({
-        client: this.client,
+        client: this.#client,
         visitor: this,
         assignment
       });

@@ -17,43 +17,43 @@ export default class Assignment {
     });
   }
 
-  private _splitName: string;
-  private _variant: string | null;
-  private _context?: string;
-  private _isUnsynced: boolean;
+  #splitName: string;
+  #variant: string | null;
+  #context: string | undefined;
+  #isUnsynced: boolean;
 
   constructor(options: AssignmentOptions) {
-    this._splitName = options.splitName;
-    this._variant = options.variant;
-    this._context = options.context;
-    this._isUnsynced = options.isUnsynced;
+    this.#splitName = options.splitName;
+    this.#variant = options.variant;
+    this.#context = options.context;
+    this.#isUnsynced = options.isUnsynced;
   }
 
   getSplitName() {
-    return this._splitName;
+    return this.#splitName;
   }
 
   getVariant() {
-    return this._variant;
+    return this.#variant;
   }
 
   setVariant(variant: string) {
-    this._variant = variant;
+    this.#variant = variant;
   }
 
   getContext() {
-    return this._context;
+    return this.#context;
   }
 
   setContext(context: string) {
-    this._context = context;
+    this.#context = context;
   }
 
   isUnsynced() {
-    return this._isUnsynced;
+    return this.#isUnsynced;
   }
 
   setUnsynced(unsynced: boolean) {
-    this._isUnsynced = unsynced;
+    this.#isUnsynced = unsynced;
   }
 }

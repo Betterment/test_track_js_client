@@ -106,10 +106,10 @@ class Visitor {
     const assignment = this._getAssignmentFor(splitName, context);
     const { isDefaulted } = vary({
       assignment,
-      visitor: this,
       defaultVariant,
       variants,
-      splitRegistry: this.splitRegistry
+      splitRegistry: this.splitRegistry,
+      logError: message => this.logError(message)
     });
 
     if (isDefaulted) {

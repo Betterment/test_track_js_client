@@ -97,16 +97,18 @@ export function createSession() {
 
       async persistAssignment(splitName: string, variant: string, username: string, password: string): Promise<void> {
         const { visitor, client } = await sessionContext;
-        await client.postAssignmentOverride({
-          visitor_id: visitor.getId(),
-          split_name: splitName,
-          variant,
-          context: 'chrome_extension',
-          mixpanel_result: 'success',
-          auth: { username, password }
-        }).catch(error => {
-          visitor.logError(`test_track persistAssignment error: ${error}`);
-        });
+        await client
+          .postAssignmentOverride({
+            visitor_id: visitor.getId(),
+            split_name: splitName,
+            variant,
+            context: 'chrome_extension',
+            mixpanel_result: 'success',
+            auth: { username, password }
+          })
+          .catch(error => {
+            visitor.logError(`test_track persistAssignment error: ${error}`);
+          });
       }
     }
   };

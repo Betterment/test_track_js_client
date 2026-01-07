@@ -1,7 +1,6 @@
 import { md5 } from 'js-md5';
 import Visitor from './visitor';
-import { getSplitVariants } from './split';
-import type { SplitRegistry } from './splitRegistry';
+import { getSplitVariants, type SplitRegistry } from './splitRegistry';
 
 export function getAssignmentBucket(visitor: Visitor, splitName: string): number {
   const hash = md5(splitName + visitor.getId());

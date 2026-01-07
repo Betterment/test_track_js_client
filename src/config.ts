@@ -1,6 +1,5 @@
 import Assignment from './assignment';
-import { type Split } from './split';
-import { createSplitRegistry, type SplitRegistry } from './splitRegistry';
+import { type Split, createSplitRegistry, type SplitRegistry } from './splitRegistry';
 
 declare global {
   interface Window {

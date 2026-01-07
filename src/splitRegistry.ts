@@ -1,7 +1,15 @@
-import type { Split, Weighting } from './split';
-
 export type V1Hash = {
   [splitName: string]: Weighting;
+};
+
+export type Weighting = {
+  [variant: string]: number;
+};
+
+export type Split = {
+  name: string;
+  isFeatureGate: boolean;
+  weighting: Weighting;
 };
 
 export type SplitRegistry = {
@@ -19,4 +27,8 @@ export function createSplitRegistry(input: Split[] | null): SplitRegistry {
     getSplit: splitName => splits[splitName],
     asV1Hash: () => Object.fromEntries(Object.entries(splits).map(([splitName, split]) => [splitName, split.weighting]))
   };
+}
+
+export function getSplitVariants(split: Split): string[] {
+  return Object.keys(split.weighting);
 }

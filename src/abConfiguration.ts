@@ -1,6 +1,5 @@
-import { getSplitVariants } from './split';
+import { getSplitVariants, type SplitRegistry } from './splitRegistry';
 import Visitor from './visitor';
-import type { SplitRegistry } from './splitRegistry';
 
 type Options = {
   splitName: string;
@@ -17,7 +16,7 @@ export function getABVariants({ splitName, trueVariant, visitor, splitRegistry }
     visitor.logError(`A/B for ${splitName} configures split with more than 2 variants`);
   }
 
-  const nonTrueVariants = splitVariants?.filter(v => v !== trueVariant) || [];
+  const nonTrueVariants = splitVariants?.filter((v: string) => v !== trueVariant) || [];
   const falseVariant = nonTrueVariants.length > 0 ? nonTrueVariants.sort()[0] : 'false';
 
   return { true: trueVariant, false: falseVariant };

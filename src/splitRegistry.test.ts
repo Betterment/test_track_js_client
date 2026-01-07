@@ -1,4 +1,4 @@
-import { createSplitRegistry } from './splitRegistry';
+import { createSplitRegistry, getSplitVariants, type Split } from './splitRegistry';
 
 function setupSplitRegistry() {
   return createSplitRegistry([
@@ -7,7 +7,7 @@ function setupSplitRegistry() {
   ]);
 }
 
-describe('SplitRegistry', () => {
+describe('createSplitRegistry', () => {
   describe('.getSplit()', () => {
     it('returns the split for the given name', () => {
       const splitRegistry = setupSplitRegistry();
@@ -35,5 +35,17 @@ describe('SplitRegistry', () => {
       const splitRegistry = setupSplitRegistry();
       expect(splitRegistry.asV1Hash()).toEqual({ split1: { foo: 50, bar: 50, baz: 0 }, split2: { up: 50, down: 50 } });
     });
+  });
+});
+
+describe('getSplitVariants()', () => {
+  it('returns all variants', () => {
+    const split: Split = {
+      name: 'split name',
+      isFeatureGate: true,
+      weighting: { foo: 50, bar: 50, baz: 0 }
+    };
+
+    expect(getSplitVariants(split)).toEqual(['foo', 'bar', 'baz']);
   });
 });

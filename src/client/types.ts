@@ -24,14 +24,14 @@ export type V1AssignmentOverrideParams = {
   visitor_id: string;
   split_name: string;
   variant: string;
-  context: string;
-  mixpanel_result: string;
+  context: string | null | undefined;
+  mixpanel_result: string | null | undefined;
   auth: { username: string; password: string };
 };
 
 export type V1AssignmentEventParams = {
   visitor_id: string;
   split_name: string;
-  context: string | undefined;
-  mixpanel_result: string | undefined;
+  context: string | null | undefined;
+  mixpanel_result: string | null | undefined;
 };

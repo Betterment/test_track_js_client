@@ -165,14 +165,7 @@ export default class Visitor {
   }
 
   _getUnsyncedAssignments() {
-    const registry = this.getAssignmentRegistry();
-    return Object.keys(registry).reduce<Assignment[]>((result, assignmentName) => {
-      const assignment = registry[assignmentName];
-      if (assignment.isUnsynced()) {
-        result.push(assignment);
-      }
-      return result;
-    }, []);
+    return Object.values(this.getAssignmentRegistry()).filter(assignment => assignment.isUnsynced());
   }
 
   _getAssignmentFor(splitName: string, context: string) {

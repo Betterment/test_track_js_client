@@ -17,7 +17,6 @@ function createVisitor(options: { trackSuccess: boolean }) {
     alias: vi.fn(),
     trackAssignment: vi.fn().mockImplementation((_visitorId, _assignment, callback) => callback(options.trackSuccess))
   });
-  visitor.logError = vi.fn();
 
   return visitor;
 }
@@ -79,9 +78,12 @@ describe('sendAssignmentNotification', () => {
     const visitor = createVisitor({ trackSuccess: false });
     const assignment = createAssignment();
 
+    const errorLogger = vi.fn();
+    visitor.setErrorLogger(errorLogger);
+
     await sendAssignmentNotification({ client, visitor, assignment });
-    expect(visitor.logError).toHaveBeenCalledTimes(2);
-    expect(visitor.logError).toHaveBeenCalledWith(
+    expect(errorLogger).toHaveBeenCalledTimes(2);
+    expect(errorLogger).toHaveBeenCalledWith(
       'test_track persistAssignment error: Error: HTTP request failed with 500 status'
     );
   });
@@ -96,8 +98,11 @@ describe('sendAssignmentNotification', () => {
     const visitor = createVisitor({ trackSuccess: true });
     const assignment = createAssignment();
 
+    const errorLogger = vi.fn();
+    visitor.setErrorLogger(errorLogger);
+
     await sendAssignmentNotification({ client, visitor, assignment });
-    expect(visitor.logError).toHaveBeenCalledTimes(2);
-    expect(visitor.logError).toHaveBeenCalledWith('test_track persistAssignment error: TypeError: Failed to fetch');
+    expect(errorLogger).toHaveBeenCalledTimes(2);
+    expect(errorLogger).toHaveBeenCalledWith('test_track persistAssignment error: TypeError: Failed to fetch');
   });
 });

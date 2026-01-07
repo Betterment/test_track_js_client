@@ -262,8 +262,9 @@ describe('Visitor', () => {
 
       it('logs an error if the AssignmentNotification throws an error', () => {
         const visitor = createVisitor();
-        visitor.logError = vi.fn();
+        const errorLogger = vi.fn();
 
+        visitor.setErrorLogger(errorLogger);
         mockSendAssignmentNotification.mockImplementation(() => {
           throw new Error('something bad happened');
         });
@@ -281,8 +282,7 @@ describe('Visitor', () => {
           })
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
-
-        expect(visitor.logError).toHaveBeenCalledWith('test_track notify error: Error: something bad happened');
+        expect(errorLogger).toHaveBeenCalledWith('test_track notify error: Error: something bad happened');
       });
     });
 

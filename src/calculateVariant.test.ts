@@ -15,9 +15,7 @@ const splitRegistry = createSplitRegistry([
 ]);
 
 function createVisitor(splitRegistry: SplitRegistry, id = '00000000-0000-0000-0000-000000000000') {
-  const visitor = new Visitor({ client, splitRegistry, id, assignments: [] });
-  visitor.logError = vi.fn();
-  return visitor;
+  return new Visitor({ client, splitRegistry, id, assignments: [] });
 }
 
 describe('getAssignmentBucket()', () => {
@@ -76,12 +74,14 @@ describe('calculateVariant()', () => {
 
   it('throws and logs an error when given an unknown splitName', () => {
     const visitor = createVisitor(splitRegistry);
+    const errorLogger = vi.fn();
+
+    visitor.setErrorLogger(errorLogger);
 
     expect(() => calculateVariant({ visitor, splitRegistry, splitName: 'nonExistentSplit' })).toThrow(
       'Unknown split: "nonExistentSplit"'
     );
-    expect(visitor.logError).toHaveBeenCalledTimes(1);
-    expect(visitor.logError).toHaveBeenCalledWith('Unknown split: "nonExistentSplit"');
+    expect(errorLogger).toHaveBeenCalledWith('Unknown split: "nonExistentSplit"');
   });
 
   it('deterministically assigns the same visitor to the same variant', () => {

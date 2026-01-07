@@ -1,7 +1,3 @@
-export type V1Hash = {
-  [splitName: string]: Weighting;
-};
-
 export type Weighting = {
   [variant: string]: number;
 };
@@ -10,6 +6,10 @@ export type Split = {
   name: string;
   isFeatureGate: boolean;
   weighting: Weighting;
+};
+
+export type V1Hash = {
+  [splitName: string]: Weighting;
 };
 
 export type SplitRegistry = {

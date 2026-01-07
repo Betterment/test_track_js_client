@@ -193,13 +193,9 @@ describe('createSession', () => {
       const session = createSession();
       await session.initialize({});
 
-      session.ab('jabba', {
-        context: 'spec',
-        trueVariant: 'cgi',
-        callback(cgi) {
-          expect(cgi).toBe(false);
-        }
-      });
+      const callback = vi.fn();
+      await session.ab('jabba', { context: 'spec', trueVariant: 'cgi', callback });
+      expect(callback).toHaveBeenCalledWith(false);
     });
   });
 

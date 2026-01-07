@@ -8,14 +8,14 @@ export type AssignmentOptions = {
 };
 
 export default class Assignment {
-  static fromV1Assignment(data: V1Assignment): Assignment {
+  static fromV1Assignment = (data: V1Assignment): Assignment => {
     return new Assignment({
       context: data.context,
       variant: data.variant,
       splitName: data.split_name,
       isUnsynced: data.unsynced
     });
-  }
+  };
 
   #splitName: string;
   #variant: string | null;

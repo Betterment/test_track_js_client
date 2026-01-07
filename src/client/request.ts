@@ -45,6 +45,6 @@ export async function request<T>(options: RequestOptions): Promise<{ data: T }> 
   } else if (response.status === 204) {
     return { data: null as T };
   } else {
-    return { data: await response.json() };
+    return { data: await response.json() as T };
   }
 }

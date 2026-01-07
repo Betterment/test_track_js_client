@@ -35,9 +35,9 @@ export async function sendAssignmentNotification({ client, visitor, assignment }
   const firstPersist = persistAssignment(client, visitor, assignment);
 
   const secondPersist = new Promise(resolve => {
-    visitor.analytics.trackAssignment(visitor.getId(), assignment, success =>
-      persistAssignment(client, visitor, assignment, success ? 'success' : 'failure').then(resolve)
-    );
+    visitor.analytics.trackAssignment(visitor.getId(), assignment, success => {
+      void persistAssignment(client, visitor, assignment, success ? 'success' : 'failure').then(resolve);
+    });
   });
 
   await Promise.all([firstPersist, secondPersist]);

@@ -3,7 +3,7 @@ import { setupServer } from 'msw/node';
 export const server = setupServer();
 export const requests: Request[] = [];
 
-server.events.on('request:start', async ({ request }) => {
+server.events.on('request:start', ({ request }) => {
   requests.push(request.clone());
 });
 

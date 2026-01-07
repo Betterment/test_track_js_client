@@ -47,7 +47,7 @@ export function parseAssignments(rawAssignments: Config['assignments']): Assignm
 
 export function loadConfig(): Config {
   try {
-    return JSON.parse(atob(window.TT!));
+    return JSON.parse(atob(window.TT!)) as Config;
   } catch {
     throw new Error('Unable to parse configuration');
   }

@@ -5,19 +5,22 @@ import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 import { createClient } from './client';
 import { createSplitRegistry } from './splitRegistry';
+import type { AnalyticsProvider } from './analyticsProvider';
 
 const client = createClient({ url: 'http://testtrack.dev' });
 const splitRegistry = createSplitRegistry(null);
 
-function createVisitor(options: { trackSuccess: boolean }) {
+const analytics = {
+  identify: vi.fn(),
+  alias: vi.fn(),
+  trackAssignment: vi
+    .fn<AnalyticsProvider['trackAssignment']>()
+    .mockImplementation((_visitorId, _assignment, callback) => callback(true))
+};
+
+function createVisitor() {
   const visitor = new Visitor({ client, splitRegistry, id: 'visitorId', assignments: [] });
-
-  visitor.setAnalytics({
-    identify: vi.fn(),
-    alias: vi.fn(),
-    trackAssignment: vi.fn().mockImplementation((_visitorId, _assignment, callback) => callback(options.trackSuccess))
-  });
-
+  visitor.setAnalytics(analytics);
   return visitor;
 }
 
@@ -35,17 +38,17 @@ describe('sendAssignmentNotification', () => {
   });
 
   it('tracks an event', async () => {
-    const visitor = createVisitor({ trackSuccess: true });
+    const visitor = createVisitor();
     const assignment = createAssignment();
 
     await sendAssignmentNotification({ client, visitor, assignment });
 
-    expect(visitor.analytics.trackAssignment).toHaveBeenCalledTimes(1);
-    expect(visitor.analytics.trackAssignment).toHaveBeenCalledWith('visitorId', assignment, expect.any(Function));
+    expect(analytics.trackAssignment).toHaveBeenCalledTimes(1);
+    expect(analytics.trackAssignment).toHaveBeenCalledWith('visitorId', assignment, expect.any(Function));
   });
 
   it('notifies the test track server with an analytics success', async () => {
-    const visitor = createVisitor({ trackSuccess: true });
+    const visitor = createVisitor();
     const assignment = createAssignment();
 
     await sendAssignmentNotification({ client, visitor, assignment });
@@ -57,10 +60,12 @@ describe('sendAssignmentNotification', () => {
   });
 
   it('notifies the test track server with an analytics failure', async () => {
-    const visitor = createVisitor({ trackSuccess: false });
+    const visitor = createVisitor();
     const assignment = createAssignment();
 
+    analytics.trackAssignment.mockImplementationOnce((_visitorId, _assignment, callback) => callback(false));
     await sendAssignmentNotification({ client, visitor, assignment });
+
     expect(requests.length).toBe(2);
     expect(await requests[0]!.text()).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
     expect(await requests[1]!.text()).toEqual(
@@ -75,13 +80,15 @@ describe('sendAssignmentNotification', () => {
       })
     );
 
-    const visitor = createVisitor({ trackSuccess: false });
+    const visitor = createVisitor();
     const assignment = createAssignment();
 
     const errorLogger = vi.fn();
     visitor.setErrorLogger(errorLogger);
 
+    analytics.trackAssignment.mockImplementationOnce((_visitorId, _assignment, callback) => callback(false));
     await sendAssignmentNotification({ client, visitor, assignment });
+
     expect(errorLogger).toHaveBeenCalledTimes(2);
     expect(errorLogger).toHaveBeenCalledWith(
       'test_track persistAssignment error: Error: HTTP request failed with 500 status'
@@ -95,7 +102,7 @@ describe('sendAssignmentNotification', () => {
       })
     );
 
-    const visitor = createVisitor({ trackSuccess: true });
+    const visitor = createVisitor();
     const assignment = createAssignment();
 
     const errorLogger = vi.fn();

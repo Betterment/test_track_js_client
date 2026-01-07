@@ -200,15 +200,15 @@ export default class Visitor {
         return;
       }
 
-      // Potential bug here: This function returns a promise.
-      sendAssignmentNotification({
+      void sendAssignmentNotification({
         client: this.#client,
         visitor: this,
         assignment
       });
+
       assignment.setUnsynced(false);
     } catch (e) {
-      this.logError(`test_track notify error: ${e}`);
+      this.logError(`test_track notify error: ${String(e)}`);
     }
   }
 }

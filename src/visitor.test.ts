@@ -1,7 +1,7 @@
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
-import { calculateVariant } from './calculateVariant';
+import { calculateVariant, getAssignmentBucket } from './calculateVariant';
 import Visitor from './visitor';
 import { v4 as uuid } from 'uuid';
 import { http, HttpResponse } from 'msw';
@@ -15,6 +15,7 @@ vi.mock('./calculateVariant');
 vi.mock('./assignmentNotification');
 
 const mockCalculateVariant = vi.mocked(calculateVariant);
+const mockGetAssignmentBucket = vi.mocked(getAssignmentBucket);
 const mockSendAssignmentNotification = vi.mocked(sendAssignmentNotification);
 
 const client = createClient({ url: 'http://testtrack.dev' });
@@ -176,6 +177,7 @@ describe('Visitor', () => {
     }
 
     beforeEach(() => {
+      mockGetAssignmentBucket.mockReturnValue(50);
       mockCalculateVariant.mockReturnValue('red');
     });
 
@@ -198,8 +200,12 @@ describe('Visitor', () => {
         const visitor = createVisitor();
         varyWineSplit(visitor);
 
-        expect(mockCalculateVariant).toHaveBeenCalledWith({
+        expect(mockGetAssignmentBucket).toHaveBeenCalledWith({
           visitorId: 'EXISTING_VISITOR_ID',
+          splitName: 'wine'
+        });
+        expect(mockCalculateVariant).toHaveBeenCalledWith({
+          assignmentBucket: 50,
           splitRegistry,
           splitName: 'wine'
         });
@@ -343,9 +349,13 @@ describe('Visitor', () => {
         const offlineVisitor = createOfflineVisitor();
         varyJabbaSplit(offlineVisitor);
 
+        expect(mockGetAssignmentBucket).toHaveBeenCalledWith({
+          visitorId: 'offline_visitor_id',
+          splitName: 'jabba'
+        });
         expect(mockCalculateVariant).toHaveBeenCalledTimes(1);
         expect(mockCalculateVariant).toHaveBeenCalledWith({
-          visitorId: 'offline_visitor_id',
+          assignmentBucket: 50,
           splitRegistry: emptySplitRegistry,
           splitName: 'jabba'
         });

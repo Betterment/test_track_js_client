@@ -7,9 +7,9 @@ type GetAssignmentBucketOptions = {
 };
 
 type CalculateVariantOptions = {
+  assignmentBucket: number;
   splitRegistry: SplitRegistry;
   splitName: string;
-  visitorId: string;
 };
 
 export function getAssignmentBucket({ visitorId, splitName }: GetAssignmentBucketOptions): number {
@@ -18,7 +18,11 @@ export function getAssignmentBucket({ visitorId, splitName }: GetAssignmentBucke
   return hashFixnum % 100;
 }
 
-export function calculateVariant({ visitorId, splitRegistry, splitName }: CalculateVariantOptions): string | null {
+export function calculateVariant({
+  assignmentBucket,
+  splitRegistry,
+  splitName
+}: CalculateVariantOptions): string | null {
   if (!splitRegistry.isLoaded) {
     return null;
   }
@@ -29,7 +33,6 @@ export function calculateVariant({ visitorId, splitRegistry, splitName }: Calcul
   }
 
   let bucketCeiling = 0;
-  const assignmentBucket = getAssignmentBucket({ splitName, visitorId });
   const weighting = split.weighting;
   const sortedVariants = getSplitVariants(split).sort();
 

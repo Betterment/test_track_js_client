@@ -3,7 +3,7 @@ import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
 import { v4 as uuid } from 'uuid';
-import { calculateVariant } from './calculateVariant';
+import { calculateVariant, getAssignmentBucket } from './calculateVariant';
 import { vary, type Variants } from './vary';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { Client } from './client';
@@ -174,8 +174,9 @@ export default class Visitor {
   }
 
   _generateAssignmentFor(splitName: string, context: string): Assignment {
+    const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.getId() });
     const variant = calculateVariant({
-      visitorId: this.getId(),
+      assignmentBucket,
       splitRegistry: this.#splitRegistry,
       splitName
     });

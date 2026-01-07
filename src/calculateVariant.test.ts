@@ -54,30 +54,31 @@ describe('getAssignmentBucket()', () => {
 describe('calculateVariant()', () => {
   it('returns a variant based on visitor ID and split name', () => {
     const visitorId = '00000000-0000-0000-0000-000000000000';
+    const assignmentBucket = getAssignmentBucket({ visitorId, splitName: 'logoSize' });
 
-    const variant = calculateVariant({ visitorId, splitRegistry, splitName: 'logoSize' });
+    const variant = calculateVariant({ assignmentBucket, splitRegistry, splitName: 'logoSize' });
     expect(variant).toBe('miniscule');
   });
 
   it('returns null if there is no split registry', () => {
-    const visitorId = '00000000-0000-0000-0000-000000000000';
+    const assignmentBucket = 50;
 
-    expect(calculateVariant({ visitorId, splitRegistry: emptySplitRegistry, splitName: 'logoSize' })).toBeNull();
+    expect(calculateVariant({ assignmentBucket, splitRegistry: emptySplitRegistry, splitName: 'logoSize' })).toBeNull();
   });
 
   it('throws an error when given an unknown splitName', () => {
-    const visitorId = '00000000-0000-0000-0000-000000000000';
+    const assignmentBucket = 50;
 
-    expect(() => calculateVariant({ visitorId, splitRegistry, splitName: 'nonExistentSplit' })).toThrow(
+    expect(() => calculateVariant({ assignmentBucket, splitRegistry, splitName: 'nonExistentSplit' })).toThrow(
       'Unknown split: "nonExistentSplit"'
     );
   });
 
-  it('deterministically assigns the same visitor to the same variant', () => {
-    const visitorId = '00000000-0000-0000-0000-000000000000';
+  it('deterministically assigns the same bucket to the same variant', () => {
+    const assignmentBucket = 50;
 
-    const variant1 = calculateVariant({ visitorId, splitRegistry, splitName: 'logoSize' });
-    const variant2 = calculateVariant({ visitorId, splitRegistry, splitName: 'logoSize' });
+    const variant1 = calculateVariant({ assignmentBucket, splitRegistry, splitName: 'logoSize' });
+    const variant2 = calculateVariant({ assignmentBucket, splitRegistry, splitName: 'logoSize' });
 
     expect(variant1).toBe(variant2);
   });

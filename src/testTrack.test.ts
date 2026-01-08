@@ -27,9 +27,15 @@ const splitRegistry = createSplitRegistry([
   }
 ]);
 
+const storage = {
+  getVisitorId: vi.fn(),
+  setVisitorId: vi.fn()
+};
+
 function createTestTrack(assignments?: Assignment[]) {
   return new TestTrack({
     client,
+    storage,
     splitRegistry,
     visitor: {
       id: 'EXISTING_VISITOR_ID',
@@ -41,6 +47,7 @@ function createTestTrack(assignments?: Assignment[]) {
 function createOfflineTestTrack() {
   return new TestTrack({
     client,
+    storage,
     splitRegistry: emptySplitRegistry,
     visitor: { id: 'offline_visitor_id', assignments: [] },
     isOffline: true
@@ -565,6 +572,7 @@ describe('TestTrack', () => {
       const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: 'true', isUnsynced: true });
       const testTrack = new TestTrack({
         client,
+        storage,
         splitRegistry: emptySplitRegistry,
         visitor: { id: 'unsynced_visitor_id', assignments: [wineAssignment, blueButtonAssignment] }
       });

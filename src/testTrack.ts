@@ -8,6 +8,7 @@ import type { AnalyticsProvider } from './analyticsProvider';
 import type { Client } from './client';
 import type { SplitRegistry } from './splitRegistry';
 import type { Visitor } from './visitor';
+import type { StorageProvider } from './storageProvider';
 
 export type VaryOptions = {
   /** @deprecated Use the return value instead */
@@ -25,6 +26,7 @@ export type AbOptions = {
 
 type TestTrackOptions = {
   client: Client;
+  storage: StorageProvider;
   splitRegistry: SplitRegistry;
   visitor: Visitor;
   isOffline?: boolean;
@@ -36,6 +38,7 @@ type AssignmentRegistry = Readonly<{
 
 export default class TestTrack {
   readonly #client: Client;
+  readonly #storage: StorageProvider;
   readonly #splitRegistry: SplitRegistry;
 
   #visitorId: string;
@@ -45,8 +48,9 @@ export default class TestTrack {
 
   analytics: AnalyticsProvider = mixpanelAnalytics;
 
-  constructor({ client, splitRegistry, visitor, isOffline = false }: TestTrackOptions) {
+  constructor({ client, storage, splitRegistry, visitor, isOffline = false }: TestTrackOptions) {
     this.#client = client;
+    this.#storage = storage;
     this.#splitRegistry = splitRegistry;
     this.#isOffline = isOffline;
     this.#errorLogger = errorMessage => console.error(errorMessage);
@@ -125,6 +129,7 @@ export default class TestTrack {
 
     const otherTestTrack = new TestTrack({
       client: this.#client,
+      storage: this.#storage,
       splitRegistry: this.#splitRegistry,
       visitor: {
         id: data.visitor.id,

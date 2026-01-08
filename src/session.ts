@@ -43,7 +43,7 @@ export function createSession() {
         assignments: parseAssignments(config.assignments)
       });
 
-      const testTrack = new TestTrack({ client, splitRegistry, visitor, isOffline });
+      const testTrack = new TestTrack({ client, storage, splitRegistry, visitor, isOffline });
       if (options.analytics) testTrack.setAnalytics(options.analytics);
       if (options.errorLogger) testTrack.setErrorLogger(options.errorLogger);
       if (options.onVisitorLoaded) options.onVisitorLoaded(testTrack);

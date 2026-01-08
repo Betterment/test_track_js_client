@@ -2,7 +2,6 @@ import { getFalseVariant } from './abConfiguration';
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
-import { v4 as uuid } from 'uuid';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
 import { vary, type Variants } from './vary';
 import type { AnalyticsProvider } from './analyticsProvider';
@@ -31,38 +30,11 @@ type VisitorOptions = {
   ttOffline?: boolean;
 };
 
-type LoadVisitorOptions = {
-  client: Client;
-  splitRegistry: SplitRegistry;
-  id: string | undefined;
-  assignments: Assignment[] | null;
-};
-
 type AssignmentRegistry = Readonly<{
   [splitName: string]: Assignment;
 }>;
 
 export default class Visitor {
-  static async loadVisitor(options: LoadVisitorOptions): Promise<Visitor> {
-    const { id, client, splitRegistry } = options;
-
-    if (!id) {
-      return new Visitor({ client, splitRegistry, id: uuid(), assignments: [], ttOffline: false });
-    }
-
-    if (options.assignments) {
-      return new Visitor({ client, splitRegistry, id, assignments: options.assignments, ttOffline: false });
-    }
-
-    try {
-      const data = await client.getVisitor(id);
-      const assignments = data.assignments.map(Assignment.fromV1Assignment);
-      return new Visitor({ client, splitRegistry, id: data.id, assignments, ttOffline: false });
-    } catch {
-      return new Visitor({ client, splitRegistry, id, assignments: [], ttOffline: true });
-    }
-  }
-
   readonly #client: Client;
   readonly #splitRegistry: SplitRegistry;
 

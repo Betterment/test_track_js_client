@@ -1,5 +1,6 @@
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
 import Visitor, { type AbOptions, type VaryOptions } from './visitor';
+import { loadVisitor } from './loadVisitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { SplitRegistry, V1Hash } from './splitRegistry';
 import { createCookieStorage, type StorageProvider } from './storageProvider';
@@ -34,7 +35,7 @@ export function createSession() {
       const client = createClient({ url: config.url });
       const storage = createCookieStorage({ domain: config.cookieDomain, name: config.cookieName });
       const splitRegistry = parseSplitRegistry(config.splits);
-      const visitor = await Visitor.loadVisitor({
+      const visitor = await loadVisitor({
         client,
         splitRegistry,
         id: storage.getVisitorId(),

@@ -66,7 +66,7 @@ export class TestTrack {
     return this.#visitorId;
   }
 
-  /** @internal */
+  /** @deprecated No replacement */
   get _crx(): WebExtension {
     return createWebExtension({
       client: this.#client,

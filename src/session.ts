@@ -1,6 +1,6 @@
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
 import { TestTrack, type AbOptions, type VaryOptions } from './testTrack';
-import { type WebExtension } from './webExtension';
+import { connectToWebExtension, type WebExtension } from './webExtension';
 import { loadVisitor } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import { createCookieStorage } from './storageProvider';
@@ -36,6 +36,7 @@ export function createSession() {
       if (options.onVisitorLoaded) options.onVisitorLoaded(testTrack);
 
       testTrack.notifyUnsyncedAssignments();
+      connectToWebExtension(testTrack._crx);
 
       ready(testTrack);
       storage.setVisitorId(testTrack.visitorId);

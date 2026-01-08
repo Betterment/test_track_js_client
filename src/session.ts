@@ -2,9 +2,8 @@ import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
 import TestTrack, { type AbOptions, type CrxInfo, type VaryOptions } from './testTrack';
 import { loadVisitor } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
-import type { SplitRegistry } from './splitRegistry';
-import { createCookieStorage, type StorageProvider } from './storageProvider';
-import { createClient, type Client } from './client';
+import { createCookieStorage } from './storageProvider';
+import { createClient } from './client';
 
 type SessionOptions = {
   analytics?: AnalyticsProvider;
@@ -13,16 +12,9 @@ type SessionOptions = {
   onVisitorLoaded?: (visitor: TestTrack) => void;
 };
 
-type SessionContext = {
-  client: Client;
-  storage: StorageProvider;
-  testTrack: TestTrack;
-  splitRegistry: SplitRegistry;
-};
-
 export function createSession() {
-  let resolveContext: (context: SessionContext) => void;
-  const sessionContext = new Promise<SessionContext>(resolve => (resolveContext = resolve));
+  let ready: (testText: TestTrack) => void;
+  const initialization = new Promise<TestTrack>(resolve => (ready = resolve));
 
   return {
     async initialize(options: SessionOptions): Promise<TestTrack> {
@@ -44,40 +36,40 @@ export function createSession() {
 
       testTrack.notifyUnsyncedAssignments();
 
-      resolveContext({ client, storage, testTrack: testTrack, splitRegistry });
+      ready(testTrack);
       storage.setVisitorId(testTrack.getId());
 
       return testTrack;
     },
 
     async vary(splitName: string, options: VaryOptions): Promise<void> {
-      const { testTrack } = await sessionContext;
+      const testTrack = await initialization;
       testTrack.vary(splitName, options);
     },
 
     async ab(splitName: string, options: AbOptions): Promise<void> {
-      const { testTrack } = await sessionContext;
+      const testTrack = await initialization;
       testTrack.ab(splitName, options);
     },
 
     async logIn(identifierType: string, value: number): Promise<void> {
-      const { testTrack } = await sessionContext;
+      const testTrack = await initialization;
       await testTrack.logIn(identifierType, value);
     },
 
     async signUp(identifierType: string, value: number): Promise<void> {
-      const { testTrack } = await sessionContext;
+      const testTrack = await initialization;
       await testTrack.signUp(identifierType, value);
     },
 
     _crx: {
       async loadInfo(): Promise<CrxInfo> {
-        const { testTrack } = await sessionContext;
+        const testTrack = await initialization;
         return testTrack._crx.loadInfo();
       },
 
       async persistAssignment(splitName: string, variant: string, username: string, password: string): Promise<void> {
-        const { testTrack } = await sessionContext;
+        const testTrack = await initialization;
         return testTrack._crx.persistAssignment(splitName, variant, username, password);
       }
     }

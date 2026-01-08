@@ -1,13 +1,13 @@
 import { createSession } from './session';
 export type { AnalyticsProvider } from './analyticsProvider';
 
-const TestTrack = createSession();
+const session = createSession();
 
 const notifyListener = () => {
   window.dispatchEvent(
     new CustomEvent('tt:lib:loaded', {
       detail: {
-        TestTrack: TestTrack
+        TestTrack: session
       }
     })
   );
@@ -38,4 +38,5 @@ try {
   // ignore
 }
 
-export default TestTrack;
+// eslint-disable-next-line @typescript-eslint/unbound-method
+export const { initialize, vary, ab, logIn, signUp, _crx } = session;

@@ -1,7 +1,7 @@
-import TestTrack from './index';
+import { initialize } from './index';
 
 describe('TestTrack', () => {
-  it('should be an object', () => {
-    expect(typeof TestTrack).toBe('object');
+  it('should export initialize function', () => {
+    expect(typeof initialize).toBe('function');
   });
 });

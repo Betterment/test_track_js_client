@@ -78,7 +78,7 @@ export default class TestTrack {
 
   /** @deprecated Use `visitorId` */
   getId(): string {
-    return this.#visitorId;
+    return this.visitorId;
   }
 
   /** @deprecated No replacement */

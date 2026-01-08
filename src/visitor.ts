@@ -10,13 +10,15 @@ import type { Client } from './client';
 import type { SplitRegistry } from './splitRegistry';
 
 export type VaryOptions = {
-  variants: Variants;
+  /** @deprecated Use the return value instead */
+  variants?: Variants;
   context: string;
   defaultVariant: boolean | string;
 };
 
 export type AbOptions = {
-  callback: (assignment: boolean) => void;
+  /** @deprecated Use the return value instead */
+  callback?: (assignment: boolean) => void;
   context: string;
   trueVariant?: string;
 };
@@ -89,12 +91,12 @@ export default class Visitor {
     return this.#assignments;
   }
 
-  vary(splitName: string, options: VaryOptions): void {
+  vary(splitName: string, options: VaryOptions): string {
     const defaultVariant = options.defaultVariant.toString();
     const { variants, context } = options;
 
     const assignment = this.#getAssignmentFor(splitName, context);
-    const { isDefaulted } = vary({
+    const { isDefaulted, variant } = vary({
       assignment,
       defaultVariant,
       variants,
@@ -109,9 +111,10 @@ export default class Visitor {
     }
 
     this.notifyUnsyncedAssignments();
+    return variant;
   }
 
-  ab(splitName: string, options: AbOptions): void {
+  ab(splitName: string, options: AbOptions): boolean {
     const trueVariant = options.trueVariant ?? 'true';
     const falseVariant = getFalseVariant({
       splitName,
@@ -120,14 +123,16 @@ export default class Visitor {
       logError: message => this.logError(message)
     });
 
-    this.vary(splitName, {
+    const variant = this.vary(splitName, {
       context: options.context,
       defaultVariant: falseVariant,
       variants: {
-        [trueVariant]: () => options.callback(true),
-        [falseVariant]: () => options.callback(false)
+        [trueVariant]: () => options.callback?.(true),
+        [falseVariant]: () => options.callback?.(false)
       }
     });
+
+    return variant === trueVariant;
   }
 
   setErrorLogger(errorLogger: (errorMessage: string) => void): void {

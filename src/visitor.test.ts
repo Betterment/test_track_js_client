@@ -390,18 +390,17 @@ describe('Visitor', () => {
       it('chooses the correct handler when given a true boolean', () => {
         mockCalculateVariant.mockReturnValue('true');
         const visitor = createVisitor();
+        expect(visitor.vary('blue_button', { context: 'spec', defaultVariant: true })).toEqual('true');
+
         const trueHandler = vi.fn();
         const falseHandler = vi.fn();
-
-        visitor.vary('blue_button', {
+        const result = visitor.vary('blue_button', {
           context: 'spec',
-          variants: {
-            true: trueHandler,
-            false: falseHandler
-          },
+          variants: { true: trueHandler, false: falseHandler },
           defaultVariant: false
         });
 
+        expect(result).toBe('true');
         expect(trueHandler).toHaveBeenCalledTimes(1);
         expect(falseHandler).not.toHaveBeenCalled();
       });
@@ -412,7 +411,7 @@ describe('Visitor', () => {
         const trueHandler = vi.fn();
         const falseHandler = vi.fn();
 
-        visitor.vary('blue_button', {
+        const result = visitor.vary('blue_button', {
           context: 'spec',
           variants: {
             true: trueHandler,
@@ -421,6 +420,7 @@ describe('Visitor', () => {
           defaultVariant: false
         });
 
+        expect(result).toBe('false');
         expect(falseHandler).toHaveBeenCalledTimes(1);
         expect(trueHandler).not.toHaveBeenCalled();
       });
@@ -430,16 +430,13 @@ describe('Visitor', () => {
   describe('#ab()', () => {
     it('leverages vary to configure the split', () => {
       const visitor = createVisitor();
-      const handler = vi.fn();
+      expect(visitor.ab('jabba', { context: 'spec', trueVariant: 'puppet' })).toBe(true);
 
-      visitor.ab('jabba', {
-        context: 'spec',
-        trueVariant: 'puppet',
-        callback: handler
-      });
-
-      expect(handler).toHaveBeenCalledTimes(1);
-      expect(handler).toHaveBeenCalledWith(true);
+      const callback = vi.fn();
+      const result = visitor.ab('jabba', { context: 'spec', trueVariant: 'puppet', callback: callback });
+      expect(result).toBe(true);
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(true);
     });
 
     describe('with an explicit trueVariant', () => {
@@ -453,12 +450,13 @@ describe('Visitor', () => {
         ]);
 
         const callback = vi.fn();
-        visitor.ab('jabba', {
+        const result = visitor.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
           callback
         });
 
+        expect(result).toBe(true);
         expect(callback).toHaveBeenCalledWith(true);
       });
 
@@ -472,12 +470,13 @@ describe('Visitor', () => {
         ]);
 
         const callback = vi.fn();
-        visitor.ab('jabba', {
+        const result = visitor.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
           callback
         });
 
+        expect(result).toBe(false);
         expect(callback).toHaveBeenCalledWith(false);
       });
     });
@@ -493,8 +492,9 @@ describe('Visitor', () => {
         ]);
 
         const callback = vi.fn();
-        visitor.ab('blue_button', { context: 'spec', callback });
+        const result = visitor.ab('blue_button', { context: 'spec', callback });
 
+        expect(result).toBe(true);
         expect(callback).toHaveBeenCalledWith(true);
       });
 
@@ -508,7 +508,9 @@ describe('Visitor', () => {
         ]);
 
         const callback = vi.fn();
-        visitor.ab('blue_button', { context: 'spec', callback });
+        const result = visitor.ab('blue_button', { context: 'spec', callback });
+
+        expect(result).toBe(false);
         expect(callback).toHaveBeenCalledWith(false);
       });
 
@@ -516,7 +518,9 @@ describe('Visitor', () => {
         const visitor = createVisitor();
         const callback = vi.fn();
 
-        visitor.ab('jabba', { context: 'spec', callback });
+        const result = visitor.ab('jabba', { context: 'spec', callback });
+
+        expect(result).toBe(false);
         expect(callback).toHaveBeenCalledWith(false);
       });
     });

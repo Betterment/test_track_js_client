@@ -9,13 +9,15 @@ export type Variants = {
 
 type Options = {
   assignment: Assignment;
-  variants: Variants;
+  variants?: Variants;
   defaultVariant: string;
   splitRegistry: SplitRegistry;
   logError: (message: string) => void;
 };
 
 function validateVariants({ variants, splitRegistry, assignment, logError }: Options): void {
+  if (!variants) return;
+
   const configuredVariants = Object.keys(variants);
   if (configuredVariants.length < 2) {
     throw new Error('must provide at least two variants');
@@ -37,21 +39,21 @@ function validateVariants({ variants, splitRegistry, assignment, logError }: Opt
   }
 }
 
-export function vary(options: Options): { isDefaulted: boolean } {
+export function vary(options: Options): { isDefaulted: boolean; variant: string } {
   validateVariants(options);
 
   const { assignment, variants, defaultVariant } = options;
   const assignedVariant = assignment.getVariant();
 
-  if (!variants[defaultVariant]) {
+  if (variants && !variants[defaultVariant]) {
     throw new Error(`defaultVariant: ${defaultVariant} must be represented in variants object`);
   }
 
-  if (assignedVariant && variants[assignedVariant]) {
-    variants[assignedVariant]();
-    return { isDefaulted: false };
+  if (assignedVariant && (!variants || variants[assignedVariant])) {
+    variants?.[assignedVariant]?.();
+    return { isDefaulted: false, variant: assignedVariant };
   } else {
-    variants[defaultVariant]();
-    return { isDefaulted: true };
+    variants?.[defaultVariant]?.();
+    return { isDefaulted: true, variant: defaultVariant };
   }
 }

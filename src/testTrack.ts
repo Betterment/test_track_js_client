@@ -25,7 +25,7 @@ export type AbOptions = {
   trueVariant?: string;
 };
 
-type TestTrackOptions = {
+type Options = {
   client: Client;
   storage: StorageProvider;
   splitRegistry: SplitRegistry;
@@ -50,7 +50,7 @@ export default class TestTrack {
   /** @deprecated No replacement */
   analytics: AnalyticsProvider = mixpanelAnalytics;
 
-  constructor({ client, storage, splitRegistry, visitor, isOffline = false }: TestTrackOptions) {
+  constructor({ client, storage, splitRegistry, visitor, isOffline = false }: Options) {
     this.#client = client;
     this.#storage = storage;
     this.#splitRegistry = splitRegistry;

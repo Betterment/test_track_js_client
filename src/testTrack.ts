@@ -112,14 +112,19 @@ export default class TestTrack {
     return variant === trueVariant;
   }
 
-  setErrorLogger(errorLogger: (errorMessage: string) => void): void {
-    this.#errorLogger = errorLogger;
+  async logIn(identifierType: string, value: number): Promise<void> {
+    await this.linkIdentifier(identifierType, value);
+    this.#storage.setVisitorId(this.getId());
+    this.analytics.identify(this.getId());
   }
 
-  logError(errorMessage: string): void {
-    this.#errorLogger.call(null, errorMessage); // call with null context to ensure we don't leak the visitor object to the outside world
+  async signUp(identifierType: string, value: number): Promise<void> {
+    await this.linkIdentifier(identifierType, value);
+    this.#storage.setVisitorId(this.getId());
+    this.analytics.alias(this.getId());
   }
 
+  /** @deprecated Use `logIn` or `signUp` */
   async linkIdentifier(identifierType: string, value: number): Promise<void> {
     const data = await this.#client.postIdentifier({
       visitor_id: this.getId(),
@@ -140,6 +145,14 @@ export default class TestTrack {
     this.#visitorId = otherTestTrack.getId();
     this.#assignments = { ...this.#assignments, ...otherTestTrack.getAssignmentRegistry() };
     this.notifyUnsyncedAssignments();
+  }
+
+  setErrorLogger(errorLogger: (errorMessage: string) => void): void {
+    this.#errorLogger = errorLogger;
+  }
+
+  logError(errorMessage: string): void {
+    this.#errorLogger.call(null, errorMessage); // call with null context to ensure we don't leak the visitor object to the outside world
   }
 
   setAnalytics(analytics: AnalyticsProvider): void {

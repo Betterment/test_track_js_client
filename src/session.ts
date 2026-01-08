@@ -67,17 +67,13 @@ export function createSession() {
     },
 
     async logIn(identifierType: string, value: number): Promise<void> {
-      const { testTrack, storage } = await sessionContext;
-      await testTrack.linkIdentifier(identifierType, value);
-      storage.setVisitorId(testTrack.getId());
-      testTrack.analytics.identify(testTrack.getId());
+      const { testTrack } = await sessionContext;
+      await testTrack.logIn(identifierType, value);
     },
 
     async signUp(identifierType: string, value: number): Promise<void> {
-      const { testTrack, storage } = await sessionContext;
-      await testTrack.linkIdentifier(identifierType, value);
-      storage.setVisitorId(testTrack.getId());
-      testTrack.analytics.alias(testTrack.getId());
+      const { testTrack } = await sessionContext;
+      await testTrack.signUp(identifierType, value);
     },
 
     _crx: {

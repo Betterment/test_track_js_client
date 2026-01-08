@@ -1,5 +1,6 @@
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
-import TestTrack, { type AbOptions, type CrxInfo, type VaryOptions } from './testTrack';
+import TestTrack, { type AbOptions, type VaryOptions } from './testTrack';
+import { type WebExtension } from './webExtension';
 import { loadVisitor } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import { createCookieStorage } from './storageProvider';
@@ -37,7 +38,7 @@ export function createSession() {
       testTrack.notifyUnsyncedAssignments();
 
       ready(testTrack);
-      storage.setVisitorId(testTrack.getId());
+      storage.setVisitorId(testTrack.visitorId);
 
       return testTrack;
     },
@@ -68,16 +69,16 @@ export function createSession() {
 
     /** @deprecated `initialize()` returns `TestTrack` */
     _crx: {
-      async loadInfo(): Promise<CrxInfo> {
+      async loadInfo() {
         const testTrack = await initialization;
         return testTrack._crx.loadInfo();
       },
 
-      async persistAssignment(splitName: string, variant: string, username: string, password: string): Promise<void> {
+      async persistAssignment(splitName, variant, username, password) {
         const testTrack = await initialization;
         return testTrack._crx.persistAssignment(splitName, variant, username, password);
       }
-    }
+    } satisfies WebExtension
   };
 }
 

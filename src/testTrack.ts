@@ -4,9 +4,10 @@ import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
 import { vary, type Variants } from './vary';
+import { createWebExtension, type WebExtension } from './webExtension';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { Client } from './client';
-import type { SplitRegistry, V1Hash } from './splitRegistry';
+import type { SplitRegistry } from './splitRegistry';
 import type { Visitor } from './visitor';
 import type { StorageProvider } from './storageProvider';
 
@@ -22,12 +23,6 @@ export type AbOptions = {
   callback?: (assignment: boolean) => void;
   context: string;
   trueVariant?: string;
-};
-
-export type CrxInfo = {
-  visitorId: string;
-  splitRegistry: V1Hash;
-  assignmentRegistry: Record<string, string | null>;
 };
 
 type TestTrackOptions = {
@@ -71,11 +66,14 @@ export default class TestTrack {
     return this.#visitorId;
   }
 
-  get _crx() {
-    return {
-      loadInfo: this.#loadChromeExtensionInfo.bind(this),
-      persistAssignment: this.#persistAssignmentOverride.bind(this)
-    };
+  get _crx(): WebExtension {
+    return createWebExtension({
+      client: this.#client,
+      visitorId: this.#visitorId,
+      splitRegistry: this.#splitRegistry,
+      assignments: Object.values(this.#assignments),
+      logError: message => this.logError(message)
+    });
   }
 
   /** @deprecated Use `visitorId` */
@@ -234,35 +232,5 @@ export default class TestTrack {
     } catch (e) {
       this.logError(`test_track notify error: ${String(e)}`);
     }
-  }
-
-  #loadChromeExtensionInfo(): Promise<CrxInfo> {
-    return Promise.resolve({
-      visitorId: this.visitorId,
-      splitRegistry: this.#splitRegistry.asV1Hash(),
-      assignmentRegistry: Object.fromEntries(
-        Object.entries(this.#assignments).map(([splitName, assignment]) => [splitName, assignment.getVariant()])
-      )
-    });
-  }
-
-  async #persistAssignmentOverride(
-    splitName: string,
-    variant: string,
-    username: string,
-    password: string
-  ): Promise<void> {
-    await this.#client
-      .postAssignmentOverride({
-        visitor_id: this.visitorId,
-        split_name: splitName,
-        variant,
-        context: 'chrome_extension',
-        mixpanel_result: 'success',
-        auth: { username, password }
-      })
-      .catch(error => {
-        this.logError(`test_track persistAssignment error: ${error}`);
-      });
   }
 }

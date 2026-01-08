@@ -52,15 +52,17 @@ describe('loadVisitor()', () => {
     // @ts-expect-error `uuid` has overloads
     vi.mocked(uuid).mockReturnValue('generated_uuid');
 
-    const visitor = await loadVisitor({
+    const result = await loadVisitor({
       client,
       splitRegistry,
       id: undefined,
       assignments: null
     });
     expect(requests.length).toBe(0);
-    expect(visitor.getId()).toEqual('generated_uuid');
-    expect(visitor.getAssignmentRegistry()).toEqual({});
+    expect(result).toEqual({
+      visitor: { id: 'generated_uuid', assignments: [] },
+      isOffline: false
+    });
   });
 
   it('does not hit the server when passed a visitorId and there are baked assignments', async () => {
@@ -76,34 +78,43 @@ describe('loadVisitor()', () => {
       isUnsynced: false
     });
 
-    const visitor = await loadVisitor({
+    const result = await loadVisitor({
       client,
       splitRegistry,
       id: 'baked_visitor_id',
       assignments: [jabbaAssignment, wineAssignment]
     });
+
+    expect(result).toEqual({
+      visitor: { id: 'baked_visitor_id', assignments: [jabbaAssignment, wineAssignment] },
+      isOffline: false
+    });
+
     expect(requests.length).toBe(0);
-    expect(visitor.getId()).toEqual('baked_visitor_id');
-    expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
   });
 
   it('loads a visitor from the server for an existing visitor if there are no baked assignments', async () => {
-    const visitor = await loadVisitor({
-      client,
-      splitRegistry,
-      id: 'puppeteer_visitor_id',
-      assignments: null
-    });
-    expect(requests.length).toBe(1);
-    expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id');
     const jabbaAssignment = new Assignment({
       splitName: 'jabba',
       variant: 'puppet',
       context: 'mos_eisley',
       isUnsynced: false
     });
-    expect(visitor.getId()).toBe('puppeteer_visitor_id');
-    expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment });
+
+    const result = await loadVisitor({
+      client,
+      splitRegistry,
+      id: 'puppeteer_visitor_id',
+      assignments: null
+    });
+
+    expect(result).toEqual({
+      visitor: { id: 'puppeteer_visitor_id', assignments: [jabbaAssignment] },
+      isOffline: false
+    });
+
+    expect(requests.length).toBe(1);
+    expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id');
   });
 
   it('builds a visitor in offline mode if the request fails', async () => {
@@ -113,15 +124,19 @@ describe('loadVisitor()', () => {
       })
     );
 
-    const visitor = await loadVisitor({
+    const result = await loadVisitor({
       client,
       splitRegistry,
       id: 'failed_visitor_id',
       assignments: null
     });
+
+    expect(result).toEqual({
+      visitor: { id: 'failed_visitor_id', assignments: [] },
+      isOffline: true
+    });
+
     expect(requests.length).toBe(1);
     expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/visitors/failed_visitor_id');
-    expect(visitor.getId()).toEqual('failed_visitor_id');
-    expect(visitor.getAssignmentRegistry()).toEqual({});
   });
 });

@@ -7,6 +7,7 @@ import { vary, type Variants } from './vary';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { Client } from './client';
 import type { SplitRegistry } from './splitRegistry';
+import type { Visitor } from './visitor';
 
 export type VaryOptions = {
   /** @deprecated Use the return value instead */
@@ -21,11 +22,6 @@ export type AbOptions = {
   context: string;
   trueVariant?: string;
 };
-
-export type Visitor = Readonly<{
-  id: string;
-  assignments: Assignment[];
-}>;
 
 type TestTrackOptions = {
   client: Client;

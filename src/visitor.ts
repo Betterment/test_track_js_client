@@ -1,5 +1,4 @@
 import { v4 as uuid } from 'uuid';
-import TestTrack from './testTrack';
 import Assignment from './assignment';
 import type { Client } from './client';
 import type { SplitRegistry } from './splitRegistry';
@@ -11,27 +10,32 @@ type LoadVisitorOptions = {
   assignments: Assignment[] | null;
 };
 
-export async function loadVisitor(options: LoadVisitorOptions): Promise<TestTrack> {
-  const { id, client, splitRegistry } = options;
+export type Visitor = Readonly<{
+  id: string;
+  assignments: Assignment[];
+}>;
+
+export type LoadedVisitor = Readonly<{
+  visitor: Visitor;
+  isOffline: boolean;
+}>;
+
+export async function loadVisitor(options: LoadVisitorOptions): Promise<LoadedVisitor> {
+  const { id, client } = options;
 
   if (!id) {
-    return new TestTrack({ client, splitRegistry, visitor: { id: uuid(), assignments: [] }, ttOffline: false });
+    return { visitor: { id: uuid(), assignments: [] }, isOffline: false };
   }
 
   if (options.assignments) {
-    return new TestTrack({
-      client,
-      splitRegistry,
-      visitor: { id, assignments: options.assignments },
-      ttOffline: false
-    });
+    return { visitor: { id, assignments: options.assignments }, isOffline: false };
   }
 
   try {
     const data = await client.getVisitor(id);
     const assignments = data.assignments.map(Assignment.fromV1Assignment);
-    return new TestTrack({ client, splitRegistry, visitor: { id: data.id, assignments }, ttOffline: false });
+    return { visitor: { id: data.id, assignments }, isOffline: false };
   } catch {
-    return new TestTrack({ client, splitRegistry, visitor: { id, assignments: [] }, ttOffline: true });
+    return { visitor: { id, assignments: [] }, isOffline: true };
   }
 }

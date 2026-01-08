@@ -106,9 +106,9 @@ const testTrack = await initialize({
   analytics: {
     trackAssignment: function (visitorId, assignment, callback) {
       var props = {
-        SplitName: assignment.getSplitName(),
-        SplitVariant: assignment.getVariant(),
-        SplitContext: assignment.getContext()
+        SplitName: assignment.splitName,
+        SplitVariant: assignment.variant,
+        SplitContext: assignment.context
       };
 
       remoteAnalyticsService.track('SplitAssigned', props, callback);

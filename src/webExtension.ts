@@ -30,7 +30,7 @@ export function createWebExtension(options: Options): WebExtension {
         visitorId,
         splitRegistry: splitRegistry.asV1Hash(),
         assignmentRegistry: Object.fromEntries(
-          assignments.map(assignment => [assignment.getSplitName(), assignment.getVariant()])
+          assignments.map(assignment => [assignment.splitName, assignment.variant])
         )
       });
     },

@@ -57,9 +57,7 @@ export class TestTrack {
     this.#isOffline = isOffline;
     this.#errorLogger = errorMessage => console.error(errorMessage);
     this.#visitorId = visitor.id;
-    this.#assignments = Object.fromEntries(
-      visitor.assignments.map(assignment => [assignment.getSplitName(), assignment])
-    );
+    this.#assignments = Object.fromEntries(visitor.assignments.map(assignment => [assignment.splitName, assignment]));
   }
 
   get visitorId(): string {

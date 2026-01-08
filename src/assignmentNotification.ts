@@ -14,8 +14,8 @@ async function persistAssignment(options: Options, trackResult?: 'success' | 'fa
   await options.client
     .postAssignmentEvent({
       visitor_id: options.visitorId,
-      split_name: options.assignment.getSplitName(),
-      context: options.assignment.getContext(),
+      split_name: options.assignment.splitName,
+      context: options.assignment.context,
       mixpanel_result: trackResult
     })
     .catch(error => {

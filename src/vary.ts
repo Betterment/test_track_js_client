@@ -23,7 +23,7 @@ function validateVariants({ variants, splitRegistry, assignment, logError }: Opt
     throw new Error('must provide at least two variants');
   }
 
-  const split = splitRegistry.getSplit(assignment.getSplitName());
+  const split = splitRegistry.getSplit(assignment.splitName);
   if (!split) return;
 
   const splitVariants = getSplitVariants(split);

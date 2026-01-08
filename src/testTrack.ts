@@ -6,7 +6,7 @@ import { calculateVariant, getAssignmentBucket } from './calculateVariant';
 import { vary, type Variants } from './vary';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { Client } from './client';
-import type { SplitRegistry } from './splitRegistry';
+import type { SplitRegistry, V1Hash } from './splitRegistry';
 import type { Visitor } from './visitor';
 import type { StorageProvider } from './storageProvider';
 
@@ -22,6 +22,12 @@ export type AbOptions = {
   callback?: (assignment: boolean) => void;
   context: string;
   trueVariant?: string;
+};
+
+export type CrxInfo = {
+  visitorId: string;
+  splitRegistry: V1Hash;
+  assignmentRegistry: Record<string, string | null>;
 };
 
 type TestTrackOptions = {
@@ -58,6 +64,13 @@ export default class TestTrack {
     this.#assignments = Object.fromEntries(
       visitor.assignments.map(assignment => [assignment.getSplitName(), assignment])
     );
+  }
+
+  get _crx() {
+    return {
+      loadInfo: this.#loadChromeExtensionInfo.bind(this),
+      persistAssignment: this.#persistAssignmentOverride.bind(this)
+    };
   }
 
   getId(): string {
@@ -210,5 +223,38 @@ export default class TestTrack {
     } catch (e) {
       this.logError(`test_track notify error: ${String(e)}`);
     }
+  }
+
+  #loadChromeExtensionInfo(): Promise<CrxInfo> {
+    return Promise.resolve({
+      visitorId: this.getId(),
+      splitRegistry: this.#splitRegistry.asV1Hash(),
+      assignmentRegistry: Object.fromEntries(
+        Object.entries(this.getAssignmentRegistry()).map(([splitName, assignment]) => [
+          splitName,
+          assignment.getVariant()
+        ])
+      )
+    });
+  }
+
+  async #persistAssignmentOverride(
+    splitName: string,
+    variant: string,
+    username: string,
+    password: string
+  ): Promise<void> {
+    await this.#client
+      .postAssignmentOverride({
+        visitor_id: this.getId(),
+        split_name: splitName,
+        variant,
+        context: 'chrome_extension',
+        mixpanel_result: 'success',
+        auth: { username, password }
+      })
+      .catch(error => {
+        this.logError(`test_track persistAssignment error: ${error}`);
+      });
   }
 }

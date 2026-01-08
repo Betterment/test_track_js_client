@@ -1,8 +1,8 @@
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
-import TestTrack, { type AbOptions, type VaryOptions } from './testTrack';
+import TestTrack, { type AbOptions, type CrxInfo, type VaryOptions } from './testTrack';
 import { loadVisitor } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
-import type { SplitRegistry, V1Hash } from './splitRegistry';
+import type { SplitRegistry } from './splitRegistry';
 import { createCookieStorage, type StorageProvider } from './storageProvider';
 import { createClient, type Client } from './client';
 
@@ -18,12 +18,6 @@ type SessionContext = {
   storage: StorageProvider;
   testTrack: TestTrack;
   splitRegistry: SplitRegistry;
-};
-
-type CrxInfo = {
-  visitorId: string;
-  splitRegistry: V1Hash;
-  assignmentRegistry: Record<string, string | null>;
 };
 
 export function createSession() {
@@ -78,34 +72,13 @@ export function createSession() {
 
     _crx: {
       async loadInfo(): Promise<CrxInfo> {
-        const { testTrack, splitRegistry } = await sessionContext;
-
-        return {
-          visitorId: testTrack.getId(),
-          splitRegistry: splitRegistry.asV1Hash(),
-          assignmentRegistry: Object.fromEntries(
-            Object.entries(testTrack.getAssignmentRegistry()).map(([splitName, assignment]) => [
-              splitName,
-              assignment.getVariant()
-            ])
-          )
-        };
+        const { testTrack } = await sessionContext;
+        return testTrack._crx.loadInfo();
       },
 
       async persistAssignment(splitName: string, variant: string, username: string, password: string): Promise<void> {
-        const { testTrack, client } = await sessionContext;
-        await client
-          .postAssignmentOverride({
-            visitor_id: testTrack.getId(),
-            split_name: splitName,
-            variant,
-            context: 'chrome_extension',
-            mixpanel_result: 'success',
-            auth: { username, password }
-          })
-          .catch(error => {
-            testTrack.logError(`test_track persistAssignment error: ${error}`);
-          });
+        const { testTrack } = await sessionContext;
+        return testTrack._crx.persistAssignment(splitName, variant, username, password);
       }
     }
   };

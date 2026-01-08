@@ -161,7 +161,7 @@ export class TestTrack {
       }
     });
 
-    this.#visitorId = otherTestTrack.getId();
+    this.#visitorId = otherTestTrack.visitorId;
     this.#assignments = { ...this.#assignments, ...otherTestTrack.getAssignmentRegistry() };
     this.notifyUnsyncedAssignments();
   }

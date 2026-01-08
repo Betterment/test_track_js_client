@@ -72,7 +72,7 @@
 
       // Initialize
       const testTrack = await TestTrack.initialize({});
-      const visitorId = testTrack.getId();
+      const visitorId = testTrack.visitorId;
       visitorIdEl.textContent = visitorId;
       await runSplits();
 

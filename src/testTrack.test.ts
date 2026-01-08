@@ -492,6 +492,7 @@ describe('TestTrack', () => {
     it('changes visitor id', async () => {
       const testTrack = createTestTrack();
       await testTrack.linkIdentifier('myappdb_user_id', 444);
+      expect(testTrack.visitorId).toBe('actual_visitor_id');
       expect(testTrack.getId()).toBe('actual_visitor_id');
     });
 

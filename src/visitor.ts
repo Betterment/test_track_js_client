@@ -93,7 +93,7 @@ export default class Visitor {
     const defaultVariant = options.defaultVariant.toString();
     const { variants, context } = options;
 
-    const assignment = this._getAssignmentFor(splitName, context);
+    const assignment = this.#getAssignmentFor(splitName, context);
     const { isDefaulted } = vary({
       assignment,
       defaultVariant,
@@ -162,18 +162,18 @@ export default class Visitor {
   }
 
   notifyUnsyncedAssignments(): void {
-    this._getUnsyncedAssignments().forEach(assignment => this._notify(assignment));
+    this._getUnsyncedAssignments().forEach(assignment => this.#sendAssignmentNotification(assignment));
   }
 
   _getUnsyncedAssignments(): Assignment[] {
     return Object.values(this.getAssignmentRegistry()).filter(assignment => assignment.isUnsynced());
   }
 
-  _getAssignmentFor(splitName: string, context: string): Assignment {
-    return this.getAssignmentRegistry()[splitName] || this._generateAssignmentFor(splitName, context);
+  #getAssignmentFor(splitName: string, context: string): Assignment {
+    return this.getAssignmentRegistry()[splitName] || this.#generateAssignmentFor(splitName, context);
   }
 
-  _generateAssignmentFor(splitName: string, context: string): Assignment {
+  #generateAssignmentFor(splitName: string, context: string): Assignment {
     const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.getId() });
     const variant = calculateVariant({
       assignmentBucket,
@@ -196,7 +196,7 @@ export default class Visitor {
     return assignment;
   }
 
-  _notify(assignment: Assignment): void {
+  #sendAssignmentNotification(assignment: Assignment): void {
     try {
       if (this.#ttOffline) {
         return;

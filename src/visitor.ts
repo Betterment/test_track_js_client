@@ -162,11 +162,9 @@ export default class Visitor {
   }
 
   notifyUnsyncedAssignments(): void {
-    this._getUnsyncedAssignments().forEach(assignment => this.#sendAssignmentNotification(assignment));
-  }
-
-  _getUnsyncedAssignments(): Assignment[] {
-    return Object.values(this.getAssignmentRegistry()).filter(assignment => assignment.isUnsynced());
+    Object.values(this.getAssignmentRegistry())
+      .filter(assignment => assignment.isUnsynced())
+      .forEach(assignment => this.#sendAssignmentNotification(assignment));
   }
 
   #getAssignmentFor(splitName: string, context: string): Assignment {

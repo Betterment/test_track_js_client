@@ -113,10 +113,6 @@ describe('Visitor', () => {
       expect(requests.length).toBe(0);
       expect(visitor.getId()).toEqual('baked_visitor_id');
       expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
-      expect(visitor._getUnsyncedAssignments()).toEqual([]);
-      expect(visitor.getId()).toEqual('baked_visitor_id');
-      expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment, wine: wineAssignment });
-      expect(visitor._getUnsyncedAssignments()).toEqual([]);
     });
 
     it('loads a visitor from the server for an existing visitor if there are no baked assignments', async () => {
@@ -136,7 +132,6 @@ describe('Visitor', () => {
       });
       expect(visitor.getId()).toBe('puppeteer_visitor_id');
       expect(visitor.getAssignmentRegistry()).toEqual({ jabba: jabbaAssignment });
-      expect(visitor._getUnsyncedAssignments()).toEqual([]);
     });
 
     it('builds a visitor in offline mode if the request fails', async () => {

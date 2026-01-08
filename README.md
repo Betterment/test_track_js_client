@@ -19,83 +19,70 @@ $ pnpm add test_track_js_client
 You can find the latest version of the test track JS client [here](https://github.com/Betterment/test_track_js_client/releases).
 
 ```javascript
-import TestTrack from 'test_track_js_client';
+import { initialize } from 'test_track_js_client';
+
+const testTrack = await initialize();
 ```
 
 ## Configuration
 
-Before using the client you must call `TestTrack.initialize()`. This method also takes some optional [configuration parameters](#advanced-configuration), if you fancy.
+Before using the client you must call `initialize()`. This method also takes some optional [configuration parameters](#advanced-configuration), if you fancy.
 
 ### API
 
 #### `.vary(split_name, options)`
 
-The `vary` method is used to perform a split. It takes 2 arguments.
+The `vary` method is used to perform a split. It takes 2 arguments and returns the assigned variant as a string.
 
 - `split_name` -- The first argument is the name of the split. This will be a snake_case string, e.g. `"homepage_redesign_q1_2015"`.
-- `options` -- The second argument is an object that contains the `context` of the assignment, a variant/callback configuration (`variants`), and a default variant (`defaultVariant`).
+- `options` -- The second argument is an object that contains the `context` of the assignment and a default variant (`defaultVariant`).
   - `context` -- is a string that the developer provides so that the test track server can record where an assignment was first created. If a call to `vary` is made in more than one place for a given split, you'll be able to see which codepath was hit first.
 
-  - `variants` -- The variant/callback configuration is an object whose keys are the variant names and whose values are function handlers for each of those variants.
+  - `defaultVariant` -- The default variant is used if the user is assigned to a variant that is not defined in the split. When this happens, Test Track will re-assign the user to the default variant. **You should not rely on this defaulting behavior, it is merely provided to ensure we don't break the customer experience.** You should instead make sure that all variants of the split are handled in your code and if variants are added to the split on the backend, update your code to reflect the new variants. Because this defaulting behavior re-assigns the user to the `defaultVariant`, no data will be recorded for the unhandled variant. This will impede our ability to collect meaningful data for the split.
 
-  - `defaultVariant` -- The default variant is used if the user is assigned to a variant that is not represented in the `variants` object. When this happens, Test Track will execute the handler of the default variant and re-assign the user to the default variant. **You should not rely on this defaulting behavior, it is merely provided to ensure we don't break the customer experience.** You should instead make sure that you represent all variants of the split in your `variants` and if variants are added to the split on the backend, update your code to reflect the new variants. Because this defaulting behavior re-assigns the user to the `defaultVariant`, no data will be recorded for the variant that is not represented. This will impede our ability to collect meaningful data for the split.
-
-Here is an example of a 4-way split where `'variant_4'` is the default variant. Let's say `'variant_5'` was added to this split on the backend but this code did not change to reflect that new variant. Any users that Test Track assigns to `'variant_5'` will be re-assigned to `'variant_4'`.
+Here is an example of a 3-way split where `'control'` is the default variant. Let's say `'variant_4'` was added to this split on the backend but this code did not change to handle that new variant. Any users that Test Track assigns to `'variant_4'` will be re-assigned to `'control'`.
 
 ```js
-TestTrack.vary('name_of_split', {
-  context: 'homepage',
-  variants: {
-    variant_1: function () {
-      // do variant 1 stuff
-    },
-    variant_2: function () {
-      // do variant 2 stuff
-    },
-    variant_3: function () {
-      // do variant 3 stuff
-    },
-    variant_4: function () {
-      // do variant 4 stuff
-    }
-  },
-  defaultVariant: 'variant_4' // default to variant_4 (this is required)
-});
+const variant = testTrack.vary('name_of_split', { context: 'homepage', defaultVariant: 'control' });
+
+switch (variant) {
+  case 'control':
+    // do control stuff
+    break;
+  case 'variant_1':
+    // do variant 1 stuff
+    break;
+  case 'variant_2':
+    // do variant 2 stuff
+    break;
+}
 ```
 
 #### `.ab(split_name, options)`
 
-The `ab` method is used exclusively for two-way splits and feature toggles. It takes 2 arguments.
+The `ab` method is used exclusively for two-way splits and feature toggles. It takes 2 arguments and returns a boolean.
 
 - `split_name` -- The first argument is the name of the split. This will be a snake_case string, e.g. `"homepage_chat_bubble"`.
-- `options` -- The second argument is an object that contains the `context`, an optional `trueVariant`, and a `callback` function.
+- `options` -- The second argument is an object that contains the `context` and an optional `trueVariant`.
   - `context` -- is a string that the developer provides so that the test track server can record where an assignment was first created. If a call to `vary` is made in more than one place for a given split, you'll be able to see which codepath was hit first.
   - `trueVariant` -- an optional parameter that specifies which variant is the "true" variant and the other variant will be used as the default. Without the true variant, `ab` will assume that the variants for the split are named `'true'` and `'false'`.
-  - `callback` -- a single function that will be called for all variants. If the `trueVariant` is assigned to the visitor then `true` will be passed to the `callback`.
 
   ```js
-  TestTrack.ab('name_of_split', {
-    context: 'homepage',
-    trueVariant: 'variant_name',
-    callback: function (hasVariantName) {
-      if (hasVariantName) {
-        // do something
-      } else {
-        // do something else
-      }
-    }
-  });
+  const hasVariantName = testTrack.ab('name_of_split', { context: 'homepage', trueVariant: 'variant_name' });
+
+  if (hasVariantName) {
+    // do something
+  } else {
+    // do something else
+  }
   ```
 
   ```js
-  TestTrack.ab('some_new_feature', {
-    context: 'homepage',
-    callback: function (hasFeature) {
-      if (hasFeature) {
-        // do something
-      }
-    }
-  });
+  const hasFeature = testTrack.ab('some_new_feature', { context: 'homepage' });
+
+  if (hasFeature) {
+    // do something
+  }
   ```
 
 #### `.logIn(identifier, value)`
@@ -106,17 +93,16 @@ The `logIn` method is used to ensure a consistent experience across devices. For
 - `value` -- The second argument is a primitive value, e.g. `12345`, `"abcd"`
 
 ```js
-TestTrack.logIn('myapp_user_id', 12345).then(function () {
-  // From this point on you have existing split assignments from a previous device.
-});
+await testTrack.logIn('myapp_user_id', 12345);
+// From this point on you have existing split assignments from a previous device.
 ```
 
 ## Advanced Configuration
 
-When you call `TestTrack.initialize()` you can optionally pass in an analytics object, an error logger, and a callback that will run after the test track visitor has loaded, but before any analytics events have fired. For example:
+When you call `initialize()` you can optionally pass in an analytics object and an error logger. For example:
 
 ```js
-TestTrack.initialize({
+const testTrack = await initialize({
   analytics: {
     trackAssignment: function (visitorId, assignment, callback) {
       var props = {
@@ -136,9 +122,6 @@ TestTrack.initialize({
   },
   errorLogger: function (message) {
     RemoteLoggingService.log(message); // logs remotely so that you can be alerted to any misconfigured splits
-  },
-  onVisitorLoaded: function (visitor) {
-    // callback that will run after the test track visitor has loaded, but before any analytics events have fired
   }
 });
 ```
@@ -156,8 +139,9 @@ The `test_track_js_client` package is distributed as an ES module. The package a
   );
 </script>
 <script src="/path/to/index.iife.js"></script>
-<script defer>
-  window.TestTrack.initialize();
+<script type="module">
+  const testTrack = await TestTrack.initialize();
+  // Use testTrack.vary(), testTrack.ab(), etc.
 </script>
 ```
 

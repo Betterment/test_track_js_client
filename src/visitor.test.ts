@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 import { createClient } from './client';
 import { createSplitRegistry } from './splitRegistry';
-import { loadVisitor } from './loadVisitor';
+import { loadVisitor } from './visitor';
 
 vi.mock('uuid');
 

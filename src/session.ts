@@ -1,6 +1,6 @@
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
 import TestTrack, { type AbOptions, type VaryOptions } from './testTrack';
-import { loadVisitor } from './loadVisitor';
+import { loadVisitor } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { SplitRegistry, V1Hash } from './splitRegistry';
 import { createCookieStorage, type StorageProvider } from './storageProvider';

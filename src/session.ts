@@ -9,6 +9,7 @@ import { createClient, type Client } from './client';
 type SessionOptions = {
   analytics?: AnalyticsProvider;
   errorLogger?: (errorMessage: string) => void;
+  /** @deprecated Await the result of `initialize` */
   onVisitorLoaded?: (visitor: TestTrack) => void;
 };
 

@@ -71,8 +71,8 @@
       }
 
       // Initialize
-      const visitor = await TestTrack.initialize({});
-      const visitorId = visitor.getId();
+      const testTrack = await TestTrack.initialize({});
+      const visitorId = testTrack.getId();
       visitorIdEl.textContent = visitorId;
       await runSplits();
 

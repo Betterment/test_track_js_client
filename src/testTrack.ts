@@ -123,7 +123,7 @@ export default class TestTrack {
       value: value.toString()
     });
 
-    const otherVisitor = new TestTrack({
+    const otherTestTrack = new TestTrack({
       client: this.#client,
       splitRegistry: this.#splitRegistry,
       visitor: {
@@ -132,8 +132,8 @@ export default class TestTrack {
       }
     });
 
-    this.#visitorId = otherVisitor.getId();
-    this.#assignments = { ...this.#assignments, ...otherVisitor.getAssignmentRegistry() };
+    this.#visitorId = otherTestTrack.getId();
+    this.#assignments = { ...this.#assignments, ...otherTestTrack.getAssignmentRegistry() };
     this.notifyUnsyncedAssignments();
   }
 

@@ -77,15 +77,15 @@ describe('createSession', () => {
         alias: vi.fn()
       };
 
-      const visitor = await createSession().initialize({ analytics });
-      expect(visitor.analytics).toBe(analytics);
+      const testTrack = await createSession().initialize({ analytics });
+      expect(testTrack.analytics).toBe(analytics);
     });
 
     it('sets the error logger', async () => {
       const errorLogger = vi.fn();
-      const visitor = await createSession().initialize({ errorLogger: errorLogger });
+      const testTrack = await createSession().initialize({ errorLogger: errorLogger });
 
-      visitor.logError('kaboom');
+      testTrack.logError('kaboom');
       expect(errorLogger).toHaveBeenCalledWith('kaboom');
     });
   });
@@ -119,8 +119,8 @@ describe('createSession', () => {
 
     it('calls analytics.identify with the resolved visitor id', async () => {
       const session = createSession();
-      const visitor = await session.initialize({});
-      const identifySpy = vi.spyOn(visitor.analytics, 'identify');
+      const testTrack = await session.initialize({});
+      const identifySpy = vi.spyOn(testTrack.analytics, 'identify');
 
       await session.logIn('myappdb_user_id', 444);
       expect(identifySpy).toHaveBeenCalledTimes(1);
@@ -157,8 +157,8 @@ describe('createSession', () => {
 
     it('calls analytics.alias with the resolved visitor id', async () => {
       const session = createSession();
-      const visitor = await session.initialize({});
-      const aliasSpy = vi.spyOn(visitor.analytics, 'alias');
+      const testTrack = await session.initialize({});
+      const aliasSpy = vi.spyOn(testTrack.analytics, 'alias');
 
       await session.signUp('myappdb_user_id', 444);
       expect(aliasSpy).toHaveBeenCalledTimes(1);

@@ -27,35 +27,38 @@ const splitRegistry = createSplitRegistry([
   }
 ]);
 
-function createVisitor(assignments?: Assignment[]) {
+function createTestTrack(assignments?: Assignment[]) {
   return new TestTrack({
     client,
     splitRegistry,
     visitor: {
       id: 'EXISTING_VISITOR_ID',
-      assignments: assignments ?? [
-        new Assignment({
-          splitName: 'jabba',
-          variant: 'puppet',
-          isUnsynced: false
-        })
-      ]
+      assignments: assignments ?? [new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: false })]
     }
+  });
+}
+
+function createOfflineTestTrack() {
+  return new TestTrack({
+    client,
+    splitRegistry: emptySplitRegistry,
+    visitor: { id: 'offline_visitor_id', assignments: [] },
+    isOffline: true
   });
 }
 
 describe('TestTrack', () => {
   describe('#vary()', () => {
-    function varyJabbaSplit(visitor: TestTrack) {
-      visitor.vary('jabba', {
+    function varyJabbaSplit(testTrack: TestTrack) {
+      testTrack.vary('jabba', {
         context: 'spec',
         variants: { puppet: vi.fn(), cgi: vi.fn() },
         defaultVariant: 'cgi'
       });
     }
 
-    function varyWineSplit(visitor: TestTrack) {
-      visitor.vary('wine', {
+    function varyWineSplit(testTrack: TestTrack) {
+      testTrack.vary('wine', {
         context: 'spec',
         variants: { red: vi.fn(), white: vi.fn() },
         defaultVariant: 'white'
@@ -68,9 +71,9 @@ describe('TestTrack', () => {
     });
 
     it('throws an error if the defaultVariant is not represented in the variants object', () => {
-      const visitor = createVisitor();
+      const testTrack = createTestTrack();
       expect(() => {
-        visitor.vary('wine', {
+        testTrack.vary('wine', {
           context: 'spec',
           variants: {
             white: () => {},
@@ -83,8 +86,8 @@ describe('TestTrack', () => {
 
     describe('New Assignment', () => {
       it('generates a new assignment via calculateVariant', () => {
-        const visitor = createVisitor();
-        varyWineSplit(visitor);
+        const testTrack = createTestTrack();
+        varyWineSplit(testTrack);
 
         expect(mockGetAssignmentBucket).toHaveBeenCalledWith({
           visitorId: 'EXISTING_VISITOR_ID',
@@ -98,10 +101,10 @@ describe('TestTrack', () => {
       });
 
       it('adds new assignments to the assignment registry', () => {
-        const visitor = createVisitor();
-        varyWineSplit(visitor);
+        const testTrack = createTestTrack();
+        varyWineSplit(testTrack);
 
-        expect(visitor.getAssignmentRegistry()).toEqual({
+        expect(testTrack.getAssignmentRegistry()).toEqual({
           jabba: new Assignment({
             splitName: 'jabba',
             variant: 'puppet',
@@ -117,13 +120,13 @@ describe('TestTrack', () => {
       });
 
       it('sends an AssignmentNotification', () => {
-        const visitor = createVisitor();
-        varyWineSplit(visitor);
+        const testTrack = createTestTrack();
+        varyWineSplit(testTrack);
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
           visitorId: 'EXISTING_VISITOR_ID',
-          analytics: visitor.analytics,
+          analytics: testTrack.analytics,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'red',
@@ -137,14 +140,14 @@ describe('TestTrack', () => {
 
       it('only sends one AssignmentNotification with the default if it is defaulted', () => {
         mockCalculateVariant.mockReturnValue('rose');
-        const visitor = createVisitor();
+        const testTrack = createTestTrack();
 
-        varyWineSplit(visitor);
+        varyWineSplit(testTrack);
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
           visitorId: 'EXISTING_VISITOR_ID',
-          analytics: visitor.analytics,
+          analytics: testTrack.analytics,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'white',
@@ -157,20 +160,20 @@ describe('TestTrack', () => {
       });
 
       it('logs an error if the AssignmentNotification throws an error', () => {
-        const visitor = createVisitor();
+        const testTrack = createTestTrack();
         const errorLogger = vi.fn();
 
-        visitor.setErrorLogger(errorLogger);
+        testTrack.setErrorLogger(errorLogger);
         mockSendAssignmentNotification.mockImplementationOnce(() => {
           throw new Error('something bad happened');
         });
 
-        varyWineSplit(visitor);
+        varyWineSplit(testTrack);
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
           visitorId: 'EXISTING_VISITOR_ID',
-          analytics: visitor.analytics,
+          analytics: testTrack.analytics,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'red',
@@ -186,23 +189,23 @@ describe('TestTrack', () => {
 
     describe('Existing Assignment', () => {
       it('returns an existing assignment wihout generating', () => {
-        const visitor = createVisitor();
-        varyJabbaSplit(visitor);
+        const testTrack = createTestTrack();
+        varyJabbaSplit(testTrack);
 
         expect(mockCalculateVariant).not.toHaveBeenCalled();
       });
 
       it('does not send an AssignmentNotification', () => {
-        const visitor = createVisitor();
-        varyJabbaSplit(visitor);
+        const testTrack = createTestTrack();
+        varyJabbaSplit(testTrack);
 
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
       });
 
       it('sends an AssignmentNotification with the default if it is defaulted', () => {
-        const visitor = createVisitor();
-        visitor.vary('jabba', {
+        const testTrack = createTestTrack();
+        testTrack.vary('jabba', {
           context: 'defaulted',
           variants: {
             furry_man: () => {},
@@ -215,7 +218,7 @@ describe('TestTrack', () => {
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
           visitorId: 'EXISTING_VISITOR_ID',
-          analytics: visitor.analytics,
+          analytics: testTrack.analytics,
           assignment: new Assignment({
             splitName: 'jabba',
             variant: 'cgi',
@@ -229,18 +232,9 @@ describe('TestTrack', () => {
     });
 
     describe('Offline TestTrack', () => {
-      function createOfflineVisitor() {
-        return new TestTrack({
-          client,
-          splitRegistry: emptySplitRegistry,
-          visitor: { id: 'offline_visitor_id', assignments: [] },
-          isOffline: true
-        });
-      }
-
       it('generates a new assignment via calculateVariant', () => {
-        const offlineVisitor = createOfflineVisitor();
-        varyJabbaSplit(offlineVisitor);
+        const testTrack = createOfflineTestTrack();
+        varyJabbaSplit(testTrack);
 
         expect(mockGetAssignmentBucket).toHaveBeenCalledWith({
           visitorId: 'offline_visitor_id',
@@ -255,8 +249,8 @@ describe('TestTrack', () => {
       });
 
       it('does not send an AssignmentNotification', () => {
-        const offlineVisitor = createOfflineVisitor();
-        varyWineSplit(offlineVisitor);
+        const testTrack = createOfflineTestTrack();
+        varyWineSplit(testTrack);
 
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
@@ -269,15 +263,15 @@ describe('TestTrack', () => {
       });
 
       it('adds the assignment to the assignment registry', () => {
-        const visitor = createVisitor();
-        varyWineSplit(visitor);
+        const testTrack = createTestTrack();
+        varyWineSplit(testTrack);
 
-        expect(Object.keys(visitor.getAssignmentRegistry())).toEqual(expect.arrayContaining(['jabba', 'wine']));
+        expect(Object.keys(testTrack.getAssignmentRegistry())).toEqual(expect.arrayContaining(['jabba', 'wine']));
       });
 
       it('does not send an AssignmentNotification', () => {
-        const visitor = createVisitor();
-        varyWineSplit(visitor);
+        const testTrack = createTestTrack();
+        varyWineSplit(testTrack);
 
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
@@ -287,12 +281,12 @@ describe('TestTrack', () => {
     describe('Boolean split', () => {
       it('chooses the correct handler when given a true boolean', () => {
         mockCalculateVariant.mockReturnValue('true');
-        const visitor = createVisitor();
-        expect(visitor.vary('blue_button', { context: 'spec', defaultVariant: true })).toEqual('true');
+        const testTrack = createTestTrack();
+        expect(testTrack.vary('blue_button', { context: 'spec', defaultVariant: true })).toEqual('true');
 
         const trueHandler = vi.fn();
         const falseHandler = vi.fn();
-        const result = visitor.vary('blue_button', {
+        const result = testTrack.vary('blue_button', {
           context: 'spec',
           variants: { true: trueHandler, false: falseHandler },
           defaultVariant: false
@@ -305,11 +299,11 @@ describe('TestTrack', () => {
 
       it('picks the correct handler when given a false boolean', () => {
         mockCalculateVariant.mockReturnValue('false');
-        const visitor = createVisitor();
+        const testTrack = createTestTrack();
         const trueHandler = vi.fn();
         const falseHandler = vi.fn();
 
-        const result = visitor.vary('blue_button', {
+        const result = testTrack.vary('blue_button', {
           context: 'spec',
           variants: {
             true: trueHandler,
@@ -327,11 +321,11 @@ describe('TestTrack', () => {
 
   describe('#ab()', () => {
     it('leverages vary to configure the split', () => {
-      const visitor = createVisitor();
-      expect(visitor.ab('jabba', { context: 'spec', trueVariant: 'puppet' })).toBe(true);
+      const testTrack = createTestTrack();
+      expect(testTrack.ab('jabba', { context: 'spec', trueVariant: 'puppet' })).toBe(true);
 
       const callback = vi.fn();
-      const result = visitor.ab('jabba', { context: 'spec', trueVariant: 'puppet', callback: callback });
+      const result = testTrack.ab('jabba', { context: 'spec', trueVariant: 'puppet', callback: callback });
       expect(result).toBe(true);
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(true);
@@ -339,7 +333,7 @@ describe('TestTrack', () => {
 
     describe('with an explicit trueVariant', () => {
       it('returns true when assigned to the trueVariant', () => {
-        const visitor = createVisitor([
+        const testTrack = createTestTrack([
           new Assignment({
             splitName: 'jabba',
             variant: 'puppet',
@@ -348,7 +342,7 @@ describe('TestTrack', () => {
         ]);
 
         const callback = vi.fn();
-        const result = visitor.ab('jabba', {
+        const result = testTrack.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
           callback
@@ -359,7 +353,7 @@ describe('TestTrack', () => {
       });
 
       it('returns false when not assigned to the trueVariant', () => {
-        const visitor = createVisitor([
+        const testTrack = createTestTrack([
           new Assignment({
             splitName: 'jabba',
             variant: 'cgi',
@@ -368,7 +362,7 @@ describe('TestTrack', () => {
         ]);
 
         const callback = vi.fn();
-        const result = visitor.ab('jabba', {
+        const result = testTrack.ab('jabba', {
           context: 'spec',
           trueVariant: 'puppet',
           callback
@@ -381,7 +375,7 @@ describe('TestTrack', () => {
 
     describe('with an implicit trueVariant', () => {
       it('returns true when variant is true', () => {
-        const visitor = createVisitor([
+        const testTrack = createTestTrack([
           new Assignment({
             splitName: 'blue_button',
             variant: 'true',
@@ -390,14 +384,14 @@ describe('TestTrack', () => {
         ]);
 
         const callback = vi.fn();
-        const result = visitor.ab('blue_button', { context: 'spec', callback });
+        const result = testTrack.ab('blue_button', { context: 'spec', callback });
 
         expect(result).toBe(true);
         expect(callback).toHaveBeenCalledWith(true);
       });
 
       it('returns false when variant is false', () => {
-        const visitor = createVisitor([
+        const testTrack = createTestTrack([
           new Assignment({
             splitName: 'blue_button',
             variant: 'false',
@@ -406,17 +400,17 @@ describe('TestTrack', () => {
         ]);
 
         const callback = vi.fn();
-        const result = visitor.ab('blue_button', { context: 'spec', callback });
+        const result = testTrack.ab('blue_button', { context: 'spec', callback });
 
         expect(result).toBe(false);
         expect(callback).toHaveBeenCalledWith(false);
       });
 
       it('returns false when split variants are not true and false', () => {
-        const visitor = createVisitor();
+        const testTrack = createTestTrack();
         const callback = vi.fn();
 
-        const result = visitor.ab('jabba', { context: 'spec', callback });
+        const result = testTrack.ab('jabba', { context: 'spec', callback });
 
         expect(result).toBe(false);
         expect(callback).toHaveBeenCalledWith(false);
@@ -452,8 +446,8 @@ describe('TestTrack', () => {
     });
 
     it('hits the test track server with the correct parameters', async () => {
-      const visitor = createVisitor();
-      await visitor.linkIdentifier('myappdb_user_id', 444);
+      const testTrack = createTestTrack();
+      await testTrack.linkIdentifier('myappdb_user_id', 444);
 
       expect(requests.length).toBe(1);
       expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/identifier');
@@ -473,10 +467,10 @@ describe('TestTrack', () => {
       const jabbaPuppetAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: true });
       const wineAssignment = new Assignment({ splitName: 'wine', variant: 'white', isUnsynced: true });
 
-      const visitor = createVisitor([jabbaPuppetAssignment, wineAssignment]);
+      const testTrack = createTestTrack([jabbaPuppetAssignment, wineAssignment]);
 
-      await visitor.linkIdentifier('myappdb_user_id', 444);
-      expect(visitor.getAssignmentRegistry()).toEqual({
+      await testTrack.linkIdentifier('myappdb_user_id', 444);
+      expect(testTrack.getAssignmentRegistry()).toEqual({
         jabba: jabbaCGIAssignment,
         wine: wineAssignment,
         blue_button: new Assignment({
@@ -489,14 +483,14 @@ describe('TestTrack', () => {
     });
 
     it('changes visitor id', async () => {
-      const visitor = createVisitor();
-      await visitor.linkIdentifier('myappdb_user_id', 444);
-      expect(visitor.getId()).toBe('actual_visitor_id');
+      const testTrack = createTestTrack();
+      await testTrack.linkIdentifier('myappdb_user_id', 444);
+      expect(testTrack.getId()).toBe('actual_visitor_id');
     });
 
     it('notifies any unsynced splits', async () => {
-      const visitor = createVisitor();
-      await visitor.linkIdentifier('myappdb_user_id', 444);
+      const testTrack = createTestTrack();
+      await testTrack.linkIdentifier('myappdb_user_id', 444);
       expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         client,
@@ -515,27 +509,27 @@ describe('TestTrack', () => {
 
   describe('#logError()', () => {
     it('calls the error logger with the error message', () => {
-      const visitor = createVisitor();
+      const testTrack = createTestTrack();
       const errorLogger = vi.fn();
-      visitor.setErrorLogger(errorLogger);
-      visitor.logError('something bad happened');
+      testTrack.setErrorLogger(errorLogger);
+      testTrack.logError('something bad happened');
 
       expect(errorLogger).toHaveBeenCalledWith('something bad happened');
     });
 
     it('calls the error logger with a null context', () => {
-      const visitor = createVisitor();
+      const testTrack = createTestTrack();
       const errorLogger = vi.fn();
-      visitor.setErrorLogger(errorLogger);
-      visitor.logError('something bad happened');
+      testTrack.setErrorLogger(errorLogger);
+      testTrack.logError('something bad happened');
 
       expect(errorLogger.mock.instances[0]).toBeNull();
     });
 
     it('does a console.error if the error logger was never set', () => {
-      const visitor = createVisitor();
+      const testTrack = createTestTrack();
       const consoleSpy = vi.spyOn(console, 'error').mockReturnValueOnce();
-      visitor.logError('something bad happened');
+      testTrack.logError('something bad happened');
 
       expect(consoleSpy).toHaveBeenCalledTimes(1);
       expect(consoleSpy).toHaveBeenCalledWith('something bad happened');
@@ -544,24 +538,24 @@ describe('TestTrack', () => {
 
   describe('.analytics', () => {
     it('defaults to mixpanel analytics', () => {
-      const visitor = createVisitor();
+      const testTrack = createTestTrack();
 
-      expect(visitor.analytics).toBe(mixpanelAnalytics);
+      expect(testTrack.analytics).toBe(mixpanelAnalytics);
     });
   });
 
   describe('#setAnalytics()', () => {
     it('sets the analytics object on the visitor', () => {
-      const visitor = createVisitor();
+      const testTrack = createTestTrack();
       const analytics: AnalyticsProvider = {
         trackAssignment: vi.fn(),
         alias: vi.fn(),
         identify: vi.fn()
       };
 
-      visitor.setAnalytics(analytics);
+      testTrack.setAnalytics(analytics);
 
-      expect(visitor.analytics).toBe(analytics);
+      expect(testTrack.analytics).toBe(analytics);
     });
   });
 
@@ -569,17 +563,13 @@ describe('TestTrack', () => {
     it('notifies any unsynced assignments', () => {
       const wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', isUnsynced: false });
       const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: 'true', isUnsynced: true });
-
-      const visitor = new TestTrack({
+      const testTrack = new TestTrack({
         client,
         splitRegistry: emptySplitRegistry,
-        visitor: {
-          id: 'unsynced_visitor_id',
-          assignments: [wineAssignment, blueButtonAssignment]
-        }
+        visitor: { id: 'unsynced_visitor_id', assignments: [wineAssignment, blueButtonAssignment] }
       });
 
-      visitor.notifyUnsyncedAssignments();
+      testTrack.notifyUnsyncedAssignments();
 
       expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);

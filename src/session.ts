@@ -96,10 +96,10 @@ export function createSession() {
       },
 
       async persistAssignment(splitName: string, variant: string, username: string, password: string): Promise<void> {
-        const { testTrack: visitor, client } = await sessionContext;
+        const { testTrack, client } = await sessionContext;
         await client
           .postAssignmentOverride({
-            visitor_id: visitor.getId(),
+            visitor_id: testTrack.getId(),
             split_name: splitName,
             variant,
             context: 'chrome_extension',
@@ -107,7 +107,7 @@ export function createSession() {
             auth: { username, password }
           })
           .catch(error => {
-            visitor.logError(`test_track persistAssignment error: ${error}`);
+            testTrack.logError(`test_track persistAssignment error: ${error}`);
           });
       }
     }

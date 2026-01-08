@@ -27,7 +27,7 @@ type TestTrackOptions = {
   client: Client;
   splitRegistry: SplitRegistry;
   visitor: Visitor;
-  ttOffline?: boolean;
+  isOffline?: boolean;
 };
 
 type AssignmentRegistry = Readonly<{
@@ -38,27 +38,26 @@ export default class TestTrack {
   readonly #client: Client;
   readonly #splitRegistry: SplitRegistry;
 
-  #id: string;
+  #visitorId: string;
   #assignments: AssignmentRegistry;
-  #ttOffline: boolean | undefined;
+  #isOffline: boolean;
   #errorLogger: (errorMessage: string) => void;
 
-  analytics: AnalyticsProvider;
+  analytics: AnalyticsProvider = mixpanelAnalytics;
 
-  constructor({ client, splitRegistry, visitor, ttOffline }: TestTrackOptions) {
+  constructor({ client, splitRegistry, visitor, isOffline = false }: TestTrackOptions) {
     this.#client = client;
     this.#splitRegistry = splitRegistry;
-    this.#id = visitor.id;
-    this.#ttOffline = ttOffline;
+    this.#isOffline = isOffline;
     this.#errorLogger = errorMessage => console.error(errorMessage);
-    this.analytics = mixpanelAnalytics;
+    this.#visitorId = visitor.id;
     this.#assignments = Object.fromEntries(
       visitor.assignments.map(assignment => [assignment.getSplitName(), assignment])
     );
   }
 
   getId(): string {
-    return this.#id;
+    return this.#visitorId;
   }
 
   getAssignmentRegistry(): AssignmentRegistry {
@@ -133,7 +132,7 @@ export default class TestTrack {
       }
     });
 
-    this.#id = otherVisitor.getId();
+    this.#visitorId = otherVisitor.getId();
     this.#assignments = { ...this.#assignments, ...otherVisitor.getAssignmentRegistry() };
     this.notifyUnsyncedAssignments();
   }
@@ -161,7 +160,7 @@ export default class TestTrack {
     });
 
     if (!variant) {
-      this.#ttOffline = true;
+      this.#isOffline = true;
     }
 
     const assignment = new Assignment({
@@ -177,7 +176,7 @@ export default class TestTrack {
 
   #sendAssignmentNotification(assignment: Assignment): void {
     try {
-      if (this.#ttOffline) {
+      if (this.#isOffline) {
         return;
       }
 

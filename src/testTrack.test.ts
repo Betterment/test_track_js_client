@@ -225,11 +225,8 @@ describe('TestTrack', () => {
         return new TestTrack({
           client,
           splitRegistry: emptySplitRegistry,
-          visitor: {
-            id: 'offline_visitor_id',
-            assignments: []
-          },
-          ttOffline: true
+          visitor: { id: 'offline_visitor_id', assignments: [] },
+          isOffline: true
         });
       }
 

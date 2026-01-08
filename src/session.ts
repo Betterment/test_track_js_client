@@ -42,26 +42,31 @@ export function createSession() {
       return testTrack;
     },
 
+    /** @deprecated `initialize()` returns `TestTrack` */
     async vary(splitName: string, options: VaryOptions): Promise<void> {
       const testTrack = await initialization;
       testTrack.vary(splitName, options);
     },
 
+    /** @deprecated `initialize()` returns `TestTrack` */
     async ab(splitName: string, options: AbOptions): Promise<void> {
       const testTrack = await initialization;
       testTrack.ab(splitName, options);
     },
 
+    /** @deprecated `initialize()` returns `TestTrack` */
     async logIn(identifierType: string, value: number): Promise<void> {
       const testTrack = await initialization;
       await testTrack.logIn(identifierType, value);
     },
 
+    /** @deprecated `initialize()` returns `TestTrack` */
     async signUp(identifierType: string, value: number): Promise<void> {
       const testTrack = await initialization;
       await testTrack.signUp(identifierType, value);
     },
 
+    /** @deprecated `initialize()` returns `TestTrack` */
     _crx: {
       async loadInfo(): Promise<CrxInfo> {
         const testTrack = await initialization;

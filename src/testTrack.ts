@@ -52,6 +52,7 @@ export default class TestTrack {
   #isOffline: boolean;
   #errorLogger: (errorMessage: string) => void;
 
+  /** @deprecated No replacement */
   analytics: AnalyticsProvider = mixpanelAnalytics;
 
   constructor({ client, storage, splitRegistry, visitor, isOffline = false }: TestTrackOptions) {
@@ -66,6 +67,10 @@ export default class TestTrack {
     );
   }
 
+  get visitorId(): string {
+    return this.#visitorId;
+  }
+
   get _crx() {
     return {
       loadInfo: this.#loadChromeExtensionInfo.bind(this),
@@ -73,10 +78,12 @@ export default class TestTrack {
     };
   }
 
+  /** @deprecated Use `visitorId` */
   getId(): string {
     return this.#visitorId;
   }
 
+  /** @deprecated No replacement */
   getAssignmentRegistry(): AssignmentRegistry {
     return this.#assignments;
   }
@@ -127,20 +134,20 @@ export default class TestTrack {
 
   async logIn(identifierType: string, value: number): Promise<void> {
     await this.linkIdentifier(identifierType, value);
-    this.#storage.setVisitorId(this.getId());
-    this.analytics.identify(this.getId());
+    this.#storage.setVisitorId(this.visitorId);
+    this.analytics.identify(this.visitorId);
   }
 
   async signUp(identifierType: string, value: number): Promise<void> {
     await this.linkIdentifier(identifierType, value);
-    this.#storage.setVisitorId(this.getId());
-    this.analytics.alias(this.getId());
+    this.#storage.setVisitorId(this.visitorId);
+    this.analytics.alias(this.visitorId);
   }
 
   /** @deprecated Use `logIn` or `signUp` */
   async linkIdentifier(identifierType: string, value: number): Promise<void> {
     const data = await this.#client.postIdentifier({
-      visitor_id: this.getId(),
+      visitor_id: this.visitorId,
       identifier_type: identifierType,
       value: value.toString()
     });
@@ -160,30 +167,34 @@ export default class TestTrack {
     this.notifyUnsyncedAssignments();
   }
 
+  /** @deprecated Pass `errorLogger` to `initialize` */
   setErrorLogger(errorLogger: (errorMessage: string) => void): void {
     this.#errorLogger = errorLogger;
   }
 
+  /** @deprecated No replacement */
   logError(errorMessage: string): void {
     this.#errorLogger.call(null, errorMessage); // call with null context to ensure we don't leak the visitor object to the outside world
   }
 
+  /** @deprecated Pass `analytics` to `initialize` */
   setAnalytics(analytics: AnalyticsProvider): void {
     this.analytics = analytics;
   }
 
+  /** @deprecated No replacement */
   notifyUnsyncedAssignments(): void {
-    Object.values(this.getAssignmentRegistry())
+    Object.values(this.#assignments)
       .filter(assignment => assignment.isUnsynced())
       .forEach(assignment => this.#sendAssignmentNotification(assignment));
   }
 
   #getAssignmentFor(splitName: string, context: string): Assignment {
-    return this.getAssignmentRegistry()[splitName] || this.#generateAssignmentFor(splitName, context);
+    return this.#assignments[splitName] || this.#generateAssignmentFor(splitName, context);
   }
 
   #generateAssignmentFor(splitName: string, context: string): Assignment {
-    const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.getId() });
+    const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.visitorId });
     const variant = calculateVariant({
       assignmentBucket,
       splitRegistry: this.#splitRegistry,
@@ -213,7 +224,7 @@ export default class TestTrack {
 
       void sendAssignmentNotification({
         client: this.#client,
-        visitorId: this.getId(),
+        visitorId: this.visitorId,
         analytics: this.analytics,
         assignment,
         logError: message => this.logError(message)
@@ -227,13 +238,10 @@ export default class TestTrack {
 
   #loadChromeExtensionInfo(): Promise<CrxInfo> {
     return Promise.resolve({
-      visitorId: this.getId(),
+      visitorId: this.visitorId,
       splitRegistry: this.#splitRegistry.asV1Hash(),
       assignmentRegistry: Object.fromEntries(
-        Object.entries(this.getAssignmentRegistry()).map(([splitName, assignment]) => [
-          splitName,
-          assignment.getVariant()
-        ])
+        Object.entries(this.#assignments).map(([splitName, assignment]) => [splitName, assignment.getVariant()])
       )
     });
   }
@@ -246,7 +254,7 @@ export default class TestTrack {
   ): Promise<void> {
     await this.#client
       .postAssignmentOverride({
-        visitor_id: this.getId(),
+        visitor_id: this.visitorId,
         split_name: splitName,
         variant,
         context: 'chrome_extension',

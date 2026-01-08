@@ -19,7 +19,7 @@ const analytics = {
 };
 
 function createVisitor() {
-  const visitor = new TestTrack({ client, splitRegistry, id: 'visitorId', assignments: [] });
+  const visitor = new TestTrack({ client, splitRegistry, visitor: { id: 'visitorId', assignments: [] } });
   visitor.setAnalytics(analytics);
   return visitor;
 }

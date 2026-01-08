@@ -31,14 +31,16 @@ function createVisitor(assignments?: Assignment[]) {
   return new TestTrack({
     client,
     splitRegistry,
-    id: 'EXISTING_VISITOR_ID',
-    assignments: assignments ?? [
-      new Assignment({
-        splitName: 'jabba',
-        variant: 'puppet',
-        isUnsynced: false
-      })
-    ]
+    visitor: {
+      id: 'EXISTING_VISITOR_ID',
+      assignments: assignments ?? [
+        new Assignment({
+          splitName: 'jabba',
+          variant: 'puppet',
+          isUnsynced: false
+        })
+      ]
+    }
   });
 }
 
@@ -223,8 +225,10 @@ describe('TestTrack', () => {
         return new TestTrack({
           client,
           splitRegistry: emptySplitRegistry,
-          id: 'offline_visitor_id',
-          assignments: [],
+          visitor: {
+            id: 'offline_visitor_id',
+            assignments: []
+          },
           ttOffline: true
         });
       }
@@ -562,8 +566,10 @@ describe('TestTrack', () => {
       const visitor = new TestTrack({
         client,
         splitRegistry: emptySplitRegistry,
-        id: 'unsynced_visitor_id',
-        assignments: [wineAssignment, blueButtonAssignment]
+        visitor: {
+          id: 'unsynced_visitor_id',
+          assignments: [wineAssignment, blueButtonAssignment]
+        }
       });
 
       visitor.notifyUnsyncedAssignments();

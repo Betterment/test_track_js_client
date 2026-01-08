@@ -22,11 +22,15 @@ export type AbOptions = {
   trueVariant?: string;
 };
 
+export type Visitor = Readonly<{
+  id: string;
+  assignments: Assignment[];
+}>;
+
 type TestTrackOptions = {
   client: Client;
   splitRegistry: SplitRegistry;
-  id: string;
-  assignments: Assignment[];
+  visitor: Visitor;
   ttOffline?: boolean;
 };
 
@@ -45,14 +49,16 @@ export default class TestTrack {
 
   analytics: AnalyticsProvider;
 
-  constructor({ client, splitRegistry, id, assignments, ttOffline }: TestTrackOptions) {
+  constructor({ client, splitRegistry, visitor, ttOffline }: TestTrackOptions) {
     this.#client = client;
     this.#splitRegistry = splitRegistry;
-    this.#id = id;
+    this.#id = visitor.id;
     this.#ttOffline = ttOffline;
     this.#errorLogger = errorMessage => console.error(errorMessage);
     this.analytics = mixpanelAnalytics;
-    this.#assignments = Object.fromEntries(assignments.map(assignment => [assignment.getSplitName(), assignment]));
+    this.#assignments = Object.fromEntries(
+      visitor.assignments.map(assignment => [assignment.getSplitName(), assignment])
+    );
   }
 
   getId(): string {
@@ -125,8 +131,10 @@ export default class TestTrack {
     const otherVisitor = new TestTrack({
       client: this.#client,
       splitRegistry: this.#splitRegistry,
-      id: data.visitor.id,
-      assignments: data.visitor.assignments.map(Assignment.fromV1Assignment)
+      visitor: {
+        id: data.visitor.id,
+        assignments: data.visitor.assignments.map(Assignment.fromV1Assignment)
+      }
     });
 
     this.#id = otherVisitor.getId();

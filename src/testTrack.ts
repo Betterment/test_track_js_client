@@ -1,5 +1,5 @@
 import { getFalseVariant } from './abConfiguration';
-import Assignment from './assignment';
+import { Assignment } from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
@@ -37,7 +37,7 @@ type AssignmentRegistry = Readonly<{
   [splitName: string]: Assignment;
 }>;
 
-export default class TestTrack {
+export class TestTrack {
   readonly #client: Client;
   readonly #storage: StorageProvider;
   readonly #splitRegistry: SplitRegistry;

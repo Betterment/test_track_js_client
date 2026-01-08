@@ -1,4 +1,4 @@
-import Assignment from './assignment';
+import { Assignment } from './assignment';
 import { vary } from './vary';
 import { createSplitRegistry } from './splitRegistry';
 

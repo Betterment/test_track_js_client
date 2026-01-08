@@ -7,7 +7,7 @@ export type AssignmentOptions = {
   isUnsynced: boolean;
 };
 
-export default class Assignment {
+export class Assignment {
   static fromV1Assignment = (data: V1Assignment): Assignment => {
     return new Assignment({
       context: data.context,

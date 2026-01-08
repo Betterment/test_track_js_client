@@ -1,4 +1,4 @@
-import Assignment from './assignment';
+import { Assignment } from './assignment';
 import type { Client } from './client';
 import type { AnalyticsProvider } from './analyticsProvider';
 

@@ -1,5 +1,5 @@
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
-import TestTrack, { type AbOptions, type VaryOptions } from './testTrack';
+import { TestTrack, type AbOptions, type VaryOptions } from './testTrack';
 import { type WebExtension } from './webExtension';
 import { loadVisitor } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';

@@ -1,4 +1,4 @@
-import Assignment from './assignment';
+import { Assignment } from './assignment';
 import { v4 as uuid } from 'uuid';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';

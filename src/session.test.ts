@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 import { createSession } from './session';
-import TestTrack from './testTrack';
+import { TestTrack } from './testTrack';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { Config } from './config';
 import { v4 as uuid } from 'uuid';

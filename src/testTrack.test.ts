@@ -1,8 +1,8 @@
-import Assignment from './assignment';
+import { Assignment } from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
-import TestTrack from './testTrack';
+import { TestTrack } from './testTrack';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 import type { AnalyticsProvider } from './analyticsProvider';

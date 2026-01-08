@@ -1,4 +1,4 @@
-import type Assignment from './assignment';
+import type { Assignment } from './assignment';
 import type { Client } from './client';
 import type { SplitRegistry, V1Hash } from './splitRegistry';
 

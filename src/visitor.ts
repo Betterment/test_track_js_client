@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import Assignment from './assignment';
+import { Assignment } from './assignment';
 import type { Client } from './client';
 import type { SplitRegistry } from './splitRegistry';
 

@@ -1,4 +1,4 @@
-import Assignment from './assignment';
+import { Assignment } from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';

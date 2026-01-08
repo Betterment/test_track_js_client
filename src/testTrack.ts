@@ -182,8 +182,10 @@ export default class TestTrack {
 
       void sendAssignmentNotification({
         client: this.#client,
-        visitor: this,
-        assignment
+        visitorId: this.getId(),
+        analytics: this.analytics,
+        assignment,
+        logError: message => this.logError(message)
       });
 
       assignment.setUnsynced(false);

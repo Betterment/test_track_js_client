@@ -122,13 +122,15 @@ describe('TestTrack', () => {
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
-          visitor,
+          visitorId: 'EXISTING_VISITOR_ID',
+          analytics: visitor.analytics,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'red',
             context: 'spec',
             isUnsynced: false
-          })
+          }),
+          logError: expect.any(Function)
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       });
@@ -141,13 +143,15 @@ describe('TestTrack', () => {
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
-          visitor,
+          visitorId: 'EXISTING_VISITOR_ID',
+          analytics: visitor.analytics,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'white',
             context: 'spec',
             isUnsynced: false
-          })
+          }),
+          logError: expect.any(Function)
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       });
@@ -165,13 +169,15 @@ describe('TestTrack', () => {
 
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
-          visitor,
+          visitorId: 'EXISTING_VISITOR_ID',
+          analytics: visitor.analytics,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'red',
             context: 'spec',
             isUnsynced: true
-          })
+          }),
+          logError: expect.any(Function)
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
         expect(errorLogger).toHaveBeenCalledWith('test_track notify error: Error: something bad happened');
@@ -208,13 +214,15 @@ describe('TestTrack', () => {
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
-          visitor,
+          visitorId: 'EXISTING_VISITOR_ID',
+          analytics: visitor.analytics,
           assignment: new Assignment({
             splitName: 'jabba',
             variant: 'cgi',
             context: 'defaulted',
             isUnsynced: false // Marked as unsynced after the assignment notification
-          })
+          }),
+          logError: expect.any(Function)
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalled();
       });
@@ -492,13 +500,15 @@ describe('TestTrack', () => {
       expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         client,
-        visitor,
+        visitorId: 'actual_visitor_id',
+        analytics: mixpanelAnalytics,
         assignment: new Assignment({
           splitName: 'blue_button',
           variant: 'true',
           context: 'homepage',
           isUnsynced: false // Marked as unsynced after the assignment notification
-        })
+        }),
+        logError: expect.any(Function)
       });
     });
   });
@@ -576,8 +586,10 @@ describe('TestTrack', () => {
 
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         client,
-        visitor,
-        assignment: blueButtonAssignment
+        visitorId: 'unsynced_visitor_id',
+        analytics: mixpanelAnalytics,
+        assignment: blueButtonAssignment,
+        logError: expect.any(Function)
       });
     });
   });

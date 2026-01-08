@@ -1,5 +1,5 @@
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
-import Visitor, { type AbOptions, type VaryOptions } from './visitor';
+import TestTrack, { type AbOptions, type VaryOptions } from './testTrack';
 import { loadVisitor } from './loadVisitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { SplitRegistry, V1Hash } from './splitRegistry';
@@ -9,13 +9,13 @@ import { createClient, type Client } from './client';
 type SessionOptions = {
   analytics?: AnalyticsProvider;
   errorLogger?: (errorMessage: string) => void;
-  onVisitorLoaded?: (visitor: Visitor) => void;
+  onVisitorLoaded?: (visitor: TestTrack) => void;
 };
 
 type SessionContext = {
   client: Client;
   storage: StorageProvider;
-  visitor: Visitor;
+  visitor: TestTrack;
   splitRegistry: SplitRegistry;
 };
 
@@ -30,7 +30,7 @@ export function createSession() {
   const sessionContext = new Promise<SessionContext>(resolve => (resolveContext = resolve));
 
   return {
-    async initialize(options: SessionOptions): Promise<Visitor> {
+    async initialize(options: SessionOptions): Promise<TestTrack> {
       const config = loadConfig();
       const client = createClient({ url: config.url });
       const storage = createCookieStorage({ domain: config.cookieDomain, name: config.cookieName });

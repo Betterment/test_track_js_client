@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 import { createSession } from './session';
-import Visitor from './visitor';
+import TestTrack from './testTrack';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { Config } from './config';
 import { v4 as uuid } from 'uuid';
@@ -65,7 +65,7 @@ describe('createSession', () => {
 
   describe('#initialize()', () => {
     it('calls notifyUnsyncedAssignments when a visitor is loaded', async () => {
-      const notifySpy = vi.spyOn(Visitor.prototype, 'notifyUnsyncedAssignments');
+      const notifySpy = vi.spyOn(TestTrack.prototype, 'notifyUnsyncedAssignments');
       await createSession().initialize({});
       expect(notifySpy).toHaveBeenCalledTimes(1);
     });

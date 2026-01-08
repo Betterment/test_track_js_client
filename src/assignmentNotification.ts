@@ -1,16 +1,16 @@
-import Visitor from './visitor';
+import TestTrack from './testTrack';
 import Assignment from './assignment';
 import type { Client } from './client';
 
 type Options = {
   client: Client;
-  visitor: Visitor;
+  visitor: TestTrack;
   assignment: Assignment;
 };
 
 async function persistAssignment(
   client: Client,
-  visitor: Visitor,
+  visitor: TestTrack,
   assignment: Assignment,
   trackResult?: 'success' | 'failure'
 ): Promise<void> {

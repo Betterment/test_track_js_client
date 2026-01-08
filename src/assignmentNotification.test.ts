@@ -1,6 +1,6 @@
 import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
-import Visitor from './visitor';
+import TestTrack from './testTrack';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 import { createClient } from './client';
@@ -19,7 +19,7 @@ const analytics = {
 };
 
 function createVisitor() {
-  const visitor = new Visitor({ client, splitRegistry, id: 'visitorId', assignments: [] });
+  const visitor = new TestTrack({ client, splitRegistry, id: 'visitorId', assignments: [] });
   visitor.setAnalytics(analytics);
   return visitor;
 }

@@ -2,7 +2,7 @@ import Assignment from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
-import Visitor from './visitor';
+import TestTrack from './testTrack';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 import type { AnalyticsProvider } from './analyticsProvider';
@@ -28,7 +28,7 @@ const splitRegistry = createSplitRegistry([
 ]);
 
 function createVisitor(assignments?: Assignment[]) {
-  return new Visitor({
+  return new TestTrack({
     client,
     splitRegistry,
     id: 'EXISTING_VISITOR_ID',
@@ -42,9 +42,9 @@ function createVisitor(assignments?: Assignment[]) {
   });
 }
 
-describe('Visitor', () => {
+describe('TestTrack', () => {
   describe('#vary()', () => {
-    function varyJabbaSplit(visitor: Visitor) {
+    function varyJabbaSplit(visitor: TestTrack) {
       visitor.vary('jabba', {
         context: 'spec',
         variants: { puppet: vi.fn(), cgi: vi.fn() },
@@ -52,7 +52,7 @@ describe('Visitor', () => {
       });
     }
 
-    function varyWineSplit(visitor: Visitor) {
+    function varyWineSplit(visitor: TestTrack) {
       visitor.vary('wine', {
         context: 'spec',
         variants: { red: vi.fn(), white: vi.fn() },
@@ -218,9 +218,9 @@ describe('Visitor', () => {
       });
     });
 
-    describe('Offline Visitor', () => {
+    describe('Offline TestTrack', () => {
       function createOfflineVisitor() {
-        return new Visitor({
+        return new TestTrack({
           client,
           splitRegistry: emptySplitRegistry,
           id: 'offline_visitor_id',
@@ -559,7 +559,7 @@ describe('Visitor', () => {
       const wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', isUnsynced: false });
       const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: 'true', isUnsynced: true });
 
-      const visitor = new Visitor({
+      const visitor = new TestTrack({
         client,
         splitRegistry: emptySplitRegistry,
         id: 'unsynced_visitor_id',

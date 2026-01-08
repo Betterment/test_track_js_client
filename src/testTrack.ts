@@ -22,7 +22,7 @@ export type AbOptions = {
   trueVariant?: string;
 };
 
-type VisitorOptions = {
+type TestTrackOptions = {
   client: Client;
   splitRegistry: SplitRegistry;
   id: string;
@@ -34,7 +34,7 @@ type AssignmentRegistry = Readonly<{
   [splitName: string]: Assignment;
 }>;
 
-export default class Visitor {
+export default class TestTrack {
   readonly #client: Client;
   readonly #splitRegistry: SplitRegistry;
 
@@ -45,7 +45,7 @@ export default class Visitor {
 
   analytics: AnalyticsProvider;
 
-  constructor({ client, splitRegistry, id, assignments, ttOffline }: VisitorOptions) {
+  constructor({ client, splitRegistry, id, assignments, ttOffline }: TestTrackOptions) {
     this.#client = client;
     this.#splitRegistry = splitRegistry;
     this.#id = id;
@@ -122,7 +122,7 @@ export default class Visitor {
       value: value.toString()
     });
 
-    const otherVisitor = new Visitor({
+    const otherVisitor = new TestTrack({
       client: this.#client,
       splitRegistry: this.#splitRegistry,
       id: data.visitor.id,

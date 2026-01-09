@@ -1,5 +1,5 @@
 {
-  "name": "test_track_js_client",
+  "name": "@betterment/test-track",
   "type": "module",
   "version": "2.1.3",
   "description": "Javascript Client for Test Track",

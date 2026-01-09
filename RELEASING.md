@@ -9,12 +9,12 @@ Example
 ```
 $ pnpm run release
 
-> test_track_js_client@2.1.0 release
+> @betterment/test-track@2.1.0 release
 > release-it
 
 ✔ pnpm build
 
-🚀 Let's release test_track_js_client (currently at 2.1.0)
+🚀 Let's release @betterment/test-track (currently at 2.1.0)
 
 
 Changelog:
@@ -28,7 +28,7 @@ Changelog:
 Changeset:
  M package.json
 
-? Publish test_track_js_client to npm? Yes
+? Publish @betterment/test-track to npm? Yes
 ? Please enter OTP for npm: <YOUR OTP>
 ? Commit (Release 2.1.1)? Yes
 ? Tag (2.1.1)? Yes

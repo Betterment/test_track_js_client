@@ -49,6 +49,10 @@
   "files": [
     "dist/*"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Betterment/test_track_js_client.git"

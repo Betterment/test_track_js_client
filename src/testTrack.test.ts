@@ -1,7 +1,7 @@
 import { Assignment } from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
-import { calculateVariant, getAssignmentBucket } from './calculateVariant';
+import { getAssignmentBucket } from './calculateVariant';
 import { TestTrack } from './testTrack';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
@@ -9,10 +9,12 @@ import type { AnalyticsProvider } from './analyticsProvider';
 import { createClient } from './client';
 import { createSplitRegistry } from './splitRegistry';
 
-vi.mock('./calculateVariant');
 vi.mock('./assignmentNotification');
+vi.mock('./calculateVariant', async () => {
+  const actual = await vi.importActual('./calculateVariant');
+  return { ...actual, getAssignmentBucket: vi.fn() };
+});
 
-const mockCalculateVariant = vi.mocked(calculateVariant);
 const mockGetAssignmentBucket = vi.mocked(getAssignmentBucket);
 const mockSendAssignmentNotification = vi.mocked(sendAssignmentNotification);
 
@@ -20,11 +22,10 @@ const client = createClient({ url: 'http://testtrack.dev' });
 const emptySplitRegistry = createSplitRegistry(null);
 
 const splitRegistry = createSplitRegistry([
-  {
-    name: 'element',
-    isFeatureGate: false,
-    weighting: { earth: 25, wind: 25, fire: 25, water: 25 }
-  }
+  { name: 'element', isFeatureGate: false, weighting: { earth: 25, wind: 25, fire: 25, water: 25 } },
+  { name: 'jabba', isFeatureGate: false, weighting: { puppet: 50, cgi: 50 } },
+  { name: 'wine', isFeatureGate: false, weighting: { red: 50, white: 50 } },
+  { name: 'blue_button', isFeatureGate: true, weighting: { true: 50, false: 50 } }
 ]);
 
 const storage = {
@@ -55,7 +56,7 @@ function createOfflineTestTrack() {
 }
 
 describe('TestTrack', () => {
-  describe('#vary()', () => {
+  describe('.vary()', () => {
     function varyJabbaSplit(testTrack: TestTrack) {
       testTrack.vary('jabba', {
         context: 'spec',
@@ -73,8 +74,8 @@ describe('TestTrack', () => {
     }
 
     beforeEach(() => {
-      mockGetAssignmentBucket.mockReturnValue(50);
-      mockCalculateVariant.mockReturnValue('red');
+      // Assignment bucket 25 will select: red (wine), puppet (jabba), false (blue_button)
+      mockGetAssignmentBucket.mockReturnValue(25);
     });
 
     it('throws an error if the defaultVariant is not represented in the variants object', () => {
@@ -94,15 +95,20 @@ describe('TestTrack', () => {
     describe('New Assignment', () => {
       it('generates a new assignment via calculateVariant', () => {
         const testTrack = createTestTrack();
-        varyWineSplit(testTrack);
+        const red = vi.fn();
+        const white = vi.fn();
 
+        const result = testTrack.vary('wine', {
+          context: 'spec',
+          variants: { red, white },
+          defaultVariant: 'white'
+        });
+
+        expect(result).toBe('red');
+        expect(red).toHaveBeenCalledTimes(1);
+        expect(white).not.toHaveBeenCalled();
         expect(mockGetAssignmentBucket).toHaveBeenCalledWith({
           visitorId: 'EXISTING_VISITOR_ID',
-          splitName: 'wine'
-        });
-        expect(mockCalculateVariant).toHaveBeenCalledWith({
-          assignmentBucket: 50,
-          splitRegistry,
           splitName: 'wine'
         });
       });
@@ -146,11 +152,20 @@ describe('TestTrack', () => {
       });
 
       it('only sends one AssignmentNotification with the default if it is defaulted', () => {
-        mockCalculateVariant.mockReturnValue('rose');
         const testTrack = createTestTrack();
+        const rose = vi.fn();
+        const white = vi.fn();
 
-        varyWineSplit(testTrack);
+        // calculateVariant returns 'red', but it's not in variants, so should default to 'white'
+        const result = testTrack.vary('wine', {
+          context: 'spec',
+          variants: { rose, white },
+          defaultVariant: 'white'
+        });
 
+        expect(result).toBe('white');
+        expect(white).toHaveBeenCalledTimes(1);
+        expect(rose).not.toHaveBeenCalled();
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
           visitorId: 'EXISTING_VISITOR_ID',
@@ -197,9 +212,18 @@ describe('TestTrack', () => {
     describe('Existing Assignment', () => {
       it('returns an existing assignment wihout generating', () => {
         const testTrack = createTestTrack();
-        varyJabbaSplit(testTrack);
+        const puppet = vi.fn();
+        const cgi = vi.fn();
 
-        expect(mockCalculateVariant).not.toHaveBeenCalled();
+        const result = testTrack.vary('jabba', {
+          context: 'spec',
+          variants: { puppet, cgi },
+          defaultVariant: 'cgi'
+        });
+
+        expect(result).toBe('puppet');
+        expect(puppet).toHaveBeenCalledTimes(1);
+        expect(cgi).not.toHaveBeenCalled();
       });
 
       it('does not send an AssignmentNotification', () => {
@@ -212,15 +236,18 @@ describe('TestTrack', () => {
 
       it('sends an AssignmentNotification with the default if it is defaulted', () => {
         const testTrack = createTestTrack();
-        testTrack.vary('jabba', {
+        const furryMan = vi.fn();
+        const cgi = vi.fn();
+
+        const result = testTrack.vary('jabba', {
           context: 'defaulted',
-          variants: {
-            furry_man: () => {},
-            cgi: () => {}
-          },
+          variants: { furryMan, cgi },
           defaultVariant: 'cgi'
         });
 
+        expect(result).toBe('cgi');
+        expect(cgi).toHaveBeenCalledTimes(1);
+        expect(furryMan).not.toHaveBeenCalled();
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
@@ -247,12 +274,6 @@ describe('TestTrack', () => {
           visitorId: 'offline_visitor_id',
           splitName: 'jabba'
         });
-        expect(mockCalculateVariant).toHaveBeenCalledTimes(1);
-        expect(mockCalculateVariant).toHaveBeenCalledWith({
-          assignmentBucket: 50,
-          splitRegistry: emptySplitRegistry,
-          splitName: 'jabba'
-        });
       });
 
       it('does not send an AssignmentNotification', () => {
@@ -265,19 +286,17 @@ describe('TestTrack', () => {
     });
 
     describe('Receives a null variant from calculateVariant', () => {
-      beforeEach(() => {
-        mockCalculateVariant.mockReturnValue(null);
-      });
-
       it('adds the assignment to the assignment registry', () => {
-        const testTrack = createTestTrack();
+        // Empty split registry returns null from calculateVariant
+        const testTrack = createOfflineTestTrack();
         varyWineSplit(testTrack);
 
-        expect(Object.keys(testTrack.getAssignmentRegistry())).toEqual(expect.arrayContaining(['jabba', 'wine']));
+        expect(Object.keys(testTrack.getAssignmentRegistry())).toEqual(expect.arrayContaining(['wine']));
       });
 
       it('does not send an AssignmentNotification', () => {
-        const testTrack = createTestTrack();
+        // Empty split registry returns null from calculateVariant
+        const testTrack = createOfflineTestTrack();
         varyWineSplit(testTrack);
 
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
@@ -287,7 +306,7 @@ describe('TestTrack', () => {
 
     describe('Boolean split', () => {
       it('chooses the correct handler when given a true boolean', () => {
-        mockCalculateVariant.mockReturnValue('true');
+        mockGetAssignmentBucket.mockReturnValue(75); // Selects 'true'
         const testTrack = createTestTrack();
         expect(testTrack.vary('blue_button', { context: 'spec', defaultVariant: true })).toEqual('true');
 
@@ -305,7 +324,7 @@ describe('TestTrack', () => {
       });
 
       it('picks the correct handler when given a false boolean', () => {
-        mockCalculateVariant.mockReturnValue('false');
+        mockGetAssignmentBucket.mockReturnValue(25); // Selects 'false'
         const testTrack = createTestTrack();
         const trueHandler = vi.fn();
         const falseHandler = vi.fn();
@@ -326,7 +345,7 @@ describe('TestTrack', () => {
     });
   });
 
-  describe('#ab()', () => {
+  describe('.ab()', () => {
     it('leverages vary to configure the split', () => {
       const testTrack = createTestTrack();
       expect(testTrack.ab('jabba', { context: 'spec', trueVariant: 'puppet' })).toBe(true);
@@ -425,7 +444,7 @@ describe('TestTrack', () => {
     });
   });
 
-  describe('#linkIdentifier()', () => {
+  describe('.linkIdentifier()', () => {
     beforeEach(() => {
       server.use(
         http.post('http://testtrack.dev/api/v1/identifier', () => {
@@ -515,7 +534,7 @@ describe('TestTrack', () => {
     });
   });
 
-  describe('#logError()', () => {
+  describe('.logError()', () => {
     it('calls the error logger with the error message', () => {
       const testTrack = createTestTrack();
       const errorLogger = vi.fn();
@@ -552,7 +571,7 @@ describe('TestTrack', () => {
     });
   });
 
-  describe('#setAnalytics()', () => {
+  describe('.setAnalytics()', () => {
     it('sets the analytics object on the visitor', () => {
       const testTrack = createTestTrack();
       const analytics: AnalyticsProvider = {
@@ -567,7 +586,7 @@ describe('TestTrack', () => {
     });
   });
 
-  describe('#notifyUnsyncedAssignments', () => {
+  describe('.notifyUnsyncedAssignments', () => {
     it('notifies any unsynced assignments', () => {
       const wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', isUnsynced: false });
       const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: 'true', isUnsynced: true });

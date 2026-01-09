@@ -1,5 +1,3 @@
-import type { Config } from './config';
-
 type RequestOptions = {
   url: URL;
   method: 'GET' | 'POST';
@@ -7,13 +5,6 @@ type RequestOptions = {
   body?: URLSearchParams;
   auth?: { username: string; password: string };
 };
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Result = { data: any };
-
-export function urlFor(config: Config, path: `/api/${string}`): URL {
-  return new URL(path, config.url);
-}
 
 export function toSearchParams(values: Record<string, string | null | undefined>): URLSearchParams {
   const params = new URLSearchParams();
@@ -27,7 +18,7 @@ export function toSearchParams(values: Record<string, string | null | undefined>
   return params;
 }
 
-export async function request(options: RequestOptions): Promise<Result> {
+export async function request<T>(options: RequestOptions): Promise<{ data: T }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeout ?? 60_000);
 
@@ -52,8 +43,8 @@ export async function request(options: RequestOptions): Promise<Result> {
   if (!response.ok) {
     throw new Error(`HTTP request failed with ${response.status} status`);
   } else if (response.status === 204) {
-    return { data: null };
+    return { data: null as T };
   } else {
-    return { data: await response.json() };
+    return { data: (await response.json()) as T };
   }
 }

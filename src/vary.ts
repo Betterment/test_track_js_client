@@ -1,6 +1,5 @@
 import Assignment from './assignment';
-import { getSplitVariants } from './split';
-import Visitor from './visitor';
+import { getSplitVariants, type SplitRegistry } from './splitRegistry';
 
 type Handler = () => void;
 
@@ -10,18 +9,19 @@ export type Variants = {
 
 type Options = {
   assignment: Assignment;
-  visitor: Visitor;
   variants: Variants;
   defaultVariant: string;
+  splitRegistry: SplitRegistry;
+  logError: (message: string) => void;
 };
 
-function validateVariants(visitor: Visitor, assignment: Assignment, variants: Variants): void {
+function validateVariants({ variants, splitRegistry, assignment, logError }: Options): void {
   const configuredVariants = Object.keys(variants);
   if (configuredVariants.length < 2) {
     throw new Error('must provide at least two variants');
   }
 
-  const split = visitor.config.splitRegistry.getSplit(assignment.getSplitName());
+  const split = splitRegistry.getSplit(assignment.getSplitName());
   if (!split) return;
 
   const splitVariants = getSplitVariants(split);
@@ -29,25 +29,23 @@ function validateVariants(visitor: Visitor, assignment: Assignment, variants: Va
   const missingVariants = splitVariants.filter(variant => !configuredVariants.includes(variant));
 
   if (unknownVariants.length > 0) {
-    visitor.logError(`configures unknown variants: ${unknownVariants.join(', ')}`);
+    logError(`configures unknown variants: ${unknownVariants.join(', ')}`);
   }
 
   if (missingVariants.length > 0) {
-    visitor.logError(`does not configure variants: ${missingVariants.join(', ')}`);
+    logError(`does not configure variants: ${missingVariants.join(', ')}`);
   }
 }
 
-function validateDefaultVariant(variants: Variants, defaultVariant: string): void {
-  if (!variants.hasOwnProperty(defaultVariant)) {
+export function vary(options: Options): { isDefaulted: boolean } {
+  validateVariants(options);
+
+  const { assignment, variants, defaultVariant } = options;
+  const assignedVariant = assignment.getVariant();
+
+  if (!variants[defaultVariant]) {
     throw new Error(`defaultVariant: ${defaultVariant} must be represented in variants object`);
   }
-}
-
-export function vary({ visitor, assignment, variants, defaultVariant }: Options) {
-  validateVariants(visitor, assignment, variants);
-  validateDefaultVariant(variants, defaultVariant);
-
-  const assignedVariant = assignment.getVariant();
 
   if (assignedVariant && variants[assignedVariant]) {
     variants[assignedVariant]();

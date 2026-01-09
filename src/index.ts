@@ -3,7 +3,7 @@ export type { AnalyticsProvider } from './analyticsProvider';
 
 const TestTrack = createSession();
 
-const notifyListener = function () {
+const notifyListener = () => {
   window.dispatchEvent(
     new CustomEvent('tt:lib:loaded', {
       detail: {
@@ -12,13 +12,12 @@ const notifyListener = function () {
     })
   );
 };
-const loadTestTrack = function () {
+const loadTestTrack = () => {
   // Add class to body of page after body is loaded to enable chrome extension support
   document.body.classList.add('_tt');
   try {
     window.dispatchEvent(new CustomEvent('tt:class:added'));
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (e) {
+  } catch {
     // ignore
   }
 };
@@ -35,8 +34,7 @@ try {
   // in the case where there is not yet code listening for 'tt:lib:loaded', listen for 'tt:listener:ready' and then trigger 'tt:lib:loaded'
   notifyListener();
   window.addEventListener('tt:listener:ready', notifyListener);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-} catch (e) {
+} catch {
   // ignore
 }
 

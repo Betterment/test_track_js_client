@@ -1,5 +1,5 @@
 import Assignment from './assignment';
-import { mixpanelAnalytics } from './mixpanelAnalytics';
+import { mixpanelAnalytics } from './analyticsProvider';
 
 const mixpanel = {
   track: vi.fn(),
@@ -17,7 +17,7 @@ describe('mixpanelAnalytics', () => {
   });
 
   describe('#trackAssignment()', () => {
-    it('calls mixpanel.track()', () => {
+    it('tracks SplitAssigned event with assignment properties', () => {
       const assignment = new Assignment({
         splitName: 'jabba',
         variant: 'cgi',
@@ -25,30 +25,25 @@ describe('mixpanelAnalytics', () => {
         isUnsynced: false
       });
 
-      mixpanelAnalytics.trackAssignment('visitor_id', assignment, () => {
-        expect(mixpanel.track).toHaveBeenCalled();
-        expect(mixpanel.track).toHaveBeenCalledWith(
-          'SplitAssigned',
-          {
-            TTVisitorID: 'visitor_id',
-            SplitName: 'jabba',
-            SplitVariant: 'cgi',
-            SplitContext: 'spec'
-          },
-          expect.any(Function)
-        );
-      });
+      const callback = vi.fn();
+      mixpanelAnalytics.trackAssignment('visitor_id', assignment, callback);
 
-      // call success
-      vi.mocked(mixpanel.track).mock.calls[0][2](true);
+      expect(mixpanel.track).toHaveBeenCalledWith(
+        'SplitAssigned',
+        {
+          TTVisitorID: 'visitor_id',
+          SplitName: 'jabba',
+          SplitVariant: 'cgi',
+          SplitContext: 'spec'
+        },
+        callback
+      );
     });
   });
 
   describe('#alias()', () => {
     it('calls mixpanel.alias()', () => {
       mixpanelAnalytics.alias('id');
-
-      expect(mixpanel.alias).toHaveBeenCalled();
       expect(mixpanel.alias).toHaveBeenCalledWith('id');
     });
   });
@@ -56,8 +51,6 @@ describe('mixpanelAnalytics', () => {
   describe('#identify()', () => {
     it('calls mixpanel.identify()', () => {
       mixpanelAnalytics.identify('id');
-
-      expect(mixpanel.identify).toHaveBeenCalled();
       expect(mixpanel.identify).toHaveBeenCalledWith('id');
     });
   });

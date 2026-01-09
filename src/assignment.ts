@@ -1,9 +1,4 @@
-export type AssignmentData = {
-  split_name: string;
-  variant: string;
-  context?: string;
-  unsynced: boolean;
-};
+import type { V1Assignment } from './client';
 
 export type AssignmentOptions = {
   splitName: string;
@@ -12,58 +7,53 @@ export type AssignmentOptions = {
   isUnsynced: boolean;
 };
 
-class Assignment {
-  static fromJsonArray(assignmentsJson: AssignmentData[]) {
-    return assignmentsJson.map(
-      ({ split_name, variant, context, unsynced }) =>
-        new Assignment({
-          context,
-          variant,
-          splitName: split_name,
-          isUnsynced: unsynced
-        })
-    );
-  }
+export default class Assignment {
+  static fromV1Assignment = (data: V1Assignment): Assignment => {
+    return new Assignment({
+      context: data.context,
+      variant: data.variant,
+      splitName: data.split_name,
+      isUnsynced: data.unsynced
+    });
+  };
 
-  private _splitName: string;
-  private _variant: string | null;
-  private _context?: string;
-  private _isUnsynced: boolean;
+  readonly #splitName: string;
+  #variant: string | null;
+  #context: string | undefined;
+  #isUnsynced: boolean;
 
   constructor(options: AssignmentOptions) {
-    this._splitName = options.splitName;
-    this._variant = options.variant;
-    this._context = options.context;
-    this._isUnsynced = options.isUnsynced;
+    this.#splitName = options.splitName;
+    this.#variant = options.variant;
+    this.#context = options.context;
+    this.#isUnsynced = options.isUnsynced;
   }
 
-  getSplitName() {
-    return this._splitName;
+  getSplitName(): string {
+    return this.#splitName;
   }
 
-  getVariant() {
-    return this._variant;
+  getVariant(): string | null {
+    return this.#variant;
   }
 
-  setVariant(variant: string) {
-    this._variant = variant;
+  setVariant(variant: string): void {
+    this.#variant = variant;
   }
 
-  getContext() {
-    return this._context;
+  getContext(): string | undefined {
+    return this.#context;
   }
 
-  setContext(context: string) {
-    this._context = context;
+  setContext(context: string): void {
+    this.#context = context;
   }
 
-  isUnsynced() {
-    return this._isUnsynced;
+  isUnsynced(): boolean {
+    return this.#isUnsynced;
   }
 
-  setUnsynced(unsynced: boolean) {
-    this._isUnsynced = unsynced;
+  setUnsynced(unsynced: boolean): void {
+    this.#isUnsynced = unsynced;
   }
 }
-
-export default Assignment;

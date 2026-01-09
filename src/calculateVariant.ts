@@ -1,37 +1,43 @@
 import { md5 } from 'js-md5';
-import Visitor from './visitor';
-import { getSplitVariants, type Split } from './split';
+import { getSplitVariants, type SplitRegistry } from './splitRegistry';
 
-function getSplit(visitor: Visitor, splitName: string): Split {
-  const split = visitor.config.splitRegistry.getSplit(splitName);
+type GetAssignmentBucketOptions = {
+  splitName: string;
+  visitorId: string;
+};
 
-  if (!split) {
-    const message = `Unknown split: "${splitName}"`;
-    visitor.logError(message);
-    throw new Error(message);
-  }
+type CalculateVariantOptions = {
+  assignmentBucket: number;
+  splitRegistry: SplitRegistry;
+  splitName: string;
+};
 
-  return split;
-}
-
-export function getAssignmentBucket(visitor: Visitor, splitName: string): number {
-  const hash = md5(splitName + visitor.getId());
+export function getAssignmentBucket({ visitorId, splitName }: GetAssignmentBucketOptions): number {
+  const hash = md5(`${splitName}${visitorId}`);
   const hashFixnum = parseInt(hash.substring(0, 8), 16);
   return hashFixnum % 100;
 }
 
-export function calculateVariant(visitor: Visitor, splitName: string): string | null {
-  if (!visitor.config.splitRegistry.isLoaded) {
+export function calculateVariant({
+  assignmentBucket,
+  splitRegistry,
+  splitName
+}: CalculateVariantOptions): string | null {
+  if (!splitRegistry.isLoaded) {
     return null;
   }
 
+  const split = splitRegistry.getSplit(splitName);
+  if (!split) {
+    throw new Error(`Unknown split: "${splitName}"`);
+  }
+
   let bucketCeiling = 0;
-  const assignmentBucket = getAssignmentBucket(visitor, splitName);
-  const split = getSplit(visitor, splitName);
   const weighting = split.weighting;
   const sortedVariants = getSplitVariants(split).sort();
 
   for (const variant of sortedVariants) {
+    // @ts-expect-error `weighting[variant]` could be undefined
     bucketCeiling += weighting[variant];
     if (bucketCeiling > assignmentBucket) {
       return variant;

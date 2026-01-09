@@ -1,8 +1,5 @@
 import Assignment from './assignment';
-import { type Split } from './split';
-import { createSplitRegistry, type SplitRegistry } from './splitRegistry';
-
-const DEFAULT_VISITOR_COOKIE_NAME = 'tt_visitor_id';
+import { type Split, createSplitRegistry, type SplitRegistry } from './splitRegistry';
 
 declare global {
   interface Window {
@@ -10,30 +7,21 @@ declare global {
   }
 }
 
-export type RawConfig = {
+export type Config = Readonly<{
   url: string;
   cookieDomain: string;
   cookieName?: string;
   experienceSamplingWeight: number;
-  assignments?: { [splitName: string]: string };
-  splits?: {
-    [splitName: string]: {
+  assignments?: Readonly<{ [splitName: string]: string }>;
+  splits?: Readonly<{
+    [splitName: string]: Readonly<{
       feature_gate: boolean;
-      weights: { [variant: string]: number };
-    };
-  };
-};
+      weights: Readonly<{ [variant: string]: number }>;
+    }>;
+  }>;
+}>;
 
-export type Config = {
-  url: URL;
-  cookieDomain: string;
-  cookieName: string;
-  experienceSamplingWeight: number;
-  splitRegistry: SplitRegistry;
-  assignments: Assignment[] | null;
-};
-
-function parseSplitRegistry(rawSplits: RawConfig['splits']): SplitRegistry {
+export function parseSplitRegistry(rawSplits: Config['splits']): SplitRegistry {
   if (!rawSplits) {
     return createSplitRegistry(null);
   }
@@ -47,7 +35,7 @@ function parseSplitRegistry(rawSplits: RawConfig['splits']): SplitRegistry {
   return createSplitRegistry(splits);
 }
 
-function parseAssignments(rawAssignments: RawConfig['assignments']): Assignment[] | null {
+export function parseAssignments(rawAssignments: Config['assignments']): Assignment[] | null {
   if (!rawAssignments) {
     return null;
   }
@@ -57,20 +45,9 @@ function parseAssignments(rawAssignments: RawConfig['assignments']): Assignment[
   });
 }
 
-export function parseConfig(rawConfig: RawConfig): Config {
-  return {
-    url: new URL(rawConfig.url),
-    cookieDomain: rawConfig.cookieDomain,
-    cookieName: rawConfig.cookieName || DEFAULT_VISITOR_COOKIE_NAME,
-    experienceSamplingWeight: rawConfig.experienceSamplingWeight,
-    splitRegistry: parseSplitRegistry(rawConfig.splits),
-    assignments: parseAssignments(rawConfig.assignments)
-  };
-}
-
 export function loadConfig(): Config {
   try {
-    return parseConfig(JSON.parse(atob(window.TT!)));
+    return JSON.parse(atob(window.TT!)) as Config;
   } catch {
     throw new Error('Unable to parse configuration');
   }

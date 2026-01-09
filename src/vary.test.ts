@@ -1,77 +1,65 @@
 import Assignment from './assignment';
 import { vary } from './vary';
-import Visitor from './visitor';
-import { createConfig } from './test-utils';
-import type { Config } from './config';
+import { createSplitRegistry } from './splitRegistry';
 
-function setupConfig() {
-  return createConfig({
-    splits: {
-      element: {
-        feature_gate: false,
-        weights: { earth: 25, wind: 25, fire: 25, water: 25 }
-      }
-    }
-  });
-}
+const emptySplitRegistry = createSplitRegistry(null);
+
+const splitRegistry = createSplitRegistry([
+  {
+    name: 'element',
+    isFeatureGate: false,
+    weighting: { earth: 25, wind: 25, fire: 25, water: 25 }
+  }
+]);
 
 function createAssignment() {
   return new Assignment({ splitName: 'element', variant: 'earth', isUnsynced: true });
 }
 
-function createVisitor(config: Config) {
-  const assignment = createAssignment();
-  const visitor = new Visitor({ config, id: 'visitor_id', assignments: [assignment] });
-  visitor.logError = vi.fn();
-  return visitor;
-}
-
 describe('vary', () => {
   it('logs an error if given a variant that is not in the split registry', () => {
-    const config = setupConfig();
     const assignment = createAssignment();
-    const visitor = createVisitor(config);
+    const logError = vi.fn();
     const handler = () => {};
     vary({
       assignment,
-      visitor,
+      logError,
       defaultVariant: 'leeloo_multipass',
-      variants: { leeloo_multipass: handler, water: () => {} }
+      variants: { leeloo_multipass: handler, water: () => {} },
+      splitRegistry
     });
 
-    expect(visitor.logError).toHaveBeenCalledWith('configures unknown variants: leeloo_multipass');
+    expect(logError).toHaveBeenCalledWith('configures unknown variants: leeloo_multipass');
   });
 
   it('does not log an error when the split registry is not loaded', () => {
-    const config = createConfig();
-
     const assignment = createAssignment();
-    const visitor = createVisitor(config);
+    const logError = vi.fn();
     vary({
       assignment,
-      visitor,
+      logError,
       defaultVariant: 'water',
-      variants: { leeloo_multipass: () => {}, water: () => {} }
+      variants: { leeloo_multipass: () => {}, water: () => {} },
+      splitRegistry: emptySplitRegistry
     });
 
-    expect(visitor.logError).not.toHaveBeenCalled();
+    expect(logError).not.toHaveBeenCalled();
   });
 
   it('does not log an error for a variant with a 0 weight', () => {
-    const config = createConfig({
-      splits: {
-        element: {
-          feature_gate: false,
-          weights: { earth: 25, wind: 25, fire: 25, water: 25, leeloo_multipass: 0 }
-        }
+    const customSplitRegistry = createSplitRegistry([
+      {
+        name: 'element',
+        isFeatureGate: false,
+        weighting: { earth: 25, wind: 25, fire: 25, water: 25, leeloo_multipass: 0 }
       }
-    });
+    ]);
 
     const assignment = createAssignment();
-    const visitor = createVisitor(config);
+    const logError = vi.fn();
     vary({
       assignment,
-      visitor,
+      logError,
       defaultVariant: 'water',
       variants: {
         leeloo_multipass: () => {},
@@ -79,40 +67,39 @@ describe('vary', () => {
         earth: () => {},
         wind: () => {},
         fire: () => {}
-      }
+      },
+      splitRegistry: customSplitRegistry
     });
 
-    expect(visitor.logError).not.toHaveBeenCalled();
+    expect(logError).not.toHaveBeenCalled();
   });
 
   it('throws an error if only one variant is provided', () => {
-    const config = setupConfig();
     const assignment = createAssignment();
-    const visitor = createVisitor(config);
 
     expect(() => {
       vary({
         assignment,
-        visitor,
+        logError: vi.fn(),
         defaultVariant: 'water',
-        variants: { water: () => {} }
+        variants: { water: () => {} },
+        splitRegistry
       });
     }).toThrow('must provide at least two variants');
   });
 
   it('runs the handler of the assigned variant', () => {
-    const config = setupConfig();
     const assignment = createAssignment();
-    const visitor = createVisitor(config);
 
     const whenHandler = vi.fn();
     const defaultHandler = vi.fn();
 
     vary({
       assignment,
-      visitor,
+      logError: vi.fn(),
       defaultVariant: 'water',
-      variants: { earth: whenHandler, water: defaultHandler }
+      variants: { earth: whenHandler, water: defaultHandler },
+      splitRegistry
     });
 
     expect(whenHandler).toHaveBeenCalled();
@@ -120,18 +107,17 @@ describe('vary', () => {
   });
 
   it('runs the default handler and is defaulted if the assigned variant is not represented', () => {
-    const config = setupConfig();
     const assignment = createAssignment();
-    const visitor = createVisitor(config);
 
     const whenHandler = vi.fn();
     const defaultHandler = vi.fn();
 
     const result = vary({
       assignment,
-      visitor,
+      logError: vi.fn(),
       defaultVariant: 'water',
-      variants: { fire: whenHandler, water: defaultHandler }
+      variants: { fire: whenHandler, water: defaultHandler },
+      splitRegistry
     });
 
     expect(result).toEqual({ isDefaulted: true });
@@ -140,18 +126,17 @@ describe('vary', () => {
   });
 
   it('is not defaulted if the assigned variant is represented as the default', () => {
-    const config = setupConfig();
     const assignment = createAssignment();
-    const visitor = createVisitor(config);
 
     const whenHandler = vi.fn();
     const defaultHandler = vi.fn();
 
     const result = vary({
       assignment,
-      visitor,
+      logError: vi.fn(),
       defaultVariant: 'earth',
-      variants: { water: whenHandler, earth: defaultHandler }
+      variants: { water: whenHandler, earth: defaultHandler },
+      splitRegistry
     });
 
     expect(result).toEqual({ isDefaulted: false });
@@ -160,32 +145,31 @@ describe('vary', () => {
   });
 
   it('logs an error if not all variants are represented', () => {
-    const config = setupConfig();
     const assignment = createAssignment();
-    const visitor = createVisitor(config);
+    const logError = vi.fn();
 
     vary({
       assignment,
-      visitor,
+      logError,
       defaultVariant: 'fire',
-      variants: { earth: vi.fn(), fire: vi.fn() }
+      variants: { earth: vi.fn(), fire: vi.fn() },
+      splitRegistry
     });
 
-    expect(visitor.logError).toHaveBeenCalledWith('does not configure variants: wind, water');
+    expect(logError).toHaveBeenCalledWith('does not configure variants: wind, water');
   });
 
   it('does not log an error when the split registry is not loaded', () => {
-    const config = createConfig();
-
     const assignment = createAssignment();
-    const visitor = createVisitor(config);
+    const logError = vi.fn();
     vary({
       assignment,
-      visitor,
+      logError,
       defaultVariant: 'fire',
-      variants: { earth: vi.fn(), fire: vi.fn() }
+      variants: { earth: vi.fn(), fire: vi.fn() },
+      splitRegistry: emptySplitRegistry
     });
 
-    expect(visitor.logError).not.toHaveBeenCalled();
+    expect(logError).not.toHaveBeenCalled();
   });
 });

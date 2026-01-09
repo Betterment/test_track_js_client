@@ -5,17 +5,15 @@ export type { AnalyticsProvider } from './analyticsProvider';
 
 const session = createSession();
 
-/* eslint-disable @typescript-eslint/unbound-method */
-export const initialize = session.initialize;
+export const initialize = session.initialize.bind(session);
 
 /** @deprecated `initialize()` returns `TestTrack` */
-export const vary = session.vary;
+export const vary = session.vary.bind(session);
 /** @deprecated `initialize()` returns `TestTrack` */
-export const ab = session.ab;
+export const ab = session.ab.bind(session);
 /** @deprecated `initialize()` returns `TestTrack` */
-export const logIn = session.logIn;
+export const logIn = session.logIn.bind(session);
 /** @deprecated `initialize()` returns `TestTrack` */
-export const signUp = session.signUp;
+export const signUp = session.signUp.bind(session);
 /** @deprecated `initialize()` returns `TestTrack` */
 export const _crx = session._crx;
-/* eslint-enable @typescript-eslint/unbound-method */

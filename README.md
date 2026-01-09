@@ -13,13 +13,13 @@ If you're looking to do server-side assignment and you're using Rails, then chec
 You can add the test track js client to your application via npm, yarn or pnpm.
 
 ```
-$ pnpm add @betterment/test-track
+pnpm add @betterment-oss/test-track
 ```
 
 You can find the latest version of the test track JS client [here](https://github.com/Betterment/test_track_js_client/releases).
 
 ```javascript
-import { initialize } from '@betterment/test-track';
+import { initialize } from '@betterment-oss/test-track';
 
 const testTrack = await initialize();
 ```
@@ -128,7 +128,7 @@ const testTrack = await initialize({
 
 ## Using TestTrack without a build tool
 
-The `@betterment/test-track` package is distributed as an ES module. The package also provides `dist/index.iffe.js`. This artifact includes all dependencies and can be used directly in the browser.
+The `@betterment-oss/test-track` package is distributed as an ES module. The package also provides `dist/index.iffe.js`. This artifact includes all dependencies and can be used directly in the browser.
 
 ```html
 <script>

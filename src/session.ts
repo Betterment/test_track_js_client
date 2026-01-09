@@ -18,7 +18,7 @@ export function createSession() {
   const initialization = new Promise<TestTrack>(resolve => (ready = resolve));
 
   return {
-    async initialize(options: SessionOptions): Promise<TestTrack> {
+    async initialize(options: SessionOptions = {}): Promise<TestTrack> {
       const config = loadConfig();
       const client = createClient({ url: config.url });
       const storage = createCookieStorage({ domain: config.cookieDomain, name: config.cookieName });

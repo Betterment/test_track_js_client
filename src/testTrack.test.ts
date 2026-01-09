@@ -153,6 +153,8 @@ describe('TestTrack', () => {
 
       it('only sends one AssignmentNotification with the default if it is defaulted', () => {
         const testTrack = createTestTrack();
+        testTrack.setErrorLogger(() => {});
+
         const rose = vi.fn();
         const white = vi.fn();
 
@@ -236,9 +238,10 @@ describe('TestTrack', () => {
 
       it('sends an AssignmentNotification with the default if it is defaulted', () => {
         const testTrack = createTestTrack();
+        testTrack.setErrorLogger(() => {});
+
         const furryMan = vi.fn();
         const cgi = vi.fn();
-
         const result = testTrack.vary('jabba', {
           context: 'defaulted',
           variants: { furryMan, cgi },
@@ -434,8 +437,9 @@ describe('TestTrack', () => {
 
       it('returns false when split variants are not true and false', () => {
         const testTrack = createTestTrack();
-        const callback = vi.fn();
+        testTrack.setErrorLogger(() => {});
 
+        const callback = vi.fn();
         const result = testTrack.ab('jabba', { context: 'spec', callback });
 
         expect(result).toBe(false);

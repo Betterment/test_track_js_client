@@ -45,41 +45,33 @@
       const featureVariantEl = document.getElementById('feature-variant');
 
       async function runSplits() {
-        await TestTrack.vary('button_color', {
+        const buttonVariant = testTrack.vary('button_color', {
           context: 'demo_page',
-          defaultVariant: 'blue',
-          variants: {
-            blue: () => {
-              buttonVariantEl.textContent = 'blue';
-              console.log('button_color split: blue variant assigned');
-            },
-            red: () => {
-              buttonVariantEl.textContent = 'red';
-              console.log('button_color split: red variant assigned');
-            }
-          }
+          defaultVariant: 'blue'
         });
 
-        await TestTrack.ab('new_feature', {
+        buttonVariantEl.textContent = buttonVariant;
+        console.log('button_color split:', buttonVariant, 'variant assigned');
+
+        const isFeatureEnabled = testTrack.ab('new_feature', {
           context: 'demo_page',
-          trueVariant: 'true',
-          callback: isEnabled => {
-            featureVariantEl.textContent = isEnabled ? 'true' : 'false';
-            console.log('new_feature split:', isEnabled ? 'enabled' : 'disabled');
-          }
+          trueVariant: 'true'
         });
+
+        featureVariantEl.textContent = isFeatureEnabled ? 'true' : 'false';
+        console.log('new_feature split:', isFeatureEnabled ? 'enabled' : 'disabled');
       }
 
       // Initialize
-      const visitor = await TestTrack.initialize({});
-      const visitorId = visitor.getId();
+      const testTrack = await TestTrack.initialize();
+      const visitorId = testTrack.visitorId;
       visitorIdEl.textContent = visitorId;
       await runSplits();
 
       // Login
       document.getElementById('login').addEventListener('click', async () => {
-        await TestTrack.logIn('user_id', 'demo_user_123');
-        console.log('Successfully linked visitor to demo_user_123');
+        await testTrack.logIn('user_id', 123);
+        console.log('Successfully linked visitor to user_id 123');
         await runSplits();
       });
     </script>

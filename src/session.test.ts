@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 import { createSession } from './session';
-import Visitor from './visitor';
+import { TestTrack } from './testTrack';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { Config } from './config';
 import { v4 as uuid } from 'uuid';
@@ -34,7 +34,7 @@ describe('createSession', () => {
 
   describe('Cookie behavior', () => {
     it('reads the visitor id from a cookie and sets it back in the cookie', async () => {
-      await createSession().initialize({});
+      await createSession().initialize();
       expect(Cookies.get).toHaveBeenCalledTimes(1);
       expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
       expect(Cookies.set).toHaveBeenCalledTimes(1);
@@ -51,7 +51,7 @@ describe('createSession', () => {
       // @ts-expect-error uuid mock return type
       vi.mocked(uuid).mockReturnValue('generated_visitor_id');
 
-      await createSession().initialize({});
+      await createSession().initialize();
       expect(Cookies.get).toHaveBeenCalledTimes(1);
       expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
       expect(Cookies.set).toHaveBeenCalledTimes(1);
@@ -65,8 +65,8 @@ describe('createSession', () => {
 
   describe('#initialize()', () => {
     it('calls notifyUnsyncedAssignments when a visitor is loaded', async () => {
-      const notifySpy = vi.spyOn(Visitor.prototype, 'notifyUnsyncedAssignments');
-      await createSession().initialize({});
+      const notifySpy = vi.spyOn(TestTrack.prototype, 'notifyUnsyncedAssignments');
+      await createSession().initialize();
       expect(notifySpy).toHaveBeenCalledTimes(1);
     });
 
@@ -77,15 +77,15 @@ describe('createSession', () => {
         alias: vi.fn()
       };
 
-      const visitor = await createSession().initialize({ analytics });
-      expect(visitor.analytics).toBe(analytics);
+      const testTrack = await createSession().initialize({ analytics });
+      expect(testTrack.analytics).toBe(analytics);
     });
 
     it('sets the error logger', async () => {
       const errorLogger = vi.fn();
-      const visitor = await createSession().initialize({ errorLogger: errorLogger });
+      const testTrack = await createSession().initialize({ errorLogger: errorLogger });
 
-      visitor.logError('kaboom');
+      testTrack.logError('kaboom');
       expect(errorLogger).toHaveBeenCalledWith('kaboom');
     });
   });
@@ -106,7 +106,7 @@ describe('createSession', () => {
 
     it('updates the visitor id in the cookie', async () => {
       const session = createSession();
-      await session.initialize({});
+      await session.initialize();
       expect(Cookies.set).toHaveBeenCalledOnce();
 
       await session.logIn('myappdb_user_id', 444);
@@ -119,8 +119,8 @@ describe('createSession', () => {
 
     it('calls analytics.identify with the resolved visitor id', async () => {
       const session = createSession();
-      const visitor = await session.initialize({});
-      const identifySpy = vi.spyOn(visitor.analytics, 'identify');
+      const testTrack = await session.initialize();
+      const identifySpy = vi.spyOn(testTrack.analytics, 'identify');
 
       await session.logIn('myappdb_user_id', 444);
       expect(identifySpy).toHaveBeenCalledTimes(1);
@@ -144,7 +144,7 @@ describe('createSession', () => {
 
     it('updates the visitor id in the cookie', async () => {
       const session = createSession();
-      await session.initialize({});
+      await session.initialize();
       expect(Cookies.set).toHaveBeenCalledOnce();
 
       await session.signUp('myappdb_user_id', 444);
@@ -157,8 +157,8 @@ describe('createSession', () => {
 
     it('calls analytics.alias with the resolved visitor id', async () => {
       const session = createSession();
-      const visitor = await session.initialize({});
-      const aliasSpy = vi.spyOn(visitor.analytics, 'alias');
+      const testTrack = await session.initialize();
+      const aliasSpy = vi.spyOn(testTrack.analytics, 'alias');
 
       await session.signUp('myappdb_user_id', 444);
       expect(aliasSpy).toHaveBeenCalledTimes(1);
@@ -169,7 +169,7 @@ describe('createSession', () => {
   describe('#vary()', () => {
     it('calls the correct vary function for the given split', async () => {
       const session = createSession();
-      await session.initialize({});
+      await session.initialize();
 
       const mockCgi = vi.fn();
       const mockPuppet = vi.fn();
@@ -191,7 +191,7 @@ describe('createSession', () => {
   describe('#ab()', () => {
     it('passes true or false into the callback', async () => {
       const session = createSession();
-      await session.initialize({});
+      await session.initialize();
 
       const callback = vi.fn();
       await session.ab('jabba', { context: 'spec', trueVariant: 'cgi', callback });
@@ -201,7 +201,7 @@ describe('createSession', () => {
 
   it('returns an object with a limited set of methods', async () => {
     const session = createSession();
-    await session.initialize({});
+    await session.initialize();
 
     expect(session).toEqual({
       vary: expect.any(Function),
@@ -228,7 +228,7 @@ describe('createSession', () => {
 
       it('creates an assignment override on the test track server', async () => {
         const session = createSession();
-        await session.initialize({});
+        await session.initialize();
 
         await session._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
         expect(requests.length).toBe(1);
@@ -275,7 +275,7 @@ describe('createSession', () => {
     describe('#loadInfo()', () => {
       it('returns a promise that resolves with the split registry, assignment registry and visitor id', async () => {
         const session = createSession();
-        await session.initialize({});
+        await session.initialize();
 
         const info = await session._crx.loadInfo();
         expect(info.visitorId).toEqual('existing_visitor_id');

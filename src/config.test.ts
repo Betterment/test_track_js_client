@@ -1,4 +1,4 @@
-import Assignment from './assignment';
+import { Assignment } from './assignment';
 import { loadConfig, parseAssignments, parseSplitRegistry, type Config } from './config';
 
 const rawConfig: Config = {

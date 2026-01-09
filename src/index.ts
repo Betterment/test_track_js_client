@@ -1,41 +1,19 @@
 import { createSession } from './session';
+
+export type { TestTrack } from './testTrack';
 export type { AnalyticsProvider } from './analyticsProvider';
 
-const TestTrack = createSession();
+const session = createSession();
 
-const notifyListener = () => {
-  window.dispatchEvent(
-    new CustomEvent('tt:lib:loaded', {
-      detail: {
-        TestTrack: TestTrack
-      }
-    })
-  );
-};
-const loadTestTrack = () => {
-  // Add class to body of page after body is loaded to enable chrome extension support
-  document.body.classList.add('_tt');
-  try {
-    window.dispatchEvent(new CustomEvent('tt:class:added'));
-  } catch {
-    // ignore
-  }
-};
+export const initialize = session.initialize.bind(session);
 
-try {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadTestTrack);
-  } else {
-    loadTestTrack();
-  }
-
-  // **** The order of these two lines is important, they support 2 different cases:
-  // in the case where there is already code listening for 'tt:lib:loaded', trigger it immediately
-  // in the case where there is not yet code listening for 'tt:lib:loaded', listen for 'tt:listener:ready' and then trigger 'tt:lib:loaded'
-  notifyListener();
-  window.addEventListener('tt:listener:ready', notifyListener);
-} catch {
-  // ignore
-}
-
-export default TestTrack;
+/** @deprecated `initialize()` returns `TestTrack` */
+export const vary = session.vary.bind(session);
+/** @deprecated `initialize()` returns `TestTrack` */
+export const ab = session.ab.bind(session);
+/** @deprecated `initialize()` returns `TestTrack` */
+export const logIn = session.logIn.bind(session);
+/** @deprecated `initialize()` returns `TestTrack` */
+export const signUp = session.signUp.bind(session);
+/** @deprecated `initialize()` returns `TestTrack` */
+export const _crx = session._crx;

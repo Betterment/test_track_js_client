@@ -1,4 +1,4 @@
-import Assignment from './assignment';
+import { Assignment } from './assignment';
 import { vary } from './vary';
 import { createSplitRegistry } from './splitRegistry';
 
@@ -120,7 +120,7 @@ describe('vary', () => {
       splitRegistry
     });
 
-    expect(result).toEqual({ isDefaulted: true });
+    expect(result).toEqual({ isDefaulted: true, variant: 'water' });
     expect(defaultHandler).toHaveBeenCalled();
     expect(whenHandler).not.toHaveBeenCalled();
   });
@@ -139,7 +139,7 @@ describe('vary', () => {
       splitRegistry
     });
 
-    expect(result).toEqual({ isDefaulted: false });
+    expect(result).toEqual({ isDefaulted: false, variant: 'earth' });
     expect(defaultHandler).toHaveBeenCalled();
     expect(whenHandler).not.toHaveBeenCalled();
   });

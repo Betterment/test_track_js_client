@@ -1,122 +1,85 @@
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
-import Visitor, { type AbOptions, type VaryOptions } from './visitor';
+import { TestTrack, type AbOptions, type VaryOptions } from './testTrack';
+import { connectToWebExtension, type WebExtension } from './webExtension';
+import { loadVisitor } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
-import type { SplitRegistry, V1Hash } from './splitRegistry';
-import { createCookieStorage, type StorageProvider } from './storageProvider';
-import { createClient, type Client } from './client';
+import { createCookieStorage } from './storageProvider';
+import { createClient } from './client';
 
 type SessionOptions = {
   analytics?: AnalyticsProvider;
   errorLogger?: (errorMessage: string) => void;
-  onVisitorLoaded?: (visitor: Visitor) => void;
-};
-
-type SessionContext = {
-  client: Client;
-  storage: StorageProvider;
-  visitor: Visitor;
-  splitRegistry: SplitRegistry;
-};
-
-type CrxInfo = {
-  visitorId: string;
-  splitRegistry: V1Hash;
-  assignmentRegistry: Record<string, string | null>;
+  /** @deprecated Await the result of `initialize` */
+  onVisitorLoaded?: (visitor: TestTrack) => void;
 };
 
 export function createSession() {
-  let resolveContext: (context: SessionContext) => void;
-  const sessionContext = new Promise<SessionContext>(resolve => (resolveContext = resolve));
+  let ready: (testText: TestTrack) => void;
+  const initialization = new Promise<TestTrack>(resolve => (ready = resolve));
 
   return {
-    async initialize(options: SessionOptions): Promise<Visitor> {
+    async initialize(options: SessionOptions = {}): Promise<TestTrack> {
       const config = loadConfig();
       const client = createClient({ url: config.url });
       const storage = createCookieStorage({ domain: config.cookieDomain, name: config.cookieName });
       const splitRegistry = parseSplitRegistry(config.splits);
-      const visitor = await Visitor.loadVisitor({
+      const { visitor, isOffline } = await loadVisitor({
         client,
         splitRegistry,
         id: storage.getVisitorId(),
         assignments: parseAssignments(config.assignments)
       });
 
-      if (options.analytics) {
-        visitor.setAnalytics(options.analytics);
-      }
+      const testTrack = new TestTrack({ client, storage, splitRegistry, visitor, isOffline });
+      if (options.analytics) testTrack.setAnalytics(options.analytics);
+      if (options.errorLogger) testTrack.setErrorLogger(options.errorLogger);
+      if (options.onVisitorLoaded) options.onVisitorLoaded(testTrack);
 
-      if (options.errorLogger) {
-        visitor.setErrorLogger(options.errorLogger);
-      }
+      testTrack.notifyUnsyncedAssignments();
+      connectToWebExtension(testTrack._crx);
 
-      if (options.onVisitorLoaded) {
-        options.onVisitorLoaded(visitor);
-      }
+      ready(testTrack);
+      storage.setVisitorId(testTrack.visitorId);
 
-      visitor.notifyUnsyncedAssignments();
-
-      resolveContext({ client, storage, visitor, splitRegistry });
-      storage.setVisitorId(visitor.getId());
-
-      return visitor;
+      return testTrack;
     },
 
+    /** @deprecated `initialize()` returns `TestTrack` */
     async vary(splitName: string, options: VaryOptions): Promise<void> {
-      const { visitor } = await sessionContext;
-      visitor.vary(splitName, options);
+      const testTrack = await initialization;
+      testTrack.vary(splitName, options);
     },
 
+    /** @deprecated `initialize()` returns `TestTrack` */
     async ab(splitName: string, options: AbOptions): Promise<void> {
-      const { visitor } = await sessionContext;
-      visitor.ab(splitName, options);
+      const testTrack = await initialization;
+      testTrack.ab(splitName, options);
     },
 
+    /** @deprecated `initialize()` returns `TestTrack` */
     async logIn(identifierType: string, value: number): Promise<void> {
-      const { visitor, storage } = await sessionContext;
-      await visitor.linkIdentifier(identifierType, value);
-      storage.setVisitorId(visitor.getId());
-      visitor.analytics.identify(visitor.getId());
+      const testTrack = await initialization;
+      await testTrack.logIn(identifierType, value);
     },
 
+    /** @deprecated `initialize()` returns `TestTrack` */
     async signUp(identifierType: string, value: number): Promise<void> {
-      const { visitor, storage } = await sessionContext;
-      await visitor.linkIdentifier(identifierType, value);
-      storage.setVisitorId(visitor.getId());
-      visitor.analytics.alias(visitor.getId());
+      const testTrack = await initialization;
+      await testTrack.signUp(identifierType, value);
     },
 
+    /** @deprecated `initialize()` returns `TestTrack` */
     _crx: {
-      async loadInfo(): Promise<CrxInfo> {
-        const { visitor, splitRegistry } = await sessionContext;
-
-        return {
-          visitorId: visitor.getId(),
-          splitRegistry: splitRegistry.asV1Hash(),
-          assignmentRegistry: Object.fromEntries(
-            Object.entries(visitor.getAssignmentRegistry()).map(([splitName, assignment]) => [
-              splitName,
-              assignment.getVariant()
-            ])
-          )
-        };
+      async loadInfo() {
+        const testTrack = await initialization;
+        return testTrack._crx.loadInfo();
       },
 
-      async persistAssignment(splitName: string, variant: string, username: string, password: string): Promise<void> {
-        const { visitor, client } = await sessionContext;
-        await client
-          .postAssignmentOverride({
-            visitor_id: visitor.getId(),
-            split_name: splitName,
-            variant,
-            context: 'chrome_extension',
-            mixpanel_result: 'success',
-            auth: { username, password }
-          })
-          .catch(error => {
-            visitor.logError(`test_track persistAssignment error: ${error}`);
-          });
+      async persistAssignment(splitName, variant, username, password) {
+        const testTrack = await initialization;
+        return testTrack._crx.persistAssignment(splitName, variant, username, password);
       }
-    }
+    } satisfies WebExtension
   };
 }
 

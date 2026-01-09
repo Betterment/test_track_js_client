@@ -1,4 +1,4 @@
-import Assignment from './assignment';
+import { Assignment } from './assignment';
 import { type Split, createSplitRegistry, type SplitRegistry } from './splitRegistry';
 
 declare global {

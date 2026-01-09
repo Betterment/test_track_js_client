@@ -1,4 +1,4 @@
-import Assignment from './assignment';
+import { Assignment } from './assignment';
 import { mixpanelAnalytics } from './analyticsProvider';
 
 const mixpanel = {

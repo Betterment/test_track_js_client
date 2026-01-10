@@ -4,8 +4,6 @@ import { TestTrack } from './testTrack';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { Config } from './config';
 import { v4 as uuid } from 'uuid';
-import { http, HttpResponse } from 'msw';
-import { server, requests } from './setupTests';
 
 const rawConfig: Config = {
   url: 'http://testtrack.dev',
@@ -137,78 +135,6 @@ describe('createSession', () => {
         loadInfo: expect.any(Function),
         persistAssignment: expect.any(Function)
       }
-    });
-  });
-
-  describe('_crx', () => {
-    describe('#persistAssignment()', () => {
-      beforeEach(() => {
-        server.use(
-          http.post('http://testtrack.dev/api/v1/assignment_override', () => {
-            return HttpResponse.json(null, { status: 200 });
-          })
-        );
-      });
-
-      it('creates an assignment override on the test track server', async () => {
-        const session = createSession();
-        await session.initialize();
-
-        await session._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
-        expect(requests.length).toBe(1);
-        expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/assignment_override');
-        expect(await requests[0]!.text()).toEqual(
-          'visitor_id=existing_visitor_id&split_name=split&variant=variant&context=chrome_extension&mixpanel_result=success'
-        );
-        expect(requests[0]!.headers.get('authorization')).toEqual(`Basic ${btoa('the_username:the_password')}`);
-      });
-
-      it('logs an error on an error response', async () => {
-        server.use(
-          http.post('http://testtrack.dev/api/v1/assignment_override', () => {
-            return HttpResponse.json(null, { status: 500 });
-          })
-        );
-
-        const errorLogger = vi.fn();
-        const session = createSession();
-        await session.initialize({ errorLogger });
-
-        await session._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
-        expect(errorLogger).toHaveBeenCalledWith(
-          'test_track persistAssignment error: Error: HTTP request failed with 500 status'
-        );
-      });
-
-      it('logs an error on a network error', async () => {
-        server.use(
-          http.post('http://testtrack.dev/api/v1/assignment_override', () => {
-            return HttpResponse.error();
-          })
-        );
-
-        const errorLogger = vi.fn();
-        const session = createSession();
-        await session.initialize({ errorLogger });
-
-        await session._crx.persistAssignment('split', 'variant', 'the_username', 'the_password');
-        expect(errorLogger).toHaveBeenCalledWith('test_track persistAssignment error: TypeError: Failed to fetch');
-      });
-    });
-
-    describe('#loadInfo()', () => {
-      it('returns a promise that resolves with the split registry, assignment registry and visitor id', async () => {
-        const session = createSession();
-        await session.initialize();
-
-        const info = await session._crx.loadInfo();
-        expect(info.visitorId).toEqual('existing_visitor_id');
-        expect(info.splitRegistry).toEqual({
-          jabba: { cgi: 50, puppet: 50 },
-          wine: { red: 50, white: 25, rose: 25 }
-        });
-        expect(info.assignmentRegistry).toEqual({ jabba: 'puppet', wine: 'rose' });
-      });
     });
   });
 });

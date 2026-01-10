@@ -116,19 +116,18 @@ export class TestTrack {
   }
 
   async logIn(identifierType: string, value: number): Promise<void> {
-    await this.linkIdentifier(identifierType, value);
+    await this.#linkIdentifier(identifierType, value);
     this.#storage.setVisitorId(this.visitorId);
     this.#analytics.identify(this.visitorId);
   }
 
   async signUp(identifierType: string, value: number): Promise<void> {
-    await this.linkIdentifier(identifierType, value);
+    await this.#linkIdentifier(identifierType, value);
     this.#storage.setVisitorId(this.visitorId);
     this.#analytics.alias(this.visitorId);
   }
 
-  /** @deprecated Use `logIn` or `signUp` */
-  async linkIdentifier(identifierType: string, value: number): Promise<void> {
+  async #linkIdentifier(identifierType: string, value: number): Promise<void> {
     const { visitor } = await this.#client.postIdentifier({
       visitor_id: this.visitorId,
       identifier_type: identifierType,

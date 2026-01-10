@@ -466,52 +466,6 @@ describe('TestTrack', () => {
         http.post('http://testtrack.dev/api/v1/identifier', () => {
           return HttpResponse.json({
             visitor: {
-              id: 'other_visitor_id',
-              assignments: []
-            }
-          });
-        })
-      );
-    });
-
-    it('updates the visitor id in storage', async () => {
-      const testTrack = createTestTrack();
-      await testTrack.logIn('myappdb_user_id', 444);
-
-      expect(storage.setVisitorId).toHaveBeenCalledWith('other_visitor_id');
-      expect(analytics.identify).toHaveBeenCalledWith('other_visitor_id');
-    });
-  });
-
-  describe('.signUp()', () => {
-    beforeEach(() => {
-      server.use(
-        http.post('http://testtrack.dev/api/v1/identifier', () => {
-          return HttpResponse.json({
-            visitor: {
-              id: 'other_visitor_id',
-              assignments: []
-            }
-          });
-        })
-      );
-    });
-
-    it('updates the visitor id in storage', async () => {
-      const testTrack = createTestTrack();
-      await testTrack.signUp('myappdb_user_id', 444);
-
-      expect(storage.setVisitorId).toHaveBeenCalledWith('other_visitor_id');
-      expect(analytics.alias).toHaveBeenCalledWith('other_visitor_id');
-    });
-  });
-
-  describe('.linkIdentifier()', () => {
-    beforeEach(() => {
-      server.use(
-        http.post('http://testtrack.dev/api/v1/identifier', () => {
-          return HttpResponse.json({
-            visitor: {
               id: 'actual_visitor_id',
               assignments: [
                 {
@@ -535,7 +489,7 @@ describe('TestTrack', () => {
 
     it('hits the test track server with the correct parameters', async () => {
       const testTrack = createTestTrack();
-      await testTrack.linkIdentifier('myappdb_user_id', 444);
+      await testTrack.logIn('myappdb_user_id', 444);
 
       expect(await getRequests()).toEqual([
         {
@@ -564,7 +518,7 @@ describe('TestTrack', () => {
 
       const testTrack = createTestTrack([jabbaPuppetAssignment, wineAssignment]);
 
-      await testTrack.linkIdentifier('myappdb_user_id', 444);
+      await testTrack.logIn('myappdb_user_id', 444);
       expect(testTrack.getAssignmentRegistry()).toEqual({
         jabba: jabbaCGIAssignment,
         wine: { ...wineAssignment, isUnsynced: false },
@@ -579,13 +533,13 @@ describe('TestTrack', () => {
 
     it('changes visitor id', async () => {
       const testTrack = createTestTrack();
-      await testTrack.linkIdentifier('myappdb_user_id', 444);
+      await testTrack.logIn('myappdb_user_id', 444);
       expect(testTrack.visitorId).toBe('actual_visitor_id');
     });
 
     it('notifies any unsynced splits', async () => {
       const testTrack = createTestTrack();
-      await testTrack.linkIdentifier('myappdb_user_id', 444);
+      await testTrack.logIn('myappdb_user_id', 444);
 
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         client,
@@ -599,6 +553,118 @@ describe('TestTrack', () => {
         },
         errorLogger
       });
+    });
+
+    it('updates the visitor id in storage', async () => {
+      const testTrack = createTestTrack();
+      await testTrack.logIn('myappdb_user_id', 444);
+
+      expect(storage.setVisitorId).toHaveBeenCalledWith('actual_visitor_id');
+      expect(analytics.identify).toHaveBeenCalledWith('actual_visitor_id');
+    });
+  });
+
+  describe('.signUp()', () => {
+    beforeEach(() => {
+      server.use(
+        http.post('http://testtrack.dev/api/v1/identifier', () => {
+          return HttpResponse.json({
+            visitor: {
+              id: 'actual_visitor_id',
+              assignments: [
+                {
+                  split_name: 'jabba',
+                  variant: 'cgi',
+                  context: 'mos_eisley',
+                  unsynced: false
+                },
+                {
+                  split_name: 'blue_button',
+                  variant: 'true',
+                  context: 'homepage',
+                  unsynced: true
+                }
+              ]
+            }
+          });
+        })
+      );
+    });
+
+    it('hits the test track server with the correct parameters', async () => {
+      const testTrack = createTestTrack();
+      await testTrack.signUp('myappdb_user_id', 444);
+
+      expect(await getRequests()).toEqual([
+        {
+          method: 'POST',
+          url: 'http://testtrack.dev/api/v1/identifier',
+          body: { visitor_id: 'EXISTING_VISITOR_ID', identifier_type: 'myappdb_user_id', value: '444' }
+        }
+      ]);
+    });
+
+    it('overrides assignments that exist in the other visitor', async () => {
+      const jabbaCGIAssignment: Assignment = {
+        splitName: 'jabba',
+        variant: 'cgi',
+        context: 'mos_eisley',
+        isUnsynced: false
+      };
+
+      const jabbaPuppetAssignment: Assignment = {
+        splitName: 'jabba',
+        variant: 'puppet',
+        context: null,
+        isUnsynced: true
+      };
+      const wineAssignment: Assignment = { splitName: 'wine', variant: 'white', context: null, isUnsynced: true };
+
+      const testTrack = createTestTrack([jabbaPuppetAssignment, wineAssignment]);
+
+      await testTrack.signUp('myappdb_user_id', 444);
+      expect(testTrack.getAssignmentRegistry()).toEqual({
+        jabba: jabbaCGIAssignment,
+        wine: { ...wineAssignment, isUnsynced: false },
+        blue_button: {
+          splitName: 'blue_button',
+          variant: 'true',
+          context: 'homepage',
+          isUnsynced: false
+        }
+      });
+    });
+
+    it('changes visitor id', async () => {
+      const testTrack = createTestTrack();
+      await testTrack.signUp('myappdb_user_id', 444);
+      expect(testTrack.visitorId).toBe('actual_visitor_id');
+    });
+
+    it('notifies any unsynced splits', async () => {
+      const testTrack = createTestTrack();
+      await testTrack.signUp('myappdb_user_id', 444);
+
+      expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
+        client,
+        visitorId: 'actual_visitor_id',
+        analytics,
+        assignment: {
+          splitName: 'blue_button',
+          variant: 'true',
+          context: 'homepage',
+          isUnsynced: true
+        },
+        errorLogger
+      });
+    });
+
+    it('updates the visitor id in storage', async () => {
+      const testTrack = createTestTrack();
+      await testTrack.signUp('myappdb_user_id', 444);
+
+      expect(storage.setVisitorId).toHaveBeenCalledWith('actual_visitor_id');
+      expect(analytics.alias).toHaveBeenCalledWith('actual_visitor_id');
     });
   });
 

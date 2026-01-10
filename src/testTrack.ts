@@ -3,7 +3,7 @@ import { indexAssignments, parseAssignment, type Assignment, type AssignmentRegi
 import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
-import { vary, type Variants } from './vary';
+import { vary } from './vary';
 import { connectWebExtension, createWebExtension } from './webExtension';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { Client } from './client';
@@ -12,8 +12,6 @@ import type { Visitor } from './visitor';
 import type { StorageProvider } from './storageProvider';
 
 export type VaryOptions = {
-  /** @deprecated Use the return value instead */
-  variants?: Variants;
   context: string;
   defaultVariant: boolean | string;
 };
@@ -72,13 +70,12 @@ export class TestTrack {
 
   vary(splitName: string, options: VaryOptions): string {
     const defaultVariant = options.defaultVariant.toString();
-    const { variants, context } = options;
+    const { context } = options;
 
     const assignment = this.#getAssignmentFor(splitName, context);
     const { isDefaulted, variant } = vary({
       assignment,
       defaultVariant,
-      variants,
       splitRegistry: this.#splitRegistry,
       errorLogger: this.#errorLogger
     });

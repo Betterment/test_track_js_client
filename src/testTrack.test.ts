@@ -70,17 +70,15 @@ function createOfflineTestTrack() {
 describe('TestTrack', () => {
   describe('.vary()', () => {
     function varyJabbaSplit(testTrack: TestTrack) {
-      testTrack.vary('jabba', {
+      return testTrack.vary('jabba', {
         context: 'spec',
-        variants: { puppet: vi.fn(), cgi: vi.fn() },
         defaultVariant: 'cgi'
       });
     }
 
     function varyWineSplit(testTrack: TestTrack) {
-      testTrack.vary('wine', {
+      return testTrack.vary('wine', {
         context: 'spec',
-        variants: { red: vi.fn(), white: vi.fn() },
         defaultVariant: 'white'
       });
     }
@@ -90,35 +88,16 @@ describe('TestTrack', () => {
       mockGetAssignmentBucket.mockReturnValue(25);
     });
 
-    it('throws an error if the defaultVariant is not represented in the variants object', () => {
-      const testTrack = createTestTrack();
-      expect(() => {
-        testTrack.vary('wine', {
-          context: 'spec',
-          variants: {
-            white: () => {},
-            red: () => {}
-          },
-          defaultVariant: 'rose'
-        });
-      }).toThrow('defaultVariant: rose must be represented in variants object');
-    });
-
     describe('New Assignment', () => {
       it('generates a new assignment via calculateVariant', () => {
         const testTrack = createTestTrack();
-        const red = vi.fn();
-        const white = vi.fn();
 
         const result = testTrack.vary('wine', {
           context: 'spec',
-          variants: { red, white },
           defaultVariant: 'white'
         });
 
         expect(result).toBe('red');
-        expect(red).toHaveBeenCalledTimes(1);
-        expect(white).not.toHaveBeenCalled();
         expect(mockGetAssignmentBucket).toHaveBeenCalledWith({
           visitorId: 'EXISTING_VISITOR_ID',
           splitName: 'wine'
@@ -127,8 +106,9 @@ describe('TestTrack', () => {
 
       it('adds new assignments to the assignment registry', () => {
         const testTrack = createTestTrack();
-        varyWineSplit(testTrack);
+        const result = varyWineSplit(testTrack);
 
+        expect(result).toBe('red');
         expect(testTrack.assignments).toEqual([
           { splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false },
           { splitName: 'wine', variant: 'red', context: 'spec', isUnsynced: false }
@@ -137,8 +117,9 @@ describe('TestTrack', () => {
 
       it('sends an AssignmentNotification', () => {
         const testTrack = createTestTrack();
-        varyWineSplit(testTrack);
+        const result = varyWineSplit(testTrack);
 
+        expect(result).toBe('red');
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
           visitorId: 'EXISTING_VISITOR_ID',
@@ -154,35 +135,15 @@ describe('TestTrack', () => {
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       });
 
-      it('only sends one AssignmentNotification with the default if it is defaulted', () => {
+      it('returns the variant from calculateVariant', () => {
         const testTrack = createTestTrack();
 
-        const rose = vi.fn();
-        const white = vi.fn();
-
-        // calculateVariant returns 'red', but it's not in variants, so should default to 'white'
         const result = testTrack.vary('wine', {
           context: 'spec',
-          variants: { rose, white },
           defaultVariant: 'white'
         });
 
-        expect(result).toBe('white');
-        expect(white).toHaveBeenCalledTimes(1);
-        expect(rose).not.toHaveBeenCalled();
-        expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-          client,
-          visitorId: 'EXISTING_VISITOR_ID',
-          analytics,
-          assignment: {
-            splitName: 'wine',
-            variant: 'white',
-            context: 'spec',
-            isUnsynced: true
-          },
-          errorLogger
-        });
-        expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
+        expect(result).toBe('red');
       });
 
       it('logs an error if the AssignmentNotification throws an error', () => {
@@ -214,24 +175,20 @@ describe('TestTrack', () => {
     describe('Existing Assignment', () => {
       it('returns an existing assignment wihout generating', () => {
         const testTrack = createTestTrack();
-        const puppet = vi.fn();
-        const cgi = vi.fn();
 
         const result = testTrack.vary('jabba', {
           context: 'spec',
-          variants: { puppet, cgi },
           defaultVariant: 'cgi'
         });
 
         expect(result).toBe('puppet');
-        expect(puppet).toHaveBeenCalledTimes(1);
-        expect(cgi).not.toHaveBeenCalled();
       });
 
       it('does not send an AssignmentNotification', () => {
         const testTrack = createTestTrack();
-        varyJabbaSplit(testTrack);
+        const result = varyJabbaSplit(testTrack);
 
+        expect(result).toBe('puppet');
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
       });
@@ -239,25 +196,20 @@ describe('TestTrack', () => {
       it('sends an AssignmentNotification with the default if it is defaulted', () => {
         const testTrack = createTestTrack();
 
-        const furryMan = vi.fn();
-        const cgi = vi.fn();
-        const result = testTrack.vary('jabba', {
+        const result = testTrack.vary('element', {
           context: 'defaulted',
-          variants: { furryMan, cgi },
-          defaultVariant: 'cgi'
+          defaultVariant: 'fire'
         });
 
-        expect(result).toBe('cgi');
-        expect(cgi).toHaveBeenCalledTimes(1);
-        expect(furryMan).not.toHaveBeenCalled();
+        expect(result).toBe('fire');
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
           visitorId: 'EXISTING_VISITOR_ID',
           analytics,
           assignment: {
-            splitName: 'jabba',
-            variant: 'cgi',
+            splitName: 'element',
+            variant: 'fire',
             context: 'defaulted',
             isUnsynced: true
           },
@@ -270,8 +222,9 @@ describe('TestTrack', () => {
     describe('Offline TestTrack', () => {
       it('generates a new assignment via calculateVariant', () => {
         const testTrack = createOfflineTestTrack();
-        varyJabbaSplit(testTrack);
+        const result = varyJabbaSplit(testTrack);
 
+        expect(result).toBe('cgi');
         expect(mockGetAssignmentBucket).toHaveBeenCalledWith({
           visitorId: 'offline_visitor_id',
           splitName: 'jabba'
@@ -280,8 +233,9 @@ describe('TestTrack', () => {
 
       it('does not send an AssignmentNotification', () => {
         const testTrack = createOfflineTestTrack();
-        varyWineSplit(testTrack);
+        const result = varyWineSplit(testTrack);
 
+        expect(result).toBe('white');
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
       });
@@ -291,8 +245,9 @@ describe('TestTrack', () => {
       it('adds the assignment to the assignment registry', () => {
         // Empty split registry returns null from calculateVariant
         const testTrack = createOfflineTestTrack();
-        varyWineSplit(testTrack);
+        const result = varyWineSplit(testTrack);
 
+        expect(result).toBe('white');
         expect(testTrack.assignments).toEqual([
           { splitName: 'wine', variant: 'white', context: 'spec', isUnsynced: true }
         ]);
@@ -301,50 +256,33 @@ describe('TestTrack', () => {
       it('does not send an AssignmentNotification', () => {
         // Empty split registry returns null from calculateVariant
         const testTrack = createOfflineTestTrack();
-        varyWineSplit(testTrack);
+        const result = varyWineSplit(testTrack);
 
+        expect(result).toBe('white');
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
         expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
       });
     });
 
     describe('Boolean split', () => {
-      it('chooses the correct handler when given a true boolean', () => {
+      it('returns the correct variant when given a true boolean', () => {
         mockGetAssignmentBucket.mockReturnValue(75); // Selects 'true'
         const testTrack = createTestTrack();
-        expect(testTrack.vary('blue_button', { context: 'spec', defaultVariant: true })).toEqual('true');
-
-        const trueHandler = vi.fn();
-        const falseHandler = vi.fn();
-        const result = testTrack.vary('blue_button', {
-          context: 'spec',
-          variants: { true: trueHandler, false: falseHandler },
-          defaultVariant: false
-        });
+        const result = testTrack.vary('blue_button', { context: 'spec', defaultVariant: true });
 
         expect(result).toBe('true');
-        expect(trueHandler).toHaveBeenCalledTimes(1);
-        expect(falseHandler).not.toHaveBeenCalled();
       });
 
-      it('picks the correct handler when given a false boolean', () => {
+      it('returns the correct variant when given a false boolean', () => {
         mockGetAssignmentBucket.mockReturnValue(25); // Selects 'false'
         const testTrack = createTestTrack();
-        const trueHandler = vi.fn();
-        const falseHandler = vi.fn();
 
         const result = testTrack.vary('blue_button', {
           context: 'spec',
-          variants: {
-            true: trueHandler,
-            false: falseHandler
-          },
           defaultVariant: false
         });
 
         expect(result).toBe('false');
-        expect(falseHandler).toHaveBeenCalledTimes(1);
-        expect(trueHandler).not.toHaveBeenCalled();
       });
     });
   });
@@ -509,8 +447,9 @@ describe('TestTrack', () => {
       });
 
       mockSendAssignmentNotification.mockClear();
-      testTrack.vary('wine', { context: 'context', defaultVariant: 'red' });
+      const result = testTrack.vary('wine', { context: 'context', defaultVariant: 'red' });
 
+      expect(result).toBe('red');
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         client,
         analytics,

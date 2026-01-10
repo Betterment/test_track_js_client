@@ -1,6 +1,6 @@
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
-import { TestTrack, type AbOptions, type VaryOptions } from './testTrack';
-import { connectToWebExtension, type WebExtension } from './webExtension';
+import { TestTrack } from './testTrack';
+import { connectToWebExtension } from './webExtension';
 import { loadVisitor } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import { createCookieStorage } from './storageProvider';
@@ -12,9 +12,6 @@ type SessionOptions = {
 };
 
 export function createSession() {
-  let ready: (testText: TestTrack) => void;
-  const initialization = new Promise<TestTrack>(resolve => (ready = resolve));
-
   return {
     async initialize(options: SessionOptions = {}): Promise<TestTrack> {
       const config = loadConfig();
@@ -35,48 +32,10 @@ export function createSession() {
       testTrack.notifyUnsyncedAssignments();
       connectToWebExtension(testTrack._crx);
 
-      ready(testTrack);
       storage.setVisitorId(testTrack.visitorId);
 
       return testTrack;
-    },
-
-    /** @deprecated `initialize()` returns `TestTrack` */
-    async vary(splitName: string, options: VaryOptions): Promise<void> {
-      const testTrack = await initialization;
-      testTrack.vary(splitName, options);
-    },
-
-    /** @deprecated `initialize()` returns `TestTrack` */
-    async ab(splitName: string, options: AbOptions): Promise<void> {
-      const testTrack = await initialization;
-      testTrack.ab(splitName, options);
-    },
-
-    /** @deprecated `initialize()` returns `TestTrack` */
-    async logIn(identifierType: string, value: number): Promise<void> {
-      const testTrack = await initialization;
-      await testTrack.logIn(identifierType, value);
-    },
-
-    /** @deprecated `initialize()` returns `TestTrack` */
-    async signUp(identifierType: string, value: number): Promise<void> {
-      const testTrack = await initialization;
-      await testTrack.signUp(identifierType, value);
-    },
-
-    /** @deprecated `initialize()` returns `TestTrack` */
-    _crx: {
-      async loadInfo() {
-        const testTrack = await initialization;
-        return testTrack._crx.loadInfo();
-      },
-
-      async persistAssignment(splitName, variant, username, password) {
-        const testTrack = await initialization;
-        return testTrack._crx.persistAssignment(splitName, variant, username, password);
-      }
-    } satisfies WebExtension
+    }
   };
 }
 

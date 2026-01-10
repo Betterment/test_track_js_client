@@ -31,6 +31,8 @@ type Options = {
   splitRegistry: SplitRegistry;
   visitor: Visitor;
   isOffline?: boolean;
+  analytics?: AnalyticsProvider;
+  errorLogger?: (errorMessage: string) => void;
 };
 
 type AssignmentRegistry = Readonly<{
@@ -41,23 +43,22 @@ export class TestTrack {
   readonly #client: Client;
   readonly #storage: StorageProvider;
   readonly #splitRegistry: SplitRegistry;
+  readonly #analytics: AnalyticsProvider;
+  readonly #errorLogger: (errorMessage: string) => void;
 
   #visitorId: string;
   #assignments: AssignmentRegistry;
   #isOffline: boolean;
-  #errorLogger: (errorMessage: string) => void;
 
-  /** @deprecated No replacement */
-  analytics: AnalyticsProvider = mixpanelAnalytics;
-
-  constructor({ client, storage, splitRegistry, visitor, isOffline = false }: Options) {
+  constructor({ client, storage, splitRegistry, visitor, isOffline = false, analytics, errorLogger }: Options) {
     this.#client = client;
     this.#storage = storage;
     this.#splitRegistry = splitRegistry;
     this.#isOffline = isOffline;
-    this.#errorLogger = errorMessage => console.error(errorMessage);
     this.#visitorId = visitor.id;
     this.#assignments = Object.fromEntries(visitor.assignments.map(assignment => [assignment.splitName, assignment]));
+    this.#errorLogger = errorLogger ?? (errorMessage => console.error(errorMessage));
+    this.#analytics = analytics ?? mixpanelAnalytics;
   }
 
   get visitorId(): string {
@@ -132,13 +133,13 @@ export class TestTrack {
   async logIn(identifierType: string, value: number): Promise<void> {
     await this.linkIdentifier(identifierType, value);
     this.#storage.setVisitorId(this.visitorId);
-    this.analytics.identify(this.visitorId);
+    this.#analytics.identify(this.visitorId);
   }
 
   async signUp(identifierType: string, value: number): Promise<void> {
     await this.linkIdentifier(identifierType, value);
     this.#storage.setVisitorId(this.visitorId);
-    this.analytics.alias(this.visitorId);
+    this.#analytics.alias(this.visitorId);
   }
 
   /** @deprecated Use `logIn` or `signUp` */
@@ -156,7 +157,9 @@ export class TestTrack {
       visitor: {
         id: data.visitor.id,
         assignments: data.visitor.assignments.map(Assignment.fromV1Assignment)
-      }
+      },
+      analytics: this.#analytics,
+      errorLogger: this.#errorLogger
     });
 
     this.#visitorId = otherTestTrack.visitorId;
@@ -164,19 +167,9 @@ export class TestTrack {
     this.notifyUnsyncedAssignments();
   }
 
-  /** @deprecated Pass `errorLogger` to `initialize` */
-  setErrorLogger(errorLogger: (errorMessage: string) => void): void {
-    this.#errorLogger = errorLogger;
-  }
-
   /** @deprecated No replacement */
   logError(errorMessage: string): void {
     this.#errorLogger.call(null, errorMessage); // call with null context to ensure we don't leak the visitor object to the outside world
-  }
-
-  /** @deprecated Pass `analytics` to `initialize` */
-  setAnalytics(analytics: AnalyticsProvider): void {
-    this.analytics = analytics;
   }
 
   /** @deprecated No replacement */
@@ -222,7 +215,7 @@ export class TestTrack {
       void sendAssignmentNotification({
         client: this.#client,
         visitorId: this.visitorId,
-        analytics: this.analytics,
+        analytics: this.#analytics,
         assignment,
         logError: message => this.logError(message)
       });

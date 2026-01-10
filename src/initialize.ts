@@ -23,9 +23,15 @@ export async function initialize(options: SessionOptions = {}): Promise<TestTrac
     assignments: parseAssignments(config.assignments)
   });
 
-  const testTrack = new TestTrack({ client, storage, splitRegistry, visitor, isOffline });
-  if (options.analytics) testTrack.setAnalytics(options.analytics);
-  if (options.errorLogger) testTrack.setErrorLogger(options.errorLogger);
+  const testTrack = new TestTrack({
+    client,
+    storage,
+    splitRegistry,
+    visitor,
+    isOffline,
+    analytics: options.analytics,
+    errorLogger: options.errorLogger
+  });
 
   testTrack.notifyUnsyncedAssignments();
   connectToWebExtension(testTrack._crx);

@@ -1,7 +1,6 @@
 import Cookies from 'js-cookie';
 import { initialize } from './initialize';
 import { TestTrack } from './testTrack';
-import type { AnalyticsProvider } from './analyticsProvider';
 import type { Config } from './config';
 import { v4 as uuid } from 'uuid';
 
@@ -63,24 +62,5 @@ describe('initialize', () => {
     const notifySpy = vi.spyOn(TestTrack.prototype, 'notifyUnsyncedAssignments');
     await initialize();
     expect(notifySpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('sets the analytics lib', async () => {
-    const analytics: AnalyticsProvider = {
-      trackAssignment: vi.fn(),
-      identify: vi.fn(),
-      alias: vi.fn()
-    };
-
-    const testTrack = await initialize({ analytics });
-    expect(testTrack.analytics).toBe(analytics);
-  });
-
-  it('sets the error logger', async () => {
-    const errorLogger = vi.fn();
-    const testTrack = await initialize({ errorLogger: errorLogger });
-
-    testTrack.logError('kaboom');
-    expect(errorLogger).toHaveBeenCalledWith('kaboom');
   });
 });

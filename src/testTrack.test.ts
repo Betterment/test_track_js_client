@@ -1,6 +1,5 @@
 import { Assignment } from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
-import { mixpanelAnalytics } from './analyticsProvider';
 import { getAssignmentBucket } from './calculateVariant';
 import { TestTrack } from './testTrack';
 import { http, HttpResponse } from 'msw';
@@ -29,6 +28,8 @@ const splitRegistry = createSplitRegistry([
   { name: 'blue_button', isFeatureGate: true, weighting: { true: 50, false: 50 } }
 ]);
 
+const errorLogger = vi.fn();
+
 const storage: StorageProvider = {
   getVisitorId: vi.fn(),
   setVisitorId: vi.fn()
@@ -42,9 +43,11 @@ const analytics: AnalyticsProvider = {
 
 function createTestTrack(assignments?: Assignment[]) {
   return new TestTrack({
+    analytics,
     client,
     storage,
     splitRegistry,
+    errorLogger,
     visitor: {
       id: 'EXISTING_VISITOR_ID',
       assignments: assignments ?? [new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: false })]
@@ -57,6 +60,8 @@ function createOfflineTestTrack() {
     client,
     storage,
     splitRegistry: emptySplitRegistry,
+    errorLogger,
+    analytics,
     visitor: { id: 'offline_visitor_id', assignments: [] },
     isOffline: true
   });
@@ -146,7 +151,7 @@ describe('TestTrack', () => {
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
           visitorId: 'EXISTING_VISITOR_ID',
-          analytics: testTrack.analytics,
+          analytics,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'red',
@@ -160,7 +165,6 @@ describe('TestTrack', () => {
 
       it('only sends one AssignmentNotification with the default if it is defaulted', () => {
         const testTrack = createTestTrack();
-        testTrack.setErrorLogger(() => {});
 
         const rose = vi.fn();
         const white = vi.fn();
@@ -178,7 +182,7 @@ describe('TestTrack', () => {
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
           visitorId: 'EXISTING_VISITOR_ID',
-          analytics: testTrack.analytics,
+          analytics,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'white',
@@ -192,9 +196,7 @@ describe('TestTrack', () => {
 
       it('logs an error if the AssignmentNotification throws an error', () => {
         const testTrack = createTestTrack();
-        const errorLogger = vi.fn();
 
-        testTrack.setErrorLogger(errorLogger);
         mockSendAssignmentNotification.mockImplementationOnce(() => {
           throw new Error('something bad happened');
         });
@@ -204,7 +206,7 @@ describe('TestTrack', () => {
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
           visitorId: 'EXISTING_VISITOR_ID',
-          analytics: testTrack.analytics,
+          analytics,
           assignment: new Assignment({
             splitName: 'wine',
             variant: 'red',
@@ -245,7 +247,6 @@ describe('TestTrack', () => {
 
       it('sends an AssignmentNotification with the default if it is defaulted', () => {
         const testTrack = createTestTrack();
-        testTrack.setErrorLogger(() => {});
 
         const furryMan = vi.fn();
         const cgi = vi.fn();
@@ -262,7 +263,7 @@ describe('TestTrack', () => {
         expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
           client,
           visitorId: 'EXISTING_VISITOR_ID',
-          analytics: testTrack.analytics,
+          analytics,
           assignment: new Assignment({
             splitName: 'jabba',
             variant: 'cgi',
@@ -444,7 +445,6 @@ describe('TestTrack', () => {
 
       it('returns false when split variants are not true and false', () => {
         const testTrack = createTestTrack();
-        testTrack.setErrorLogger(() => {});
 
         const callback = vi.fn();
         const result = testTrack.ab('jabba', { context: 'spec', callback });
@@ -471,8 +471,6 @@ describe('TestTrack', () => {
 
     it('updates the visitor id in storage', async () => {
       const testTrack = createTestTrack();
-      testTrack.setAnalytics(analytics);
-
       await testTrack.logIn('myappdb_user_id', 444);
 
       expect(storage.setVisitorId).toHaveBeenCalledWith('other_visitor_id');
@@ -496,8 +494,6 @@ describe('TestTrack', () => {
 
     it('updates the visitor id in storage', async () => {
       const testTrack = createTestTrack();
-      testTrack.setAnalytics(analytics);
-
       await testTrack.signUp('myappdb_user_id', 444);
 
       expect(storage.setVisitorId).toHaveBeenCalledWith('other_visitor_id');
@@ -579,11 +575,11 @@ describe('TestTrack', () => {
     it('notifies any unsynced splits', async () => {
       const testTrack = createTestTrack();
       await testTrack.linkIdentifier('myappdb_user_id', 444);
-      expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
+
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         client,
         visitorId: 'actual_visitor_id',
-        analytics: mixpanelAnalytics,
+        analytics,
         assignment: new Assignment({
           splitName: 'blue_button',
           variant: 'true',
@@ -595,58 +591,6 @@ describe('TestTrack', () => {
     });
   });
 
-  describe('.logError()', () => {
-    it('calls the error logger with the error message', () => {
-      const testTrack = createTestTrack();
-      const errorLogger = vi.fn();
-      testTrack.setErrorLogger(errorLogger);
-      testTrack.logError('something bad happened');
-
-      expect(errorLogger).toHaveBeenCalledWith('something bad happened');
-    });
-
-    it('calls the error logger with a null context', () => {
-      const testTrack = createTestTrack();
-      const errorLogger = vi.fn();
-      testTrack.setErrorLogger(errorLogger);
-      testTrack.logError('something bad happened');
-
-      expect(errorLogger.mock.instances[0]).toBeNull();
-    });
-
-    it('does a console.error if the error logger was never set', () => {
-      const testTrack = createTestTrack();
-      const consoleSpy = vi.spyOn(console, 'error').mockReturnValueOnce();
-      testTrack.logError('something bad happened');
-
-      expect(consoleSpy).toHaveBeenCalledTimes(1);
-      expect(consoleSpy).toHaveBeenCalledWith('something bad happened');
-    });
-  });
-
-  describe('.analytics', () => {
-    it('defaults to mixpanel analytics', () => {
-      const testTrack = createTestTrack();
-
-      expect(testTrack.analytics).toBe(mixpanelAnalytics);
-    });
-  });
-
-  describe('.setAnalytics()', () => {
-    it('sets the analytics object on the visitor', () => {
-      const testTrack = createTestTrack();
-      const analytics: AnalyticsProvider = {
-        trackAssignment: vi.fn(),
-        alias: vi.fn(),
-        identify: vi.fn()
-      };
-
-      testTrack.setAnalytics(analytics);
-
-      expect(testTrack.analytics).toBe(analytics);
-    });
-  });
-
   describe('.notifyUnsyncedAssignments', () => {
     it('notifies any unsynced assignments', () => {
       const wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', isUnsynced: false });
@@ -654,19 +598,18 @@ describe('TestTrack', () => {
       const testTrack = new TestTrack({
         client,
         storage,
+        analytics,
+        errorLogger,
         splitRegistry: emptySplitRegistry,
         visitor: { id: 'unsynced_visitor_id', assignments: [wineAssignment, blueButtonAssignment] }
       });
 
       testTrack.notifyUnsyncedAssignments();
 
-      expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
-      expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
-
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         client,
+        analytics,
         visitorId: 'unsynced_visitor_id',
-        analytics: mixpanelAnalytics,
         assignment: blueButtonAssignment,
         logError: expect.any(Function)
       });

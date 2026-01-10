@@ -353,12 +353,6 @@ describe('TestTrack', () => {
     it('leverages vary to configure the split', () => {
       const testTrack = createTestTrack();
       expect(testTrack.ab('jabba', { context: 'spec', trueVariant: 'puppet' })).toBe(true);
-
-      const callback = vi.fn();
-      const result = testTrack.ab('jabba', { context: 'spec', trueVariant: 'puppet', callback: callback });
-      expect(result).toBe(true);
-      expect(callback).toHaveBeenCalledTimes(1);
-      expect(callback).toHaveBeenCalledWith(true);
     });
 
     describe('with an explicit trueVariant', () => {
@@ -372,15 +366,12 @@ describe('TestTrack', () => {
           }
         ]);
 
-        const callback = vi.fn();
         const result = testTrack.ab('jabba', {
           context: 'spec',
-          trueVariant: 'puppet',
-          callback
+          trueVariant: 'puppet'
         });
 
         expect(result).toBe(true);
-        expect(callback).toHaveBeenCalledWith(true);
       });
 
       it('returns false when not assigned to the trueVariant', () => {
@@ -393,15 +384,12 @@ describe('TestTrack', () => {
           }
         ]);
 
-        const callback = vi.fn();
         const result = testTrack.ab('jabba', {
           context: 'spec',
-          trueVariant: 'puppet',
-          callback
+          trueVariant: 'puppet'
         });
 
         expect(result).toBe(false);
-        expect(callback).toHaveBeenCalledWith(false);
       });
     });
 
@@ -416,11 +404,9 @@ describe('TestTrack', () => {
           }
         ]);
 
-        const callback = vi.fn();
-        const result = testTrack.ab('blue_button', { context: 'spec', callback });
+        const result = testTrack.ab('blue_button', { context: 'spec' });
 
         expect(result).toBe(true);
-        expect(callback).toHaveBeenCalledWith(true);
       });
 
       it('returns false when variant is false', () => {
@@ -433,21 +419,17 @@ describe('TestTrack', () => {
           }
         ]);
 
-        const callback = vi.fn();
-        const result = testTrack.ab('blue_button', { context: 'spec', callback });
+        const result = testTrack.ab('blue_button', { context: 'spec' });
 
         expect(result).toBe(false);
-        expect(callback).toHaveBeenCalledWith(false);
       });
 
       it('returns false when split variants are not true and false', () => {
         const testTrack = createTestTrack();
 
-        const callback = vi.fn();
-        const result = testTrack.ab('jabba', { context: 'spec', callback });
+        const result = testTrack.ab('jabba', { context: 'spec' });
 
         expect(result).toBe(false);
-        expect(callback).toHaveBeenCalledWith(false);
       });
     });
   });

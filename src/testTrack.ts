@@ -19,8 +19,6 @@ export type VaryOptions = {
 };
 
 export type AbOptions = {
-  /** @deprecated Use the return value instead */
-  callback?: (assignment: boolean) => void;
   context: string;
   trueVariant?: string;
 };
@@ -104,11 +102,7 @@ export class TestTrack {
 
     const variant = this.vary(splitName, {
       context: options.context,
-      defaultVariant: falseVariant,
-      variants: {
-        [trueVariant]: () => options.callback?.(true),
-        [falseVariant]: () => options.callback?.(false)
-      }
+      defaultVariant: falseVariant
     });
 
     return variant === trueVariant;

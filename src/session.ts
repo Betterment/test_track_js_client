@@ -9,8 +9,6 @@ import { createClient } from './client';
 type SessionOptions = {
   analytics?: AnalyticsProvider;
   errorLogger?: (errorMessage: string) => void;
-  /** @deprecated Await the result of `initialize` */
-  onVisitorLoaded?: (visitor: TestTrack) => void;
 };
 
 export function createSession() {
@@ -33,7 +31,6 @@ export function createSession() {
       const testTrack = new TestTrack({ client, storage, splitRegistry, visitor, isOffline });
       if (options.analytics) testTrack.setAnalytics(options.analytics);
       if (options.errorLogger) testTrack.setErrorLogger(options.errorLogger);
-      if (options.onVisitorLoaded) options.onVisitorLoaded(testTrack);
 
       testTrack.notifyUnsyncedAssignments();
       connectToWebExtension(testTrack._crx);

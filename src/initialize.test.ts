@@ -1,8 +1,9 @@
 import Cookies from 'js-cookie';
 import { initialize } from './initialize';
-import { TestTrack } from './testTrack';
 import type { Config } from './config';
 import { v4 as uuid } from 'uuid';
+import { http, HttpResponse } from 'msw';
+import { server, requests } from './setupTests';
 
 const rawConfig: Config = {
   url: 'http://testtrack.dev',
@@ -59,8 +60,27 @@ describe('initialize', () => {
   });
 
   it('sends unsynced assignments when a visitor is loaded', async () => {
-    const notifySpy = vi.spyOn(TestTrack.prototype, 'notifyUnsyncedAssignments');
+    window.TT = btoa(JSON.stringify({ ...rawConfig, assignments: undefined }));
+
+    server.use(
+      http.get('http://testtrack.dev/api/v1/visitors/existing_visitor_id', () => {
+        return HttpResponse.json({
+          id: 'existing_visitor_id',
+          assignments: [
+            { split_name: 'jabba', variant: 'puppet', context: null, unsynced: false },
+            { split_name: 'blue_button', variant: 'true', context: null, unsynced: true }
+          ]
+        });
+      }),
+      http.post('http://testtrack.dev/api/v1/assignment_event', () => {
+        return HttpResponse.json(null, { status: 200 });
+      })
+    );
+
     await initialize();
-    expect(notifySpy).toHaveBeenCalledTimes(1);
+    const assignmentEventRequests = requests.find(r => r.url.includes('/api/v1/assignment_event'))!;
+    expect(await assignmentEventRequests.text()).toEqual(
+      'visitor_id=existing_visitor_id&split_name=blue_button&context='
+    );
   });
 });

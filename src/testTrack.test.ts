@@ -600,8 +600,8 @@ describe('TestTrack', () => {
     });
   });
 
-  describe('.notifyUnsyncedAssignments', () => {
-    it('notifies any unsynced assignments', () => {
+  describe('unsynced assignments', () => {
+    it('notifies unsynced assignments when vary is called', () => {
       const wineAssignment: Assignment = { splitName: 'wine', variant: 'red', context: null, isUnsynced: false };
       const blueButtonAssignment: Assignment = {
         splitName: 'blue_button',
@@ -618,7 +618,8 @@ describe('TestTrack', () => {
         visitor: { id: 'unsynced_visitor_id', assignments: [wineAssignment, blueButtonAssignment] }
       });
 
-      testTrack.notifyUnsyncedAssignments();
+      mockSendAssignmentNotification.mockClear();
+      testTrack.vary('wine', { context: 'context', defaultVariant: 'red' });
 
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         client,

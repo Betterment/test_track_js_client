@@ -48,7 +48,7 @@ export class TestTrack {
 
   static create(options: Options): TestTrack {
     const testTrack = new TestTrack(options);
-    testTrack.notifyUnsyncedAssignments();
+    testTrack.#notifyUnsyncedAssignments();
     return testTrack;
   }
 
@@ -100,7 +100,7 @@ export class TestTrack {
       this.#updateAssignments([{ ...assignment, variant: defaultVariant, isUnsynced: true, context }]);
     }
 
-    this.notifyUnsyncedAssignments();
+    this.#notifyUnsyncedAssignments();
     return variant;
   }
 
@@ -147,11 +147,10 @@ export class TestTrack {
 
     this.#visitorId = visitor.id;
     this.#updateAssignments(visitor.assignments.map(parseAssignment));
-    this.notifyUnsyncedAssignments();
+    this.#notifyUnsyncedAssignments();
   }
 
-  /** @deprecated No replacement */
-  notifyUnsyncedAssignments(): void {
+  #notifyUnsyncedAssignments(): void {
     Object.values(this.#assignments)
       .filter(assignment => assignment.isUnsynced)
       .forEach(assignment => this.#sendAssignmentNotification(assignment));

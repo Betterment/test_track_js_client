@@ -1,13 +1,11 @@
 import type { V1Assignment } from './client';
 
-export type Assignment = {
-  readonly splitName: string;
-
-  // TODO: Update instead of mutating
+export type Assignment = Readonly<{
+  splitName: string;
   variant: string | null;
   context: string | null;
   isUnsynced: boolean;
-};
+}>;
 
 export type AssignmentRegistry = Readonly<{
   [splitName: string]: Assignment;

@@ -157,7 +157,7 @@ describe('TestTrack', () => {
             splitName: 'wine',
             variant: 'red',
             context: 'spec',
-            isUnsynced: false
+            isUnsynced: true
           },
           errorLogger
         });
@@ -188,7 +188,7 @@ describe('TestTrack', () => {
             splitName: 'wine',
             variant: 'white',
             context: 'spec',
-            isUnsynced: false
+            isUnsynced: true
           },
           errorLogger
         });
@@ -269,7 +269,7 @@ describe('TestTrack', () => {
             splitName: 'jabba',
             variant: 'cgi',
             context: 'defaulted',
-            isUnsynced: false // Marked as unsynced after the assignment notification
+            isUnsynced: true
           },
           errorLogger
         });
@@ -552,7 +552,12 @@ describe('TestTrack', () => {
         isUnsynced: false
       };
 
-      const jabbaPuppetAssignment: Assignment = { splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: true };
+      const jabbaPuppetAssignment: Assignment = {
+        splitName: 'jabba',
+        variant: 'puppet',
+        context: null,
+        isUnsynced: true
+      };
       const wineAssignment: Assignment = { splitName: 'wine', variant: 'white', context: null, isUnsynced: true };
 
       const testTrack = createTestTrack([jabbaPuppetAssignment, wineAssignment]);
@@ -560,12 +565,12 @@ describe('TestTrack', () => {
       await testTrack.linkIdentifier('myappdb_user_id', 444);
       expect(testTrack.getAssignmentRegistry()).toEqual({
         jabba: jabbaCGIAssignment,
-        wine: wineAssignment,
+        wine: { ...wineAssignment, isUnsynced: false },
         blue_button: {
           splitName: 'blue_button',
           variant: 'true',
           context: 'homepage',
-          isUnsynced: false // Marked as unsynced after the assignment notification
+          isUnsynced: false
         }
       });
     });
@@ -588,7 +593,7 @@ describe('TestTrack', () => {
           splitName: 'blue_button',
           variant: 'true',
           context: 'homepage',
-          isUnsynced: false // Marked as unsynced after the assignment notification
+          isUnsynced: true
         },
         errorLogger
       });
@@ -598,7 +603,12 @@ describe('TestTrack', () => {
   describe('.notifyUnsyncedAssignments', () => {
     it('notifies any unsynced assignments', () => {
       const wineAssignment: Assignment = { splitName: 'wine', variant: 'red', context: null, isUnsynced: false };
-      const blueButtonAssignment: Assignment = { splitName: 'blue_button', variant: 'true', context: null, isUnsynced: true };
+      const blueButtonAssignment: Assignment = {
+        splitName: 'blue_button',
+        variant: 'true',
+        context: null,
+        isUnsynced: true
+      };
       const testTrack = new TestTrack({
         client,
         storage,

@@ -91,10 +91,7 @@ export class TestTrack {
     });
 
     if (isDefaulted) {
-      // TODO: Update instead of mutating
-      assignment.variant = defaultVariant;
-      assignment.isUnsynced = true;
-      assignment.context = context;
+      this.#updateAssignments([{ ...assignment, variant: defaultVariant, isUnsynced: true, context }]);
     }
 
     this.notifyUnsyncedAssignments();
@@ -142,10 +139,8 @@ export class TestTrack {
       value: value.toString()
     });
 
-    const assignments = indexAssignments(visitor.assignments.map(parseAssignment));
-
     this.#visitorId = visitor.id;
-    this.#assignments = { ...this.#assignments, ...assignments };
+    this.#updateAssignments(visitor.assignments.map(parseAssignment));
     this.notifyUnsyncedAssignments();
   }
 
@@ -173,7 +168,7 @@ export class TestTrack {
     }
 
     const assignment: Assignment = { splitName, variant, context, isUnsynced: true };
-    this.#assignments = { ...this.#assignments, [splitName]: assignment };
+    this.#updateAssignments([assignment]);
     return assignment;
   }
 
@@ -191,9 +186,13 @@ export class TestTrack {
         errorLogger: this.#errorLogger
       });
 
-      assignment.isUnsynced = false;
+      this.#updateAssignments([{ ...assignment, isUnsynced: false }]);
     } catch (e) {
       this.#errorLogger(`test_track notify error: ${String(e)}`);
     }
+  }
+
+  #updateAssignments(assignments: Assignment[]): void {
+    this.#assignments = { ...this.#assignments, ...indexAssignments(assignments) };
   }
 }

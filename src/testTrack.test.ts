@@ -8,6 +8,7 @@ import { server, requests } from './setupTests';
 import type { AnalyticsProvider } from './analyticsProvider';
 import { createClient } from './client';
 import { createSplitRegistry } from './splitRegistry';
+import type { StorageProvider } from './storageProvider';
 
 vi.mock('./assignmentNotification');
 vi.mock('./calculateVariant', async () => {
@@ -28,9 +29,15 @@ const splitRegistry = createSplitRegistry([
   { name: 'blue_button', isFeatureGate: true, weighting: { true: 50, false: 50 } }
 ]);
 
-const storage = {
+const storage: StorageProvider = {
   getVisitorId: vi.fn(),
   setVisitorId: vi.fn()
+};
+
+const analytics: AnalyticsProvider = {
+  alias: vi.fn(),
+  identify: vi.fn(),
+  trackAssignment: vi.fn()
 };
 
 function createTestTrack(assignments?: Assignment[]) {
@@ -445,6 +452,56 @@ describe('TestTrack', () => {
         expect(result).toBe(false);
         expect(callback).toHaveBeenCalledWith(false);
       });
+    });
+  });
+
+  describe('.logIn()', () => {
+    beforeEach(() => {
+      server.use(
+        http.post('http://testtrack.dev/api/v1/identifier', () => {
+          return HttpResponse.json({
+            visitor: {
+              id: 'other_visitor_id',
+              assignments: []
+            }
+          });
+        })
+      );
+    });
+
+    it('updates the visitor id in storage', async () => {
+      const testTrack = createTestTrack();
+      testTrack.setAnalytics(analytics);
+
+      await testTrack.logIn('myappdb_user_id', 444);
+
+      expect(storage.setVisitorId).toHaveBeenCalledWith('other_visitor_id');
+      expect(analytics.identify).toHaveBeenCalledWith('other_visitor_id');
+    });
+  });
+
+  describe('.signUp()', () => {
+    beforeEach(() => {
+      server.use(
+        http.post('http://testtrack.dev/api/v1/identifier', () => {
+          return HttpResponse.json({
+            visitor: {
+              id: 'other_visitor_id',
+              assignments: []
+            }
+          });
+        })
+      );
+    });
+
+    it('updates the visitor id in storage', async () => {
+      const testTrack = createTestTrack();
+      testTrack.setAnalytics(analytics);
+
+      await testTrack.signUp('myappdb_user_id', 444);
+
+      expect(storage.setVisitorId).toHaveBeenCalledWith('other_visitor_id');
+      expect(analytics.alias).toHaveBeenCalledWith('other_visitor_id');
     });
   });
 

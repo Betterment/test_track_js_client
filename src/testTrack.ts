@@ -4,7 +4,7 @@ import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
 import { vary, type Variants } from './vary';
-import { createWebExtension, type WebExtension } from './webExtension';
+import { connectWebExtension, createWebExtension } from './webExtension';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { Client } from './client';
 import type { SplitRegistry } from './splitRegistry';
@@ -49,6 +49,7 @@ export class TestTrack {
   static create(options: Options): TestTrack {
     const testTrack = new TestTrack(options);
     testTrack.#notifyUnsyncedAssignments();
+    testTrack.#connectWebExtension();
     return testTrack;
   }
 
@@ -65,17 +66,6 @@ export class TestTrack {
 
   get visitorId(): string {
     return this.#visitorId;
-  }
-
-  /** @deprecated No replacement */
-  get _crx(): WebExtension {
-    return createWebExtension({
-      client: this.#client,
-      visitorId: this.#visitorId,
-      splitRegistry: this.#splitRegistry,
-      assignments: Object.values(this.#assignments),
-      errorLogger: this.#errorLogger
-    });
   }
 
   /** @deprecated No replacement */
@@ -199,5 +189,17 @@ export class TestTrack {
 
   #updateAssignments(assignments: Assignment[]): void {
     this.#assignments = { ...this.#assignments, ...indexAssignments(assignments) };
+  }
+
+  #connectWebExtension() {
+    const webExtension = createWebExtension({
+      client: this.#client,
+      visitorId: this.#visitorId,
+      splitRegistry: this.#splitRegistry,
+      assignments: Object.values(this.#assignments),
+      errorLogger: this.#errorLogger
+    });
+
+    connectWebExtension(webExtension);
   }
 }

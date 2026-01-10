@@ -52,7 +52,7 @@ export function createWebExtension(options: Options): WebExtension {
   };
 }
 
-export function connectToWebExtension(webExtension: WebExtension): void {
+export function connectWebExtension(webExtension: WebExtension): void {
   const TestTrack = {
     _crx: webExtension
   };

@@ -1,6 +1,5 @@
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
 import { TestTrack } from './testTrack';
-import { connectToWebExtension } from './webExtension';
 import { loadVisitor } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import { createCookieStorage } from './storageProvider';
@@ -32,8 +31,6 @@ export async function initialize(options: SessionOptions = {}): Promise<TestTrac
     analytics: options.analytics,
     errorLogger: options.errorLogger
   });
-
-  connectToWebExtension(testTrack._crx);
 
   storage.setVisitorId(testTrack.visitorId);
 

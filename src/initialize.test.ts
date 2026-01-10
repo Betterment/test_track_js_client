@@ -1,5 +1,5 @@
 import Cookies from 'js-cookie';
-import { initialize } from './session';
+import { initialize } from './initialize';
 import { TestTrack } from './testTrack';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { Config } from './config';

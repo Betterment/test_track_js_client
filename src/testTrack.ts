@@ -3,7 +3,6 @@ import { indexAssignments, parseAssignment, type Assignment, type AssignmentRegi
 import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
-import { vary } from './vary';
 import { connectWebExtension, createWebExtension } from './webExtension';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { Client } from './client';
@@ -69,23 +68,18 @@ export class TestTrack {
   }
 
   vary(splitName: string, options: VaryOptions): string {
+    const context = options.context;
     const defaultVariant = options.defaultVariant.toString();
-    const { context } = options;
 
     const assignment = this.#getAssignmentFor(splitName, context);
-    const { isDefaulted, variant } = vary({
-      assignment,
-      defaultVariant,
-      splitRegistry: this.#splitRegistry,
-      errorLogger: this.#errorLogger
-    });
-
-    if (isDefaulted) {
-      this.#updateAssignments([{ ...assignment, variant: defaultVariant, isUnsynced: true, context }]);
+    if (assignment.variant) {
+      this.#notifyUnsyncedAssignments(); // Probably not necessary
+      return assignment.variant;
     }
 
+    this.#updateAssignments([{ ...assignment, variant: defaultVariant, isUnsynced: true, context }]);
     this.#notifyUnsyncedAssignments();
-    return variant;
+    return defaultVariant;
   }
 
   ab(splitName: string, options: AbOptions): boolean {

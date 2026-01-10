@@ -569,7 +569,6 @@ describe('TestTrack', () => {
       const testTrack = createTestTrack();
       await testTrack.linkIdentifier('myappdb_user_id', 444);
       expect(testTrack.visitorId).toBe('actual_visitor_id');
-      expect(testTrack.getId()).toBe('actual_visitor_id');
     });
 
     it('notifies any unsynced splits', async () => {

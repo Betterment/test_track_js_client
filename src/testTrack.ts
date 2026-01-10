@@ -76,11 +76,6 @@ export class TestTrack {
     });
   }
 
-  /** @deprecated Use `visitorId` */
-  getId(): string {
-    return this.visitorId;
-  }
-
   /** @deprecated No replacement */
   getAssignmentRegistry(): AssignmentRegistry {
     return this.#assignments;

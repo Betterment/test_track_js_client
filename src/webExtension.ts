@@ -7,7 +7,7 @@ type Options = {
   visitorId: string;
   splitRegistry: SplitRegistry;
   assignments: Assignment[];
-  logError: (errorMessage: string) => void;
+  errorLogger: (errorMessage: string) => void;
 };
 
 type Info = {
@@ -22,7 +22,7 @@ export type WebExtension = {
 };
 
 export function createWebExtension(options: Options): WebExtension {
-  const { client, visitorId, splitRegistry, assignments, logError } = options;
+  const { client, visitorId, splitRegistry, assignments, errorLogger } = options;
 
   return {
     loadInfo() {
@@ -46,7 +46,7 @@ export function createWebExtension(options: Options): WebExtension {
           auth: { username, password }
         })
         .catch(error => {
-          logError(`test_track persistAssignment error: ${error}`);
+          errorLogger(`test_track persistAssignment error: ${error}`);
         });
     }
   };

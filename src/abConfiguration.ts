@@ -4,15 +4,15 @@ type Options = {
   splitName: string;
   splitRegistry: SplitRegistry;
   trueVariant: string;
-  logError: (message: string) => void;
+  errorLogger: (message: string) => void;
 };
 
-export function getFalseVariant({ splitName, splitRegistry, trueVariant, logError }: Options): string {
+export function getFalseVariant({ splitName, splitRegistry, trueVariant, errorLogger }: Options): string {
   const split = splitRegistry.getSplit(splitName);
   const splitVariants = split ? getSplitVariants(split) : [];
 
   if (splitVariants.length > 2) {
-    logError(`A/B for ${splitName} configures split with more than 2 variants`);
+    errorLogger(`A/B for ${splitName} configures split with more than 2 variants`);
   }
 
   const otherVariants = splitVariants.filter(v => v !== trueVariant);

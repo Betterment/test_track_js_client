@@ -72,7 +72,7 @@ export class TestTrack {
       visitorId: this.#visitorId,
       splitRegistry: this.#splitRegistry,
       assignments: Object.values(this.#assignments),
-      logError: message => this.logError(message)
+      errorLogger: this.#errorLogger
     });
   }
 
@@ -96,7 +96,7 @@ export class TestTrack {
       defaultVariant,
       variants,
       splitRegistry: this.#splitRegistry,
-      logError: message => this.logError(message)
+      errorLogger: this.#errorLogger
     });
 
     if (isDefaulted) {
@@ -115,7 +115,7 @@ export class TestTrack {
       splitName,
       trueVariant,
       splitRegistry: this.#splitRegistry,
-      logError: message => this.logError(message)
+      errorLogger: this.#errorLogger
     });
 
     const variant = this.vary(splitName, {
@@ -168,11 +168,6 @@ export class TestTrack {
   }
 
   /** @deprecated No replacement */
-  logError(errorMessage: string): void {
-    this.#errorLogger.call(null, errorMessage); // call with null context to ensure we don't leak the visitor object to the outside world
-  }
-
-  /** @deprecated No replacement */
   notifyUnsyncedAssignments(): void {
     Object.values(this.#assignments)
       .filter(assignment => assignment.isUnsynced())
@@ -217,12 +212,12 @@ export class TestTrack {
         visitorId: this.visitorId,
         analytics: this.#analytics,
         assignment,
-        logError: message => this.logError(message)
+        errorLogger: this.#errorLogger
       });
 
       assignment.setUnsynced(false);
     } catch (e) {
-      this.logError(`test_track notify error: ${String(e)}`);
+      this.#errorLogger(`test_track notify error: ${String(e)}`);
     }
   }
 }

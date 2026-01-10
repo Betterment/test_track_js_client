@@ -7,7 +7,7 @@ type Options = {
   analytics: AnalyticsProvider;
   visitorId: string;
   assignment: Assignment;
-  logError: (message: string) => void;
+  errorLogger: (message: string) => void;
 };
 
 async function persistAssignment(options: Options, trackResult?: 'success' | 'failure'): Promise<void> {
@@ -19,7 +19,7 @@ async function persistAssignment(options: Options, trackResult?: 'success' | 'fa
       mixpanel_result: trackResult
     })
     .catch(error => {
-      options.logError(`test_track persistAssignment error: ${error}`);
+      options.errorLogger(`test_track persistAssignment error: ${error}`);
     });
 }
 

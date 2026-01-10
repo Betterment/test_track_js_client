@@ -33,7 +33,7 @@ describe('createWebExtension', () => {
         visitorId: 'existing_visitor_id',
         splitRegistry,
         assignments,
-        logError: () => {}
+        errorLogger: () => {}
       });
 
       await webExtension.persistAssignment('split', 'variant', 'the_username', 'the_password');
@@ -59,7 +59,7 @@ describe('createWebExtension', () => {
         visitorId: 'existing_visitor_id',
         splitRegistry,
         assignments,
-        logError: errorLogger
+        errorLogger
       });
 
       await webExtension.persistAssignment('split', 'variant', 'the_username', 'the_password');
@@ -76,7 +76,7 @@ describe('createWebExtension', () => {
         visitorId: 'existing_visitor_id',
         splitRegistry,
         assignments,
-        logError: () => {}
+        errorLogger: () => {}
       });
 
       expect(await webExtension.loadInfo()).toEqual({

@@ -158,7 +158,7 @@ describe('TestTrack', () => {
             context: 'spec',
             isUnsynced: false
           }),
-          logError: expect.any(Function)
+          errorLogger
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       });
@@ -189,7 +189,7 @@ describe('TestTrack', () => {
             context: 'spec',
             isUnsynced: false
           }),
-          logError: expect.any(Function)
+          errorLogger
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
       });
@@ -213,7 +213,7 @@ describe('TestTrack', () => {
             context: 'spec',
             isUnsynced: true
           }),
-          logError: expect.any(Function)
+          errorLogger
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
         expect(errorLogger).toHaveBeenCalledWith('test_track notify error: Error: something bad happened');
@@ -270,7 +270,7 @@ describe('TestTrack', () => {
             context: 'defaulted',
             isUnsynced: false // Marked as unsynced after the assignment notification
           }),
-          logError: expect.any(Function)
+          errorLogger
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalled();
       });
@@ -586,7 +586,7 @@ describe('TestTrack', () => {
           context: 'homepage',
           isUnsynced: false // Marked as unsynced after the assignment notification
         }),
-        logError: expect.any(Function)
+        errorLogger
       });
     });
   });
@@ -611,7 +611,7 @@ describe('TestTrack', () => {
         analytics,
         visitorId: 'unsynced_visitor_id',
         assignment: blueButtonAssignment,
-        logError: expect.any(Function)
+        errorLogger
       });
     });
   });

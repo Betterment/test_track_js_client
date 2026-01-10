@@ -19,31 +19,31 @@ function createAssignment() {
 describe('vary', () => {
   it('logs an error if given a variant that is not in the split registry', () => {
     const assignment = createAssignment();
-    const logError = vi.fn();
+    const errorLogger = vi.fn();
     const handler = () => {};
     vary({
       assignment,
-      logError,
+      errorLogger,
       defaultVariant: 'leeloo_multipass',
       variants: { leeloo_multipass: handler, water: () => {} },
       splitRegistry
     });
 
-    expect(logError).toHaveBeenCalledWith('configures unknown variants: leeloo_multipass');
+    expect(errorLogger).toHaveBeenCalledWith('configures unknown variants: leeloo_multipass');
   });
 
   it('does not log an error when the split registry is not loaded', () => {
     const assignment = createAssignment();
-    const logError = vi.fn();
+    const errorLogger = vi.fn();
     vary({
       assignment,
-      logError,
+      errorLogger,
       defaultVariant: 'water',
       variants: { leeloo_multipass: () => {}, water: () => {} },
       splitRegistry: emptySplitRegistry
     });
 
-    expect(logError).not.toHaveBeenCalled();
+    expect(errorLogger).not.toHaveBeenCalled();
   });
 
   it('does not log an error for a variant with a 0 weight', () => {
@@ -56,10 +56,10 @@ describe('vary', () => {
     ]);
 
     const assignment = createAssignment();
-    const logError = vi.fn();
+    const errorLogger = vi.fn();
     vary({
       assignment,
-      logError,
+      errorLogger,
       defaultVariant: 'water',
       variants: {
         leeloo_multipass: () => {},
@@ -71,7 +71,7 @@ describe('vary', () => {
       splitRegistry: customSplitRegistry
     });
 
-    expect(logError).not.toHaveBeenCalled();
+    expect(errorLogger).not.toHaveBeenCalled();
   });
 
   it('throws an error if only one variant is provided', () => {
@@ -80,7 +80,7 @@ describe('vary', () => {
     expect(() => {
       vary({
         assignment,
-        logError: vi.fn(),
+        errorLogger: vi.fn(),
         defaultVariant: 'water',
         variants: { water: () => {} },
         splitRegistry
@@ -96,7 +96,7 @@ describe('vary', () => {
 
     vary({
       assignment,
-      logError: vi.fn(),
+      errorLogger: vi.fn(),
       defaultVariant: 'water',
       variants: { earth: whenHandler, water: defaultHandler },
       splitRegistry
@@ -114,7 +114,7 @@ describe('vary', () => {
 
     const result = vary({
       assignment,
-      logError: vi.fn(),
+      errorLogger: vi.fn(),
       defaultVariant: 'water',
       variants: { fire: whenHandler, water: defaultHandler },
       splitRegistry
@@ -133,7 +133,7 @@ describe('vary', () => {
 
     const result = vary({
       assignment,
-      logError: vi.fn(),
+      errorLogger: vi.fn(),
       defaultVariant: 'earth',
       variants: { water: whenHandler, earth: defaultHandler },
       splitRegistry
@@ -146,30 +146,30 @@ describe('vary', () => {
 
   it('logs an error if not all variants are represented', () => {
     const assignment = createAssignment();
-    const logError = vi.fn();
+    const errorLogger = vi.fn();
 
     vary({
       assignment,
-      logError,
+      errorLogger,
       defaultVariant: 'fire',
       variants: { earth: vi.fn(), fire: vi.fn() },
       splitRegistry
     });
 
-    expect(logError).toHaveBeenCalledWith('does not configure variants: wind, water');
+    expect(errorLogger).toHaveBeenCalledWith('does not configure variants: wind, water');
   });
 
   it('does not log an error when the split registry is not loaded', () => {
     const assignment = createAssignment();
-    const logError = vi.fn();
+    const errorLogger = vi.fn();
     vary({
       assignment,
-      logError,
+      errorLogger,
       defaultVariant: 'fire',
       variants: { earth: vi.fn(), fire: vi.fn() },
       splitRegistry: emptySplitRegistry
     });
 
-    expect(logError).not.toHaveBeenCalled();
+    expect(errorLogger).not.toHaveBeenCalled();
   });
 });

@@ -23,36 +23,36 @@ const splitRegistry = createSplitRegistry([
 
 describe('getFalseVariant()', () => {
   it('logs an error if the split does not have exactly two variants', () => {
-    const logError = vi.fn();
+    const errorLogger = vi.fn();
 
     getFalseVariant({
       splitName: 'element',
       trueVariant: 'water',
-      logError,
+      errorLogger,
       splitRegistry
     });
 
-    expect(logError).toHaveBeenCalledWith('A/B for element configures split with more than 2 variants');
+    expect(errorLogger).toHaveBeenCalledWith('A/B for element configures split with more than 2 variants');
   });
 
   it('does not log an error if the split registry is not loaded', () => {
-    const logError = vi.fn();
+    const errorLogger = vi.fn();
 
     getFalseVariant({
       splitName: 'element',
       trueVariant: 'water',
-      logError,
+      errorLogger,
       splitRegistry: emptySplitRegistry
     });
 
-    expect(logError).not.toHaveBeenCalled();
+    expect(errorLogger).not.toHaveBeenCalled();
   });
 
   it('returns the variant of the split that is not the true_variant', () => {
     const falseVariant = getFalseVariant({
       splitName: 'button_color',
       trueVariant: 'red',
-      logError: vi.fn(),
+      errorLogger: vi.fn(),
       splitRegistry
     });
 
@@ -63,7 +63,7 @@ describe('getFalseVariant()', () => {
     const falseVariant = getFalseVariant({
       splitName: 'button_color',
       trueVariant: 'red',
-      logError: vi.fn(),
+      errorLogger: vi.fn(),
       splitRegistry: emptySplitRegistry
     });
 
@@ -74,7 +74,7 @@ describe('getFalseVariant()', () => {
     const falseVariant = getFalseVariant({
       splitName: 'element',
       trueVariant: 'earth',
-      logError: vi.fn(),
+      errorLogger: vi.fn(),
       splitRegistry
     });
 
@@ -85,7 +85,7 @@ describe('getFalseVariant()', () => {
     const falseVariant = getFalseVariant({
       splitName: 'new_feature',
       trueVariant: 'true',
-      logError: vi.fn(),
+      errorLogger: vi.fn(),
       splitRegistry
     });
 

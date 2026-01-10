@@ -12,10 +12,10 @@ type Options = {
   variants?: Variants;
   defaultVariant: string;
   splitRegistry: SplitRegistry;
-  logError: (message: string) => void;
+  errorLogger: (message: string) => void;
 };
 
-function validateVariants({ variants, splitRegistry, assignment, logError }: Options): void {
+function validateVariants({ variants, splitRegistry, assignment, errorLogger }: Options): void {
   if (!variants) return;
 
   const configuredVariants = Object.keys(variants);
@@ -31,11 +31,11 @@ function validateVariants({ variants, splitRegistry, assignment, logError }: Opt
   const missingVariants = splitVariants.filter(variant => !configuredVariants.includes(variant));
 
   if (unknownVariants.length > 0) {
-    logError(`configures unknown variants: ${unknownVariants.join(', ')}`);
+    errorLogger(`configures unknown variants: ${unknownVariants.join(', ')}`);
   }
 
   if (missingVariants.length > 0) {
-    logError(`does not configure variants: ${missingVariants.join(', ')}`);
+    errorLogger(`does not configure variants: ${missingVariants.join(', ')}`);
   }
 }
 

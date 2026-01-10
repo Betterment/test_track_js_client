@@ -1,5 +1,5 @@
 import Cookies from 'js-cookie';
-import { createSession } from './session';
+import { initialize } from './session';
 import { TestTrack } from './testTrack';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { Config } from './config';
@@ -20,7 +20,7 @@ const rawConfig: Config = {
 vi.mock('js-cookie');
 vi.mock('uuid');
 
-describe('createSession', () => {
+describe('initialize', () => {
   beforeAll(() => {
     window.TT = btoa(JSON.stringify(rawConfig));
   });
@@ -30,61 +30,57 @@ describe('createSession', () => {
     vi.mocked(Cookies.get).mockReturnValue('existing_visitor_id');
   });
 
-  describe('Cookie behavior', () => {
-    it('reads the visitor id from a cookie and sets it back in the cookie', async () => {
-      await createSession().initialize();
-      expect(Cookies.get).toHaveBeenCalledTimes(1);
-      expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
-      expect(Cookies.set).toHaveBeenCalledTimes(1);
-      expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'existing_visitor_id', {
-        expires: 365,
-        path: '/',
-        domain: '.example.com'
-      });
-    });
-
-    it('saves the visitor id in a cookie', async () => {
-      // @ts-expect-error Cookies.get returns different types depending on arguments
-      vi.mocked(Cookies.get).mockReturnValue(undefined);
-      // @ts-expect-error uuid mock return type
-      vi.mocked(uuid).mockReturnValue('generated_visitor_id');
-
-      await createSession().initialize();
-      expect(Cookies.get).toHaveBeenCalledTimes(1);
-      expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
-      expect(Cookies.set).toHaveBeenCalledTimes(1);
-      expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'generated_visitor_id', {
-        expires: 365,
-        path: '/',
-        domain: '.example.com'
-      });
+  it('reads the visitor id from a cookie and sets it back in the cookie', async () => {
+    await initialize();
+    expect(Cookies.get).toHaveBeenCalledTimes(1);
+    expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
+    expect(Cookies.set).toHaveBeenCalledTimes(1);
+    expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'existing_visitor_id', {
+      expires: 365,
+      path: '/',
+      domain: '.example.com'
     });
   });
 
-  describe('#initialize()', () => {
-    it('calls notifyUnsyncedAssignments when a visitor is loaded', async () => {
-      const notifySpy = vi.spyOn(TestTrack.prototype, 'notifyUnsyncedAssignments');
-      await createSession().initialize();
-      expect(notifySpy).toHaveBeenCalledTimes(1);
+  it('saves the visitor id in a cookie', async () => {
+    // @ts-expect-error Cookies.get returns different types depending on arguments
+    vi.mocked(Cookies.get).mockReturnValue(undefined);
+    // @ts-expect-error uuid mock return type
+    vi.mocked(uuid).mockReturnValue('generated_visitor_id');
+
+    await initialize();
+    expect(Cookies.get).toHaveBeenCalledTimes(1);
+    expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
+    expect(Cookies.set).toHaveBeenCalledTimes(1);
+    expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'generated_visitor_id', {
+      expires: 365,
+      path: '/',
+      domain: '.example.com'
     });
+  });
 
-    it('sets the analytics lib', async () => {
-      const analytics: AnalyticsProvider = {
-        trackAssignment: vi.fn(),
-        identify: vi.fn(),
-        alias: vi.fn()
-      };
+  it('sends unsynced assignments when a visitor is loaded', async () => {
+    const notifySpy = vi.spyOn(TestTrack.prototype, 'notifyUnsyncedAssignments');
+    await initialize();
+    expect(notifySpy).toHaveBeenCalledTimes(1);
+  });
 
-      const testTrack = await createSession().initialize({ analytics });
-      expect(testTrack.analytics).toBe(analytics);
-    });
+  it('sets the analytics lib', async () => {
+    const analytics: AnalyticsProvider = {
+      trackAssignment: vi.fn(),
+      identify: vi.fn(),
+      alias: vi.fn()
+    };
 
-    it('sets the error logger', async () => {
-      const errorLogger = vi.fn();
-      const testTrack = await createSession().initialize({ errorLogger: errorLogger });
+    const testTrack = await initialize({ analytics });
+    expect(testTrack.analytics).toBe(analytics);
+  });
 
-      testTrack.logError('kaboom');
-      expect(errorLogger).toHaveBeenCalledWith('kaboom');
-    });
+  it('sets the error logger', async () => {
+    const errorLogger = vi.fn();
+    const testTrack = await initialize({ errorLogger: errorLogger });
+
+    testTrack.logError('kaboom');
+    expect(errorLogger).toHaveBeenCalledWith('kaboom');
   });
 });

@@ -11,32 +11,26 @@ type SessionOptions = {
   errorLogger?: (errorMessage: string) => void;
 };
 
-export function createSession() {
-  return {
-    async initialize(options: SessionOptions = {}): Promise<TestTrack> {
-      const config = loadConfig();
-      const client = createClient({ url: config.url });
-      const storage = createCookieStorage({ domain: config.cookieDomain, name: config.cookieName });
-      const splitRegistry = parseSplitRegistry(config.splits);
-      const { visitor, isOffline } = await loadVisitor({
-        client,
-        splitRegistry,
-        id: storage.getVisitorId(),
-        assignments: parseAssignments(config.assignments)
-      });
+export async function initialize(options: SessionOptions = {}): Promise<TestTrack> {
+  const config = loadConfig();
+  const client = createClient({ url: config.url });
+  const storage = createCookieStorage({ domain: config.cookieDomain, name: config.cookieName });
+  const splitRegistry = parseSplitRegistry(config.splits);
+  const { visitor, isOffline } = await loadVisitor({
+    client,
+    splitRegistry,
+    id: storage.getVisitorId(),
+    assignments: parseAssignments(config.assignments)
+  });
 
-      const testTrack = new TestTrack({ client, storage, splitRegistry, visitor, isOffline });
-      if (options.analytics) testTrack.setAnalytics(options.analytics);
-      if (options.errorLogger) testTrack.setErrorLogger(options.errorLogger);
+  const testTrack = new TestTrack({ client, storage, splitRegistry, visitor, isOffline });
+  if (options.analytics) testTrack.setAnalytics(options.analytics);
+  if (options.errorLogger) testTrack.setErrorLogger(options.errorLogger);
 
-      testTrack.notifyUnsyncedAssignments();
-      connectToWebExtension(testTrack._crx);
+  testTrack.notifyUnsyncedAssignments();
+  connectToWebExtension(testTrack._crx);
 
-      storage.setVisitorId(testTrack.visitorId);
+  storage.setVisitorId(testTrack.visitorId);
 
-      return testTrack;
-    }
-  };
+  return testTrack;
 }
-
-export type Session = ReturnType<typeof createSession>;

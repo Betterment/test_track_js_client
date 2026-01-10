@@ -1,10 +1,10 @@
-import type { Assignment } from './assignment';
+import type { Assignment } from './visitor';
+import { indexAssignments, parseAssignment, loadVisitor } from './visitor';
 import { v4 as uuid } from 'uuid';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
 import { createClient } from './client';
 import { createSplitRegistry } from './splitRegistry';
-import { loadVisitor } from './visitor';
 
 vi.mock('uuid');
 
@@ -140,5 +140,28 @@ describe('loadVisitor()', () => {
 
     expect(requests.length).toBe(1);
     expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/visitors/failed_visitor_id');
+  });
+});
+
+describe('parseAssignment', () => {
+  it('parses V1 API data', () => {
+    const assignment = parseAssignment({
+      split_name: 'button_color',
+      variant: 'red',
+      context: 'homepage',
+      unsynced: false
+    });
+
+    expect(assignment.splitName).toBe('button_color');
+    expect(assignment.variant).toBe('red');
+  });
+});
+
+describe('indexAssignments', () => {
+  it('indexes assignments by splitName', () => {
+    const a: Assignment = { splitName: 'a', variant: 'true', context: null, isUnsynced: false };
+    const b: Assignment = { splitName: 'b', variant: 'true', context: null, isUnsynced: false };
+
+    expect(indexAssignments([a, b])).toEqual({ a, b });
   });
 });

@@ -1,4 +1,4 @@
-import type { Assignment } from './assignment';
+import type { Assignment } from './visitor';
 
 export interface AnalyticsProvider {
   trackAssignment(visitorId: string, assignment: Assignment, callback: (value: boolean) => void): void;

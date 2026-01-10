@@ -1,4 +1,4 @@
-import type { Assignment } from './assignment';
+import type { Assignment } from './visitor';
 import { getSplitVariants, type SplitRegistry } from './splitRegistry';
 
 type Handler = () => void;

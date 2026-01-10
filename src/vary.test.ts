@@ -1,4 +1,4 @@
-import type { Assignment } from './assignment';
+import type { Assignment } from './visitor';
 import { vary } from './vary';
 import { createSplitRegistry } from './splitRegistry';
 

@@ -1,4 +1,4 @@
-import type { Assignment } from './assignment';
+import type { Assignment } from './visitor';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { getAssignmentBucket } from './calculateVariant';
 import { TestTrack } from './testTrack';

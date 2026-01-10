@@ -1,5 +1,5 @@
 import { getFalseVariant } from './abConfiguration';
-import { indexAssignments, parseAssignment, type Assignment, type AssignmentRegistry } from './assignment';
+import { indexAssignments, parseAssignment, type Assignment, type AssignmentRegistry } from './visitor';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';

@@ -23,7 +23,7 @@ export async function initialize(options: SessionOptions = {}): Promise<TestTrac
     assignments: parseAssignments(config.assignments)
   });
 
-  const testTrack = new TestTrack({
+  const testTrack = TestTrack.create({
     client,
     storage,
     splitRegistry,
@@ -33,7 +33,6 @@ export async function initialize(options: SessionOptions = {}): Promise<TestTrac
     errorLogger: options.errorLogger
   });
 
-  testTrack.notifyUnsyncedAssignments();
   connectToWebExtension(testTrack._crx);
 
   storage.setVisitorId(testTrack.visitorId);

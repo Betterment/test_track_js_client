@@ -46,6 +46,12 @@ export class TestTrack {
   #assignments: AssignmentRegistry;
   #isOffline: boolean;
 
+  static create(options: Options): TestTrack {
+    const testTrack = new TestTrack(options);
+    testTrack.notifyUnsyncedAssignments();
+    return testTrack;
+  }
+
   constructor({ client, storage, splitRegistry, visitor, isOffline = false, analytics, errorLogger }: Options) {
     this.#client = client;
     this.#storage = storage;

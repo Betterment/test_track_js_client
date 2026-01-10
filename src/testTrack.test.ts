@@ -3,7 +3,7 @@ import { sendAssignmentNotification } from './assignmentNotification';
 import { getAssignmentBucket } from './calculateVariant';
 import { TestTrack } from './testTrack';
 import { http, HttpResponse } from 'msw';
-import { server, requests } from './setupTests';
+import { server, getRequests } from './setupTests';
 import type { AnalyticsProvider } from './analyticsProvider';
 import { createClient } from './client';
 import { createSplitRegistry } from './splitRegistry';
@@ -537,11 +537,13 @@ describe('TestTrack', () => {
       const testTrack = createTestTrack();
       await testTrack.linkIdentifier('myappdb_user_id', 444);
 
-      expect(requests.length).toBe(1);
-      expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/identifier');
-      expect(await requests[0]!.text()).toEqual(
-        'visitor_id=EXISTING_VISITOR_ID&identifier_type=myappdb_user_id&value=444'
-      );
+      expect(await getRequests()).toEqual([
+        {
+          method: 'POST',
+          url: 'http://testtrack.dev/api/v1/identifier',
+          body: { visitor_id: 'EXISTING_VISITOR_ID', identifier_type: 'myappdb_user_id', value: '444' }
+        }
+      ]);
     });
 
     it('overrides assignments that exist in the other visitor', async () => {

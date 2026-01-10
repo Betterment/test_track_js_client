@@ -1,10 +1,29 @@
 import { setupServer } from 'msw/node';
 
+type CapturedRequest = {
+  method: string;
+  url: string;
+  body: unknown;
+};
+
 export const server = setupServer();
-export const requests: Request[] = [];
+
+const requests: Promise<CapturedRequest>[] = [];
+
+async function captureRequest(request: Request): Promise<CapturedRequest> {
+  return {
+    method: request.method,
+    url: request.url,
+    body: Object.fromEntries(new URLSearchParams(await request.text()).entries())
+  };
+}
+
+export function getRequests(): Promise<CapturedRequest[]> {
+  return Promise.all(requests);
+}
 
 server.events.on('request:start', ({ request }) => {
-  requests.push(request.clone());
+  requests.push(captureRequest(request.clone()));
 });
 
 beforeAll(() => {

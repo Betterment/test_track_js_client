@@ -1,7 +1,7 @@
 import type { Assignment } from './visitor';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { http, HttpResponse } from 'msw';
-import { server, requests } from './setupTests';
+import { server, getRequests } from './setupTests';
 import { createClient } from './client';
 import type { AnalyticsProvider } from './analyticsProvider';
 
@@ -43,11 +43,18 @@ describe('sendAssignmentNotification', () => {
     const errorLogger = vi.fn();
 
     await sendAssignmentNotification({ client, visitorId: 'visitorId', analytics, assignment, errorLogger });
-    expect(requests.length).toBe(2);
-    expect(await requests[0]!.text()).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
-    expect(await requests[1]!.text()).toEqual(
-      'visitor_id=visitorId&split_name=jabba&context=spec&mixpanel_result=success'
-    );
+    expect(await getRequests()).toEqual([
+      {
+        method: 'POST',
+        url: 'http://testtrack.dev/api/v1/assignment_event',
+        body: { visitor_id: 'visitorId', split_name: 'jabba', context: 'spec' }
+      },
+      {
+        method: 'POST',
+        url: 'http://testtrack.dev/api/v1/assignment_event',
+        body: { visitor_id: 'visitorId', split_name: 'jabba', context: 'spec', mixpanel_result: 'success' }
+      }
+    ]);
   });
 
   it('notifies the test track server with an analytics failure', async () => {
@@ -57,11 +64,18 @@ describe('sendAssignmentNotification', () => {
     analytics.trackAssignment.mockImplementationOnce((_visitorId, _assignment, callback) => callback(false));
     await sendAssignmentNotification({ client, visitorId: 'visitorId', analytics, assignment, errorLogger });
 
-    expect(requests.length).toBe(2);
-    expect(await requests[0]!.text()).toEqual('visitor_id=visitorId&split_name=jabba&context=spec');
-    expect(await requests[1]!.text()).toEqual(
-      'visitor_id=visitorId&split_name=jabba&context=spec&mixpanel_result=failure'
-    );
+    expect(await getRequests()).toEqual([
+      {
+        method: 'POST',
+        url: 'http://testtrack.dev/api/v1/assignment_event',
+        body: { visitor_id: 'visitorId', split_name: 'jabba', context: 'spec' }
+      },
+      {
+        method: 'POST',
+        url: 'http://testtrack.dev/api/v1/assignment_event',
+        body: { visitor_id: 'visitorId', split_name: 'jabba', context: 'spec', mixpanel_result: 'failure' }
+      }
+    ]);
   });
 
   it('logs an error on an error response', async () => {

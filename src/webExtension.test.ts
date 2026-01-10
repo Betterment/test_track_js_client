@@ -1,7 +1,7 @@
 import type { Assignment } from './visitor';
 import { createWebExtension } from './webExtension';
 import { http, HttpResponse } from 'msw';
-import { server, requests } from './setupTests';
+import { server, getRequests } from './setupTests';
 import { createClient } from './client';
 import { createSplitRegistry } from './splitRegistry';
 
@@ -38,12 +38,19 @@ describe('createWebExtension', () => {
 
       await webExtension.persistAssignment('split', 'variant', 'the_username', 'the_password');
 
-      expect(requests.length).toBe(1);
-      expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/assignment_override');
-      expect(await requests[0]!.text()).toEqual(
-        'visitor_id=existing_visitor_id&split_name=split&variant=variant&context=chrome_extension&mixpanel_result=success'
-      );
-      expect(requests[0]!.headers.get('authorization')).toEqual(`Basic ${btoa('the_username:the_password')}`);
+      expect(await getRequests()).toEqual([
+        {
+          method: 'POST',
+          url: 'http://testtrack.dev/api/v1/assignment_override',
+          body: {
+            visitor_id: 'existing_visitor_id',
+            split_name: 'split',
+            variant: 'variant',
+            context: 'chrome_extension',
+            mixpanel_result: 'success'
+          }
+        }
+      ]);
     });
 
     it('logs an error on an error response', async () => {

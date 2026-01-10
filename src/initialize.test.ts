@@ -3,7 +3,7 @@ import { initialize } from './initialize';
 import type { Config } from './config';
 import { v4 as uuid } from 'uuid';
 import { http, HttpResponse } from 'msw';
-import { server, requests } from './setupTests';
+import { server, getRequests } from './setupTests';
 
 const rawConfig: Config = {
   url: 'http://testtrack.dev',
@@ -78,9 +78,13 @@ describe('initialize', () => {
     );
 
     await initialize();
-    const assignmentEventRequests = requests.find(r => r.url.includes('/api/v1/assignment_event'))!;
-    expect(await assignmentEventRequests.text()).toEqual(
-      'visitor_id=existing_visitor_id&split_name=blue_button&context='
-    );
+    expect(await getRequests()).toEqual([
+      { method: 'GET', url: 'http://testtrack.dev/api/v1/visitors/existing_visitor_id', body: {} },
+      {
+        method: 'POST',
+        url: 'http://testtrack.dev/api/v1/assignment_event',
+        body: { visitor_id: 'existing_visitor_id', split_name: 'blue_button', context: '' }
+      }
+    ]);
   });
 });

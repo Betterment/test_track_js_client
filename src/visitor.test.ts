@@ -1,4 +1,4 @@
-import { Assignment } from './assignment';
+import type { Assignment } from './assignment';
 import { v4 as uuid } from 'uuid';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
@@ -66,17 +66,19 @@ describe('loadVisitor()', () => {
   });
 
   it('does not hit the server when passed a visitorId and there are baked assignments', async () => {
-    const jabbaAssignment = new Assignment({
+    const jabbaAssignment: Assignment = {
       splitName: 'jabba',
       variant: 'puppet',
+      context: null,
       isUnsynced: false
-    });
+    };
 
-    const wineAssignment = new Assignment({
+    const wineAssignment: Assignment = {
       splitName: 'wine',
       variant: 'rose',
+      context: null,
       isUnsynced: false
-    });
+    };
 
     const result = await loadVisitor({
       client,
@@ -94,12 +96,12 @@ describe('loadVisitor()', () => {
   });
 
   it('loads a visitor from the server for an existing visitor if there are no baked assignments', async () => {
-    const jabbaAssignment = new Assignment({
+    const jabbaAssignment: Assignment = {
       splitName: 'jabba',
       variant: 'puppet',
       context: 'mos_eisley',
       isUnsynced: false
-    });
+    };
 
     const result = await loadVisitor({
       client,

@@ -1,4 +1,3 @@
-import { Assignment } from './assignment';
 import { loadConfig, parseAssignments, parseSplitRegistry, type Config } from './config';
 
 const rawConfig: Config = {
@@ -36,8 +35,8 @@ describe('parseSplitRegistry', () => {
 describe('parseAssignments', () => {
   it('parses assignments from object', () => {
     expect(parseAssignments(rawConfig.assignments)).toEqual([
-      new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: false }),
-      new Assignment({ splitName: 'wine', variant: 'rose', isUnsynced: false })
+      { splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false },
+      { splitName: 'wine', variant: 'rose', context: null, isUnsynced: false }
     ]);
   });
 

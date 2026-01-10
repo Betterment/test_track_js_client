@@ -1,4 +1,4 @@
-import { Assignment } from './assignment';
+import type { Assignment } from './assignment';
 import { createWebExtension } from './webExtension';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
@@ -12,9 +12,9 @@ const splitRegistry = createSplitRegistry([
   { name: 'wine', isFeatureGate: false, weighting: { red: 50, white: 25, rose: 25 } }
 ]);
 
-const assignments = [
-  new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: false }),
-  new Assignment({ splitName: 'wine', variant: 'rose', isUnsynced: false })
+const assignments: Assignment[] = [
+  { splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false },
+  { splitName: 'wine', variant: 'rose', context: null, isUnsynced: false }
 ];
 
 describe('createWebExtension', () => {

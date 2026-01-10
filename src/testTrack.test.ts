@@ -1,4 +1,4 @@
-import { Assignment } from './assignment';
+import type { Assignment } from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { getAssignmentBucket } from './calculateVariant';
 import { TestTrack } from './testTrack';
@@ -50,7 +50,7 @@ function createTestTrack(assignments?: Assignment[]) {
     errorLogger,
     visitor: {
       id: 'EXISTING_VISITOR_ID',
-      assignments: assignments ?? [new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: false })]
+      assignments: assignments ?? [{ splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false }]
     }
   });
 }
@@ -130,17 +130,18 @@ describe('TestTrack', () => {
         varyWineSplit(testTrack);
 
         expect(testTrack.getAssignmentRegistry()).toEqual({
-          jabba: new Assignment({
+          jabba: {
             splitName: 'jabba',
             variant: 'puppet',
+            context: null,
             isUnsynced: false
-          }),
-          wine: new Assignment({
+          },
+          wine: {
             splitName: 'wine',
             variant: 'red',
             context: 'spec',
             isUnsynced: false
-          })
+          }
         });
       });
 
@@ -152,12 +153,12 @@ describe('TestTrack', () => {
           client,
           visitorId: 'EXISTING_VISITOR_ID',
           analytics,
-          assignment: new Assignment({
+          assignment: {
             splitName: 'wine',
             variant: 'red',
             context: 'spec',
             isUnsynced: false
-          }),
+          },
           errorLogger
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
@@ -183,12 +184,12 @@ describe('TestTrack', () => {
           client,
           visitorId: 'EXISTING_VISITOR_ID',
           analytics,
-          assignment: new Assignment({
+          assignment: {
             splitName: 'wine',
             variant: 'white',
             context: 'spec',
             isUnsynced: false
-          }),
+          },
           errorLogger
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
@@ -207,12 +208,12 @@ describe('TestTrack', () => {
           client,
           visitorId: 'EXISTING_VISITOR_ID',
           analytics,
-          assignment: new Assignment({
+          assignment: {
             splitName: 'wine',
             variant: 'red',
             context: 'spec',
             isUnsynced: true
-          }),
+          },
           errorLogger
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalledTimes(1);
@@ -264,12 +265,12 @@ describe('TestTrack', () => {
           client,
           visitorId: 'EXISTING_VISITOR_ID',
           analytics,
-          assignment: new Assignment({
+          assignment: {
             splitName: 'jabba',
             variant: 'cgi',
             context: 'defaulted',
             isUnsynced: false // Marked as unsynced after the assignment notification
-          }),
+          },
           errorLogger
         });
         expect(mockSendAssignmentNotification).toHaveBeenCalled();
@@ -371,11 +372,12 @@ describe('TestTrack', () => {
     describe('with an explicit trueVariant', () => {
       it('returns true when assigned to the trueVariant', () => {
         const testTrack = createTestTrack([
-          new Assignment({
+          {
             splitName: 'jabba',
             variant: 'puppet',
+            context: null,
             isUnsynced: false
-          })
+          }
         ]);
 
         const callback = vi.fn();
@@ -391,11 +393,12 @@ describe('TestTrack', () => {
 
       it('returns false when not assigned to the trueVariant', () => {
         const testTrack = createTestTrack([
-          new Assignment({
+          {
             splitName: 'jabba',
             variant: 'cgi',
+            context: null,
             isUnsynced: false
-          })
+          }
         ]);
 
         const callback = vi.fn();
@@ -413,11 +416,12 @@ describe('TestTrack', () => {
     describe('with an implicit trueVariant', () => {
       it('returns true when variant is true', () => {
         const testTrack = createTestTrack([
-          new Assignment({
+          {
             splitName: 'blue_button',
             variant: 'true',
+            context: null,
             isUnsynced: false
-          })
+          }
         ]);
 
         const callback = vi.fn();
@@ -429,11 +433,12 @@ describe('TestTrack', () => {
 
       it('returns false when variant is false', () => {
         const testTrack = createTestTrack([
-          new Assignment({
+          {
             splitName: 'blue_button',
             variant: 'false',
+            context: null,
             isUnsynced: false
-          })
+          }
         ]);
 
         const callback = vi.fn();
@@ -540,15 +545,15 @@ describe('TestTrack', () => {
     });
 
     it('overrides assignments that exist in the other visitor', async () => {
-      const jabbaCGIAssignment = new Assignment({
+      const jabbaCGIAssignment: Assignment = {
         splitName: 'jabba',
         variant: 'cgi',
         context: 'mos_eisley',
         isUnsynced: false
-      });
+      };
 
-      const jabbaPuppetAssignment = new Assignment({ splitName: 'jabba', variant: 'puppet', isUnsynced: true });
-      const wineAssignment = new Assignment({ splitName: 'wine', variant: 'white', isUnsynced: true });
+      const jabbaPuppetAssignment: Assignment = { splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: true };
+      const wineAssignment: Assignment = { splitName: 'wine', variant: 'white', context: null, isUnsynced: true };
 
       const testTrack = createTestTrack([jabbaPuppetAssignment, wineAssignment]);
 
@@ -556,12 +561,12 @@ describe('TestTrack', () => {
       expect(testTrack.getAssignmentRegistry()).toEqual({
         jabba: jabbaCGIAssignment,
         wine: wineAssignment,
-        blue_button: new Assignment({
+        blue_button: {
           splitName: 'blue_button',
           variant: 'true',
           context: 'homepage',
           isUnsynced: false // Marked as unsynced after the assignment notification
-        })
+        }
       });
     });
 
@@ -579,12 +584,12 @@ describe('TestTrack', () => {
         client,
         visitorId: 'actual_visitor_id',
         analytics,
-        assignment: new Assignment({
+        assignment: {
           splitName: 'blue_button',
           variant: 'true',
           context: 'homepage',
           isUnsynced: false // Marked as unsynced after the assignment notification
-        }),
+        },
         errorLogger
       });
     });
@@ -592,8 +597,8 @@ describe('TestTrack', () => {
 
   describe('.notifyUnsyncedAssignments', () => {
     it('notifies any unsynced assignments', () => {
-      const wineAssignment = new Assignment({ splitName: 'wine', variant: 'red', isUnsynced: false });
-      const blueButtonAssignment = new Assignment({ splitName: 'blue_button', variant: 'true', isUnsynced: true });
+      const wineAssignment: Assignment = { splitName: 'wine', variant: 'red', context: null, isUnsynced: false };
+      const blueButtonAssignment: Assignment = { splitName: 'blue_button', variant: 'true', context: null, isUnsynced: true };
       const testTrack = new TestTrack({
         client,
         storage,

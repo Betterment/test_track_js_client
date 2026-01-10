@@ -1,4 +1,4 @@
-import { Assignment } from './assignment';
+import type { Assignment } from './assignment';
 import { getSplitVariants, type SplitRegistry } from './splitRegistry';
 
 type Handler = () => void;
@@ -43,7 +43,7 @@ export function vary(options: Options): { isDefaulted: boolean; variant: string 
   validateVariants(options);
 
   const { assignment, variants, defaultVariant } = options;
-  const assignedVariant = assignment.getVariant();
+  const assignedVariant = assignment.variant;
 
   if (variants && !variants[defaultVariant]) {
     throw new Error(`defaultVariant: ${defaultVariant} must be represented in variants object`);

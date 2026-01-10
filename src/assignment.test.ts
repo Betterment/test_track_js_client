@@ -1,31 +1,8 @@
-import { Assignment } from './assignment';
+import { indexAssignments, parseAssignment, type Assignment } from './assignment';
 
-describe('Assignment', () => {
-  it('exposes properties', () => {
-    const assignment = new Assignment({
-      splitName: 'button_color',
-      variant: 'blue',
-      context: 'homepage',
-      isUnsynced: true
-    });
-
-    expect(assignment.splitName).toBe('button_color');
-    expect(assignment.variant).toBe('blue');
-    expect(assignment.context).toBe('homepage');
-  });
-
-  it('converts context undefined to null', () => {
-    const assignment = new Assignment({
-      splitName: 'button_color',
-      variant: 'blue',
-      isUnsynced: false
-    });
-
-    expect(assignment.context).toBeNull();
-  });
-
-  it('creates from V1 API data', () => {
-    const assignment = Assignment.fromV1Assignment({
+describe('parseAssignment', () => {
+  it('parses V1 API data', () => {
+    const assignment = parseAssignment({
       split_name: 'button_color',
       variant: 'red',
       context: 'homepage',
@@ -34,5 +11,14 @@ describe('Assignment', () => {
 
     expect(assignment.splitName).toBe('button_color');
     expect(assignment.variant).toBe('red');
+  });
+});
+
+describe('indexAssignments', () => {
+  it('indexes assignments by splitName', () => {
+    const a: Assignment = { splitName: 'a', variant: 'true', context: null, isUnsynced: false };
+    const b: Assignment = { splitName: 'b', variant: 'true', context: null, isUnsynced: false };
+
+    expect(indexAssignments([a, b])).toEqual({ a, b });
   });
 });

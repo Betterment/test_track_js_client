@@ -1,4 +1,4 @@
-import { Assignment } from './assignment';
+import type { Assignment } from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { http, HttpResponse } from 'msw';
 import { server, requests } from './setupTests';
@@ -15,8 +15,8 @@ const analytics = {
     .mockImplementation((_visitorId, _assignment, callback) => callback(true))
 };
 
-function createAssignment() {
-  return new Assignment({ splitName: 'jabba', variant: 'cgi', context: 'spec', isUnsynced: false });
+function createAssignment(): Assignment {
+  return { splitName: 'jabba', variant: 'cgi', context: 'spec', isUnsynced: false };
 }
 
 describe('sendAssignmentNotification', () => {

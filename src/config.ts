@@ -1,4 +1,4 @@
-import { Assignment } from './assignment';
+import type { Assignment } from './assignment';
 import { type Split, createSplitRegistry, type SplitRegistry } from './splitRegistry';
 
 declare global {
@@ -41,7 +41,7 @@ export function parseAssignments(rawAssignments: Config['assignments']): Assignm
   }
 
   return Object.entries(rawAssignments).map(([splitName, variant]) => {
-    return new Assignment({ splitName, variant, isUnsynced: false });
+    return { splitName, variant, context: null, isUnsynced: false };
   });
 }
 

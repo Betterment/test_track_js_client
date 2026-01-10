@@ -1,4 +1,4 @@
-import { Assignment } from './assignment';
+import type { Assignment } from './assignment';
 import { vary } from './vary';
 import { createSplitRegistry } from './splitRegistry';
 
@@ -12,8 +12,8 @@ const splitRegistry = createSplitRegistry([
   }
 ]);
 
-function createAssignment() {
-  return new Assignment({ splitName: 'element', variant: 'earth', isUnsynced: true });
+function createAssignment(): Assignment {
+  return { splitName: 'element', variant: 'earth', context: null, isUnsynced: true };
 }
 
 describe('vary', () => {

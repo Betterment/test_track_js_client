@@ -1,5 +1,6 @@
 import { v4 as uuid } from 'uuid';
-import { Assignment } from './assignment';
+import type { Assignment } from './assignment';
+import { parseAssignment } from './assignment';
 import type { Client } from './client';
 import type { SplitRegistry } from './splitRegistry';
 
@@ -33,7 +34,7 @@ export async function loadVisitor(options: LoadVisitorOptions): Promise<LoadedVi
 
   try {
     const data = await client.getVisitor(id);
-    const assignments = data.assignments.map(Assignment.fromV1Assignment);
+    const assignments = data.assignments.map(parseAssignment);
     return { visitor: { id: data.id, assignments }, isOffline: false };
   } catch {
     return { visitor: { id, assignments: [] }, isOffline: true };

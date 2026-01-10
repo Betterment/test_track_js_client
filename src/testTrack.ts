@@ -1,5 +1,5 @@
 import { getFalseVariant } from './abConfiguration';
-import { Assignment } from './assignment';
+import { indexAssignments, parseAssignment, type Assignment, type AssignmentRegistry } from './assignment';
 import { sendAssignmentNotification } from './assignmentNotification';
 import { mixpanelAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
@@ -35,10 +35,6 @@ type Options = {
   errorLogger?: (errorMessage: string) => void;
 };
 
-type AssignmentRegistry = Readonly<{
-  [splitName: string]: Assignment;
-}>;
-
 export class TestTrack {
   readonly #client: Client;
   readonly #storage: StorageProvider;
@@ -56,7 +52,7 @@ export class TestTrack {
     this.#splitRegistry = splitRegistry;
     this.#isOffline = isOffline;
     this.#visitorId = visitor.id;
-    this.#assignments = Object.fromEntries(visitor.assignments.map(assignment => [assignment.splitName, assignment]));
+    this.#assignments = indexAssignments(visitor.assignments);
     this.#errorLogger = errorLogger ?? (errorMessage => console.error(errorMessage));
     this.#analytics = analytics ?? mixpanelAnalytics;
   }
@@ -95,9 +91,10 @@ export class TestTrack {
     });
 
     if (isDefaulted) {
-      assignment.setVariant(defaultVariant);
-      assignment.setUnsynced(true);
-      assignment.setContext(context);
+      // TODO: Update instead of mutating
+      assignment.variant = defaultVariant;
+      assignment.isUnsynced = true;
+      assignment.context = context;
     }
 
     this.notifyUnsyncedAssignments();
@@ -139,33 +136,23 @@ export class TestTrack {
 
   /** @deprecated Use `logIn` or `signUp` */
   async linkIdentifier(identifierType: string, value: number): Promise<void> {
-    const data = await this.#client.postIdentifier({
+    const { visitor } = await this.#client.postIdentifier({
       visitor_id: this.visitorId,
       identifier_type: identifierType,
       value: value.toString()
     });
 
-    const otherTestTrack = new TestTrack({
-      client: this.#client,
-      storage: this.#storage,
-      splitRegistry: this.#splitRegistry,
-      visitor: {
-        id: data.visitor.id,
-        assignments: data.visitor.assignments.map(Assignment.fromV1Assignment)
-      },
-      analytics: this.#analytics,
-      errorLogger: this.#errorLogger
-    });
+    const assignments = indexAssignments(visitor.assignments.map(parseAssignment));
 
-    this.#visitorId = otherTestTrack.visitorId;
-    this.#assignments = { ...this.#assignments, ...otherTestTrack.getAssignmentRegistry() };
+    this.#visitorId = visitor.id;
+    this.#assignments = { ...this.#assignments, ...assignments };
     this.notifyUnsyncedAssignments();
   }
 
   /** @deprecated No replacement */
   notifyUnsyncedAssignments(): void {
     Object.values(this.#assignments)
-      .filter(assignment => assignment.isUnsynced())
+      .filter(assignment => assignment.isUnsynced)
       .forEach(assignment => this.#sendAssignmentNotification(assignment));
   }
 
@@ -185,13 +172,7 @@ export class TestTrack {
       this.#isOffline = true;
     }
 
-    const assignment = new Assignment({
-      splitName,
-      variant,
-      context,
-      isUnsynced: true
-    });
-
+    const assignment: Assignment = { splitName, variant, context, isUnsynced: true };
     this.#assignments = { ...this.#assignments, [splitName]: assignment };
     return assignment;
   }
@@ -210,7 +191,7 @@ export class TestTrack {
         errorLogger: this.#errorLogger
       });
 
-      assignment.setUnsynced(false);
+      assignment.isUnsynced = false;
     } catch (e) {
       this.#errorLogger(`test_track notify error: ${String(e)}`);
     }

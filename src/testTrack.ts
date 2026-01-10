@@ -68,9 +68,8 @@ export class TestTrack {
     return this.#visitorId;
   }
 
-  /** @deprecated No replacement */
-  getAssignmentRegistry(): AssignmentRegistry {
-    return this.#assignments;
+  get assignments(): ReadonlyArray<Assignment> {
+    return Object.values(this.#assignments);
   }
 
   vary(splitName: string, options: VaryOptions): string {

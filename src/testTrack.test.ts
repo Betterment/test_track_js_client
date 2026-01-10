@@ -129,20 +129,10 @@ describe('TestTrack', () => {
         const testTrack = createTestTrack();
         varyWineSplit(testTrack);
 
-        expect(testTrack.getAssignmentRegistry()).toEqual({
-          jabba: {
-            splitName: 'jabba',
-            variant: 'puppet',
-            context: null,
-            isUnsynced: false
-          },
-          wine: {
-            splitName: 'wine',
-            variant: 'red',
-            context: 'spec',
-            isUnsynced: false
-          }
-        });
+        expect(testTrack.assignments).toEqual([
+          { splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false },
+          { splitName: 'wine', variant: 'red', context: 'spec', isUnsynced: false }
+        ]);
       });
 
       it('sends an AssignmentNotification', () => {
@@ -303,7 +293,9 @@ describe('TestTrack', () => {
         const testTrack = createOfflineTestTrack();
         varyWineSplit(testTrack);
 
-        expect(Object.keys(testTrack.getAssignmentRegistry())).toEqual(expect.arrayContaining(['wine']));
+        expect(testTrack.assignments).toEqual([
+          { splitName: 'wine', variant: 'white', context: 'spec', isUnsynced: true }
+        ]);
       });
 
       it('does not send an AssignmentNotification', () => {
@@ -500,11 +492,11 @@ describe('TestTrack', () => {
       expect(storage.setVisitorId).toHaveBeenCalledWith('actual_visitor_id');
       expect(analytics[analyticsMethod]).toHaveBeenCalledWith('actual_visitor_id');
 
-      expect(testTrack.getAssignmentRegistry()).toEqual({
-        jabba: { splitName: 'jabba', variant: 'cgi', context: 'mos_eisley', isUnsynced: false },
-        element: { splitName: 'element', variant: 'earth', context: null, isUnsynced: false },
-        wine: { splitName: 'wine', variant: 'red', context: 'spec', isUnsynced: false }
-      });
+      expect(testTrack.assignments).toEqual([
+        { splitName: 'jabba', variant: 'cgi', context: 'mos_eisley', isUnsynced: false },
+        { splitName: 'element', variant: 'earth', context: null, isUnsynced: false },
+        { splitName: 'wine', variant: 'red', context: 'spec', isUnsynced: false }
+      ]);
 
       expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
         client,

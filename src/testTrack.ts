@@ -71,7 +71,19 @@ export class TestTrack {
     const context = options.context;
     const defaultVariant = options.defaultVariant.toString();
 
-    const assignment = this.#getAssignmentFor(splitName, context);
+    let assignment = this.#assignments[splitName];
+    if (!assignment) {
+      const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.visitorId });
+      const variant = calculateVariant({ assignmentBucket, splitRegistry: this.#splitRegistry, splitName });
+
+      if (!variant) {
+        this.#isOffline = true;
+      }
+
+      assignment = { splitName, variant, context, isUnsynced: true };
+      this.#updateAssignments([assignment]);
+    }
+
     if (assignment.variant) {
       this.#notifyUnsyncedAssignments(); // Probably not necessary
       return assignment.variant;
@@ -127,27 +139,6 @@ export class TestTrack {
     Object.values(this.#assignments)
       .filter(assignment => assignment.isUnsynced)
       .forEach(assignment => this.#sendAssignmentNotification(assignment));
-  }
-
-  #getAssignmentFor(splitName: string, context: string): Assignment {
-    return this.#assignments[splitName] || this.#generateAssignmentFor(splitName, context);
-  }
-
-  #generateAssignmentFor(splitName: string, context: string): Assignment {
-    const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.visitorId });
-    const variant = calculateVariant({
-      assignmentBucket,
-      splitRegistry: this.#splitRegistry,
-      splitName
-    });
-
-    if (!variant) {
-      this.#isOffline = true;
-    }
-
-    const assignment: Assignment = { splitName, variant, context, isUnsynced: true };
-    this.#updateAssignments([assignment]);
-    return assignment;
   }
 
   #sendAssignmentNotification(assignment: Assignment): void {

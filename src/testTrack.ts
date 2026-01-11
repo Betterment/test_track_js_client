@@ -36,10 +36,10 @@ export class TestTrack {
   readonly #splitRegistry: SplitRegistry;
   readonly #analytics: AnalyticsProvider;
   readonly #errorLogger: (errorMessage: string) => void;
+  readonly #isOffline: boolean;
 
   #visitorId: string;
   #assignments: AssignmentRegistry;
-  #isOffline: boolean;
 
   static create(options: Options): TestTrack {
     const testTrack = new TestTrack(options);
@@ -52,7 +52,7 @@ export class TestTrack {
     this.#client = client;
     this.#storage = storage;
     this.#splitRegistry = splitRegistry;
-    this.#isOffline = isOffline;
+    this.#isOffline = isOffline || !splitRegistry.isLoaded;
     this.#visitorId = visitor.id;
     this.#assignments = indexAssignments(visitor.assignments);
     this.#errorLogger = errorLogger ?? (errorMessage => console.error(errorMessage));
@@ -68,9 +68,6 @@ export class TestTrack {
   }
 
   vary(splitName: string, options: VaryOptions): string {
-    const context = options.context;
-    const defaultVariant = options.defaultVariant.toString();
-
     const existingAssignment = this.#assignments[splitName];
     if (existingAssignment?.variant) {
       return existingAssignment.variant;
@@ -78,15 +75,11 @@ export class TestTrack {
 
     const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.visitorId });
     const calculatedVariant = calculateVariant({ assignmentBucket, splitRegistry: this.#splitRegistry, splitName });
+    const variant = calculatedVariant ?? options.defaultVariant.toString();
 
-    if (!calculatedVariant) {
-      this.#isOffline = true;
-    }
-
-    const variant = calculatedVariant ?? defaultVariant;
-    const assignment: Assignment = { splitName, variant, context, isUnsynced: true };
-    this.#updateAssignments([assignment]);
+    this.#updateAssignments([{ splitName, variant, context: options.context, isUnsynced: true }]);
     this.#notifyUnsyncedAssignments();
+
     return variant;
   }
 

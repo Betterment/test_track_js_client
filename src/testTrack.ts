@@ -102,13 +102,11 @@ export class TestTrack {
 
   async logIn(identifierType: string, value: number): Promise<void> {
     await this.#linkIdentifier(identifierType, value);
-    this.#storage.setVisitorId(this.visitorId);
     this.#analytics.identify(this.visitorId);
   }
 
   async signUp(identifierType: string, value: number): Promise<void> {
     await this.#linkIdentifier(identifierType, value);
-    this.#storage.setVisitorId(this.visitorId);
     this.#analytics.alias(this.visitorId);
   }
 
@@ -120,6 +118,8 @@ export class TestTrack {
     });
 
     this.#visitorId = visitor.id;
+    this.#storage.setVisitorId(visitor.id);
+
     this.#updateAssignments(visitor.assignments.map(parseAssignment));
     this.#notifyUnsyncedAssignments();
   }

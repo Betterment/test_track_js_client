@@ -71,27 +71,23 @@ export class TestTrack {
     const context = options.context;
     const defaultVariant = options.defaultVariant.toString();
 
-    let assignment = this.#assignments[splitName];
-    if (!assignment) {
-      const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.visitorId });
-      const variant = calculateVariant({ assignmentBucket, splitRegistry: this.#splitRegistry, splitName });
-
-      if (!variant) {
-        this.#isOffline = true;
-      }
-
-      assignment = { splitName, variant, context, isUnsynced: true };
-      this.#updateAssignments([assignment]);
+    const existingAssignment = this.#assignments[splitName];
+    if (existingAssignment?.variant) {
+      return existingAssignment.variant;
     }
 
-    if (assignment.variant) {
-      this.#notifyUnsyncedAssignments(); // Probably not necessary
-      return assignment.variant;
+    const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.visitorId });
+    const calculatedVariant = calculateVariant({ assignmentBucket, splitRegistry: this.#splitRegistry, splitName });
+
+    if (!calculatedVariant) {
+      this.#isOffline = true;
     }
 
-    this.#updateAssignments([{ ...assignment, variant: defaultVariant, isUnsynced: true, context }]);
+    const variant = calculatedVariant ?? defaultVariant;
+    const assignment: Assignment = { splitName, variant, context, isUnsynced: true };
+    this.#updateAssignments([assignment]);
     this.#notifyUnsyncedAssignments();
-    return defaultVariant;
+    return variant;
   }
 
   ab(splitName: string, options: AbOptions): boolean {

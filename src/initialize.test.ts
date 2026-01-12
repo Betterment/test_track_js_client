@@ -83,7 +83,7 @@ describe('initialize', () => {
       {
         method: 'POST',
         url: 'http://testtrack.dev/api/v1/assignment_event',
-        body: { visitor_id: 'existing_visitor_id', split_name: 'blue_button', context: '' }
+        body: { visitor_id: 'existing_visitor_id', split_name: 'blue_button', context: '', mixpanel_result: 'success' }
       }
     ]);
   });

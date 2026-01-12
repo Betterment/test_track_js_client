@@ -25,8 +25,7 @@ describe('mixpanelAnalytics', () => {
         isUnsynced: false
       };
 
-      const callback = vi.fn();
-      mixpanelAnalytics.trackAssignment('visitor_id', assignment, callback);
+      mixpanelAnalytics.trackAssignment('visitor_id', assignment);
 
       expect(mixpanel.track).toHaveBeenCalledWith(
         'SplitAssigned',
@@ -36,7 +35,7 @@ describe('mixpanelAnalytics', () => {
           SplitVariant: 'cgi',
           SplitContext: 'spec'
         },
-        callback
+        expect.any(Function)
       );
     });
   });

@@ -1,7 +1,7 @@
 import type { Assignment } from './visitor';
 
 export interface AnalyticsProvider {
-  trackAssignment(visitorId: string, assignment: Assignment, callback: (value: boolean) => void): void;
+  trackAssignment(visitorId: string, assignment: Assignment): void;
   identify(visitorId: string): void;
   alias(visitorId: string): void;
 }
@@ -24,7 +24,7 @@ declare global {
 }
 
 export const mixpanelAnalytics: AnalyticsProvider = {
-  trackAssignment(visitorId, assignment, callback) {
+  trackAssignment(visitorId, assignment) {
     const assignmentProperties = {
       TTVisitorID: visitorId,
       SplitName: assignment.splitName,
@@ -32,7 +32,7 @@ export const mixpanelAnalytics: AnalyticsProvider = {
       SplitContext: assignment.context
     };
 
-    window.mixpanel?.track('SplitAssigned', assignmentProperties, callback);
+    window.mixpanel?.track('SplitAssigned', assignmentProperties, () => {});
   },
   identify(visitorId: string) {
     window.mixpanel?.identify(visitorId);

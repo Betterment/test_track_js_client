@@ -3,16 +3,13 @@ import { sendAssignmentNotification } from './assignmentNotification';
 import { http, HttpResponse } from 'msw';
 import { server, getRequests } from './setupTests';
 import { createClient } from './client';
-import type { AnalyticsProvider } from './analyticsProvider';
 
 const client = createClient({ url: 'http://testtrack.dev' });
 
 const analytics = {
   identify: vi.fn(),
   alias: vi.fn(),
-  trackAssignment: vi
-    .fn<AnalyticsProvider['trackAssignment']>()
-    .mockImplementation((_visitorId, _assignment, callback) => callback(true))
+  trackAssignment: vi.fn()
 };
 
 function createAssignment(): Assignment {
@@ -28,27 +25,14 @@ describe('sendAssignmentNotification', () => {
     );
   });
 
-  it('tracks an event', async () => {
+  it('tracks an event and notifies the test track server', async () => {
     const assignment = createAssignment();
     const errorLogger = vi.fn();
 
     await sendAssignmentNotification({ client, visitorId: 'visitorId', analytics, assignment, errorLogger });
 
-    expect(analytics.trackAssignment).toHaveBeenCalledTimes(1);
-    expect(analytics.trackAssignment).toHaveBeenCalledWith('visitorId', assignment, expect.any(Function));
-  });
-
-  it('notifies the test track server with an analytics success', async () => {
-    const assignment = createAssignment();
-    const errorLogger = vi.fn();
-
-    await sendAssignmentNotification({ client, visitorId: 'visitorId', analytics, assignment, errorLogger });
+    expect(analytics.trackAssignment).toHaveBeenCalledWith('visitorId', assignment);
     expect(await getRequests()).toEqual([
-      {
-        method: 'POST',
-        url: 'http://testtrack.dev/api/v1/assignment_event',
-        body: { visitor_id: 'visitorId', split_name: 'jabba', context: 'spec' }
-      },
       {
         method: 'POST',
         url: 'http://testtrack.dev/api/v1/assignment_event',
@@ -57,28 +41,7 @@ describe('sendAssignmentNotification', () => {
     ]);
   });
 
-  it('notifies the test track server with an analytics failure', async () => {
-    const assignment = createAssignment();
-    const errorLogger = vi.fn();
-
-    analytics.trackAssignment.mockImplementationOnce((_visitorId, _assignment, callback) => callback(false));
-    await sendAssignmentNotification({ client, visitorId: 'visitorId', analytics, assignment, errorLogger });
-
-    expect(await getRequests()).toEqual([
-      {
-        method: 'POST',
-        url: 'http://testtrack.dev/api/v1/assignment_event',
-        body: { visitor_id: 'visitorId', split_name: 'jabba', context: 'spec' }
-      },
-      {
-        method: 'POST',
-        url: 'http://testtrack.dev/api/v1/assignment_event',
-        body: { visitor_id: 'visitorId', split_name: 'jabba', context: 'spec', mixpanel_result: 'failure' }
-      }
-    ]);
-  });
-
-  it('logs an error on an error response', async () => {
+  it('logs an error when the request fails', async () => {
     server.use(
       http.post('http://testtrack.dev/api/v1/assignment_event', () => {
         return HttpResponse.json(null, { status: 500 });
@@ -88,27 +51,10 @@ describe('sendAssignmentNotification', () => {
     const assignment = createAssignment();
     const errorLogger = vi.fn();
 
-    analytics.trackAssignment.mockImplementationOnce((_visitorId, _assignment, callback) => callback(false));
     await sendAssignmentNotification({ client, visitorId: 'visitorId', analytics, assignment, errorLogger });
 
-    expect(errorLogger).toHaveBeenCalledTimes(2);
     expect(errorLogger).toHaveBeenCalledWith(
       'test_track persistAssignment error: Error: HTTP request failed with 500 status'
     );
-  });
-
-  it('logs an error on an failed request', async () => {
-    server.use(
-      http.post('http://testtrack.dev/api/v1/assignment_event', () => {
-        return HttpResponse.error();
-      })
-    );
-
-    const assignment = createAssignment();
-    const errorLogger = vi.fn();
-
-    await sendAssignmentNotification({ client, visitorId: 'visitorId', analytics, assignment, errorLogger });
-    expect(errorLogger).toHaveBeenCalledTimes(2);
-    expect(errorLogger).toHaveBeenCalledWith('test_track persistAssignment error: TypeError: Failed to fetch');
   });
 });

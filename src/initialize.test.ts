@@ -1,11 +1,12 @@
 import Cookies from 'js-cookie';
-import { initialize } from './initialize';
+import { create, initialize } from './initialize';
 import { createCookieStorage } from './storageProvider';
 import type { Config } from './config';
 import type { ClientConfig, V4VisitorConfig } from './client';
 import { v4 as uuid } from 'uuid';
-import { getRequests, server } from './setupTests';
+import { server } from './setupTests';
 import { http, HttpResponse } from 'msw';
+import { TestTrack } from './testTrack';
 
 vi.mock('js-cookie');
 vi.mock('uuid');
@@ -89,12 +90,13 @@ describe('initialize', () => {
       domain: '.example.com'
     });
   });
+});
 
-  it('does not fetch visitor config when visitorConfig is provided', async () => {
+describe('create', () => {
+  it('allows visitorConfig to be provided', () => {
     const visitorConfig = buildVisitorConfig('existing_visitor_id');
     const storage = createCookieStorage({ domain: rawConfig.cookieDomain, name: rawConfig.cookieName });
-    await initialize({ client: clientConfig, storage, visitorConfig });
-
-    expect(await getRequests()).toEqual([]);
+    const testTrack = create({ client: clientConfig, storage, visitorConfig });
+    expect(testTrack).toEqual(expect.any(TestTrack));
   });
 });

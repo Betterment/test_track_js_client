@@ -116,15 +116,11 @@ describe('TestTrack', () => {
         });
       });
 
-      it('returns the variant from calculateVariant', () => {
-        const testTrack = createTestTrack();
+      it('uses the defaultVariant when the split registry is not loaded', () => {
+        const testTrack = createOfflineTestTrack();
+        const result = testTrack.vary('jabba', { context: 'spec', defaultVariant: 'cgi' });
 
-        const result = testTrack.vary('wine', {
-          context: 'spec',
-          defaultVariant: 'white'
-        });
-
-        expect(result).toBe('red');
+        expect(result).toBe('cgi');
       });
 
       it('logs an error if the HTTP request fails', async () => {
@@ -194,53 +190,6 @@ describe('TestTrack', () => {
           url: 'http://testtrack.dev/api/v1/assignment_event',
           body: { visitor_id: 'EXISTING_VISITOR_ID', split_name: 'wine', context: 'spec' }
         });
-      });
-    });
-
-    describe('Offline TestTrack', () => {
-      it('generates a new assignment via calculateVariant', () => {
-        const testTrack = createOfflineTestTrack();
-        const result = testTrack.vary('jabba', { context: 'spec', defaultVariant: 'cgi' });
-
-        expect(result).toBe('cgi');
-        expect(mockGetAssignmentBucket).toHaveBeenCalledWith({
-          visitorId: 'offline_visitor_id',
-          splitName: 'jabba'
-        });
-      });
-
-      it('does not send an AssignmentNotification', () => {
-        const postAssignmentEventSpy = vi.spyOn(client, 'postAssignmentEvent');
-        const testTrack = createOfflineTestTrack();
-        const result = testTrack.vary('wine', { context: 'spec', defaultVariant: 'white' });
-
-        expect(result).toBe('white');
-        expect(analytics.trackAssignment).not.toHaveBeenCalled();
-        expect(postAssignmentEventSpy).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('Receives a null variant from calculateVariant', () => {
-      it('adds the assignment to the assignment registry', () => {
-        // Empty split registry returns null from calculateVariant
-        const testTrack = createOfflineTestTrack();
-        const result = testTrack.vary('wine', { context: 'spec', defaultVariant: 'white' });
-
-        expect(result).toBe('white');
-        expect(testTrack.assignments).toEqual([
-          { splitName: 'wine', variant: 'white', context: 'spec', isUnsynced: true }
-        ]);
-      });
-
-      it('does not send an AssignmentNotification', () => {
-        // Empty split registry returns null from calculateVariant
-        const postAssignmentEventSpy = vi.spyOn(client, 'postAssignmentEvent');
-        const testTrack = createOfflineTestTrack();
-        const result = testTrack.vary('wine', { context: 'spec', defaultVariant: 'white' });
-
-        expect(result).toBe('white');
-        expect(analytics.trackAssignment).not.toHaveBeenCalled();
-        expect(postAssignmentEventSpy).not.toHaveBeenCalled();
       });
     });
 

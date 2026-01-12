@@ -35,7 +35,6 @@ export class TestTrack {
   readonly #splitRegistry: SplitRegistry;
   readonly #analytics: AnalyticsProvider;
   readonly #errorLogger: (errorMessage: string) => void;
-  readonly #isOffline: boolean;
 
   #visitorId: string;
   #assignments: AssignmentRegistry;
@@ -47,11 +46,10 @@ export class TestTrack {
     return testTrack;
   }
 
-  constructor({ client, storage, splitRegistry, visitor, isOffline = false, analytics, errorLogger }: Options) {
+  constructor({ client, storage, splitRegistry, visitor, analytics, errorLogger }: Options) {
     this.#client = client;
     this.#storage = storage;
     this.#splitRegistry = splitRegistry;
-    this.#isOffline = isOffline || !splitRegistry.isLoaded;
     this.#visitorId = visitor.id;
     this.#assignments = indexAssignments(visitor.assignments);
     this.#errorLogger = errorLogger ?? (errorMessage => console.error(errorMessage));
@@ -130,8 +128,6 @@ export class TestTrack {
   }
 
   #sendAssignmentNotification(assignment: Assignment): void {
-    if (this.#isOffline) return;
-
     try {
       this.#analytics.trackAssignment(this.visitorId, assignment);
     } catch (error) {

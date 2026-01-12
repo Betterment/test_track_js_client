@@ -1,10 +1,5 @@
 import { request } from './request';
-import type {
-  V4VisitorConfig,
-  V4IdentifierParams,
-  V1AssignmentOverrideParams,
-  V1AssignmentEventParams
-} from './types';
+import type { V4VisitorConfig, V4IdentifierParams, V2AssignmentOverrideParams, V1AssignmentEventParams } from './types';
 
 export type ClientConfig = {
   url: string;
@@ -41,11 +36,11 @@ export function createClient(config: ClientConfig) {
       return data;
     },
 
-    async postAssignmentOverride({ auth, ...params }: V1AssignmentOverrideParams): Promise<void> {
+    async postAssignmentOverride({ auth, visitor_id, assignments }: V2AssignmentOverrideParams): Promise<void> {
       await request({
         method: 'POST',
-        url: new URL('/api/v1/assignment_override', config.url),
-        body: JSON.stringify(params),
+        url: new URL(`/api/v2/visitors/${visitor_id}/assignment_overrides`, config.url),
+        body: JSON.stringify({ assignments }),
         auth
       });
     },

@@ -26,7 +26,7 @@ describe('createWebExtension', () => {
   describe('.persistAssignment()', () => {
     beforeEach(() => {
       server.use(
-        http.post('http://testtrack.dev/api/v1/assignment_override', () => {
+        http.post('http://testtrack.dev/api/v2/visitors/:visitor_id/assignment_overrides', () => {
           return HttpResponse.json(null, { status: 200 });
         })
       );
@@ -46,13 +46,9 @@ describe('createWebExtension', () => {
       expect(await getRequests()).toEqual([
         {
           method: 'POST',
-          url: 'http://testtrack.dev/api/v1/assignment_override',
+          url: 'http://testtrack.dev/api/v2/visitors/existing_visitor_id/assignment_overrides',
           body: {
-            visitor_id: 'existing_visitor_id',
-            split_name: 'split',
-            variant: 'variant',
-            context: 'chrome_extension',
-            mixpanel_result: 'success'
+            assignments: [{ split_name: 'split', variant: 'variant', context: 'chrome_extension' }]
           }
         }
       ]);
@@ -60,7 +56,7 @@ describe('createWebExtension', () => {
 
     it('logs an error on an error response', async () => {
       server.use(
-        http.post('http://testtrack.dev/api/v1/assignment_override', () => {
+        http.post('http://testtrack.dev/api/v2/visitors/:visitor_id/assignment_overrides', () => {
           return HttpResponse.json(null, { status: 500 });
         })
       );

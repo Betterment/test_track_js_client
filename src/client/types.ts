@@ -1,9 +1,6 @@
-export type V1AssignmentOverrideParams = {
+export type V2AssignmentOverrideParams = {
   visitor_id: string;
-  split_name: string;
-  variant: string;
-  context: string | null | undefined;
-  mixpanel_result: string | null | undefined;
+  assignments: Array<{ split_name: string; variant: string; context: string | null | undefined }>;
   auth: { username: string; password: string };
 };
 

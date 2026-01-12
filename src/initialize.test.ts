@@ -1,13 +1,10 @@
 import Cookies from 'js-cookie';
 import { initialize } from './initialize';
 import type { Config } from './config';
+import type { ClientConfig } from './client';
 import { v4 as uuid } from 'uuid';
 
 const rawConfig: Config = {
-  url: 'http://testtrack.dev',
-  appName: 'test_app',
-  appVersion: '1.0.0',
-  buildTimestamp: '2019-04-16T14:35:30Z',
   cookieDomain: '.example.com',
   cookieName: 'custom_cookie_name',
   experienceSamplingWeight: 1,
@@ -16,6 +13,13 @@ const rawConfig: Config = {
     jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
     wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
   }
+};
+
+const clientConfig: ClientConfig = {
+  url: 'http://testtrack.dev',
+  appName: 'test_app',
+  appVersion: '1.0.0',
+  buildTimestamp: '2019-04-16T14:35:30Z'
 };
 
 vi.mock('js-cookie');
@@ -32,7 +36,7 @@ describe('initialize', () => {
   });
 
   it('reads the visitor id from a cookie and sets it back in the cookie', async () => {
-    await initialize();
+    await initialize({ client: clientConfig });
     expect(Cookies.get).toHaveBeenCalledTimes(1);
     expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
     expect(Cookies.set).toHaveBeenCalledTimes(1);
@@ -49,7 +53,7 @@ describe('initialize', () => {
     // @ts-expect-error uuid mock return type
     vi.mocked(uuid).mockReturnValue('generated_visitor_id');
 
-    await initialize();
+    await initialize({ client: clientConfig });
     expect(Cookies.get).toHaveBeenCalledTimes(1);
     expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
     expect(Cookies.set).toHaveBeenCalledTimes(1);

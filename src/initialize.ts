@@ -1,9 +1,9 @@
 import { v4 as uuid } from 'uuid';
 import { TestTrack } from './testTrack';
 import { loadVisitorConfig, parseVisitorConfig } from './visitor';
-import type { AnalyticsProvider } from './analyticsProvider';
-import { type StorageProvider } from './storageProvider';
 import { createClient, type ClientConfig, type V4VisitorConfig } from './client';
+import type { AnalyticsProvider } from './analyticsProvider';
+import type { StorageProvider } from './storageProvider';
 
 type InitializeOptions = {
   client: ClientConfig;

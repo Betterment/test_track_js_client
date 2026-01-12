@@ -1,21 +1,13 @@
-import Cookies from 'js-cookie';
 import { create, initialize } from './initialize';
-import { createCookieStorage } from './storageProvider';
-import type { Config } from './config';
+import type { StorageProvider } from './storageProvider';
 import type { ClientConfig, V4VisitorConfig } from './client';
 import { v4 as uuid } from 'uuid';
 import { server } from './setupTests';
 import { http, HttpResponse } from 'msw';
-import { TestTrack } from './testTrack';
 
-vi.mock('js-cookie');
 vi.mock('uuid');
 
-const rawConfig: Config = {
-  cookieDomain: '.example.com',
-  cookieName: 'custom_cookie_name'
-};
-
+const buildURL = 'http://testtrack.dev/api/v4/apps/test_app/versions/1.0.0/builds/2019-04-16T14:35:30Z';
 const clientConfig: ClientConfig = {
   url: 'http://testtrack.dev',
   appName: 'test_app',
@@ -23,7 +15,10 @@ const clientConfig: ClientConfig = {
   buildTimestamp: '2019-04-16T14:35:30Z'
 };
 
-const buildURL = 'http://testtrack.dev/api/v4/apps/test_app/versions/1.0.0/builds/2019-04-16T14:35:30Z';
+const storage: StorageProvider = {
+  getVisitorId: vi.fn(),
+  setVisitorId: vi.fn()
+};
 
 const buildVisitorConfig = (visitorId: string): V4VisitorConfig => ({
   splits: [
@@ -44,14 +39,7 @@ const buildVisitorConfig = (visitorId: string): V4VisitorConfig => ({
 });
 
 describe('initialize', () => {
-  beforeAll(() => {
-    window.TT = btoa(JSON.stringify(rawConfig));
-  });
-
   beforeEach(() => {
-    // @ts-expect-error Cookies.get returns different types depending on arguments
-    vi.mocked(Cookies.get).mockReturnValue('existing_visitor_id');
-
     server.use(
       http.get(`${buildURL}/visitors/:visitorId/config`, ({ params }) => {
         return HttpResponse.json(buildVisitorConfig(params.visitorId as string));
@@ -59,44 +47,33 @@ describe('initialize', () => {
     );
   });
 
-  it('reads the visitor id from a cookie and sets it back in the cookie', async () => {
-    const storage = createCookieStorage({ domain: rawConfig.cookieDomain, name: rawConfig.cookieName });
-    await initialize({ client: clientConfig, storage });
-    expect(Cookies.get).toHaveBeenCalledTimes(1);
-    expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
-    expect(Cookies.set).toHaveBeenCalledTimes(1);
-    expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'existing_visitor_id', {
-      expires: 365,
-      path: '/',
-      domain: '.example.com'
-    });
+  it('reads the visitor id from storage and sets it back', async () => {
+    vi.mocked(storage.getVisitorId).mockReturnValue('existing_visitor_id');
+
+    const testTrack = await initialize({ client: clientConfig, storage });
+    expect(testTrack.visitorId).toEqual('existing_visitor_id');
+
+    expect(storage.getVisitorId).toHaveBeenCalledTimes(1);
+    expect(storage.setVisitorId).toHaveBeenCalledWith('existing_visitor_id');
   });
 
-  it('saves the visitor id in a cookie', async () => {
-    // @ts-expect-error Cookies.get returns different types depending on arguments
-    vi.mocked(Cookies.get).mockReturnValue(undefined);
+  it('generates and saves a visitor id when none exists', async () => {
     // @ts-expect-error uuid mock return type
     vi.mocked(uuid).mockReturnValue('generated_visitor_id');
+    vi.mocked(storage.getVisitorId).mockReturnValue(undefined);
 
-    const storage = createCookieStorage({ domain: rawConfig.cookieDomain, name: rawConfig.cookieName });
-    await initialize({ client: clientConfig, storage });
+    const testTrack = await initialize({ client: clientConfig, storage });
+    expect(testTrack.visitorId).toEqual('generated_visitor_id');
 
-    expect(Cookies.get).toHaveBeenCalledTimes(1);
-    expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
-    expect(Cookies.set).toHaveBeenCalledTimes(1);
-    expect(Cookies.set).toHaveBeenCalledWith('custom_cookie_name', 'generated_visitor_id', {
-      expires: 365,
-      path: '/',
-      domain: '.example.com'
-    });
+    expect(storage.getVisitorId).toHaveBeenCalledTimes(1);
+    expect(storage.setVisitorId).toHaveBeenCalledWith('generated_visitor_id');
   });
 });
 
 describe('create', () => {
   it('allows visitorConfig to be provided', () => {
     const visitorConfig = buildVisitorConfig('existing_visitor_id');
-    const storage = createCookieStorage({ domain: rawConfig.cookieDomain, name: rawConfig.cookieName });
     const testTrack = create({ client: clientConfig, storage, visitorConfig });
-    expect(testTrack).toEqual(expect.any(TestTrack));
+    expect(testTrack.visitorId).toEqual('existing_visitor_id');
   });
 });

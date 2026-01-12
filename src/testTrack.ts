@@ -120,27 +120,31 @@ export class TestTrack {
   }
 
   #notifyUnsyncedAssignments(): void {
-    Object.values(this.#assignments)
+    this.assignments
       .filter(assignment => assignment.isUnsynced)
       .forEach(assignment => this.#sendAssignmentNotification(assignment));
   }
 
   #sendAssignmentNotification(assignment: Assignment): void {
-    try {
-      this.#analytics.trackAssignment(this.visitorId, assignment);
-    } catch (error) {
-      this.#errorLogger(`test_track trackAssignment error: ${String(error)}`);
-    }
+    const split = this.#splitRegistry.getSplit(assignment.splitName);
 
-    void this.#client
-      .postAssignmentEvent({
-        visitor_id: this.visitorId,
-        split_name: assignment.splitName,
-        context: assignment.context
-      })
-      .catch(error => {
-        this.#errorLogger(`test_track persistAssignment error: ${error}`);
-      });
+    if (split && !split.isFeatureGate) {
+      try {
+        this.#analytics.trackAssignment(this.visitorId, assignment);
+      } catch (error) {
+        this.#errorLogger(`test_track trackAssignment error: ${String(error)}`);
+      }
+
+      void this.#client
+        .postAssignmentEvent({
+          visitor_id: this.visitorId,
+          split_name: assignment.splitName,
+          context: assignment.context
+        })
+        .catch(error => {
+          this.#errorLogger(`test_track persistAssignment error: ${error}`);
+        });
+    }
 
     this.#updateAssignments([{ ...assignment, isUnsynced: false }]);
   }

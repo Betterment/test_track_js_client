@@ -213,6 +213,34 @@ describe('TestTrack', () => {
         expect(result).toBe('false');
       });
     });
+
+    it('does not send an AssignmentNotification for feature gates', async () => {
+      mockGetAssignmentBucket.mockReturnValue(25); // Selects 'false'
+      const postAssignmentEventSpy = vi.spyOn(client, 'postAssignmentEvent');
+      const testTrack = createTestTrack();
+      const result = testTrack.vary('blue_button', { context: 'spec', defaultVariant: false });
+
+      expect(result).toBe('false');
+      expect(analytics.trackAssignment).not.toHaveBeenCalled();
+      expect(postAssignmentEventSpy).not.toHaveBeenCalled();
+
+      await new Promise(resolve => setTimeout(resolve, 50));
+      expect(await getRequests()).toEqual([]);
+    });
+
+    it('does not send an AssignmentNotification for unknown splits', async () => {
+      mockGetAssignmentBucket.mockReturnValue(50);
+      const postAssignmentEventSpy = vi.spyOn(client, 'postAssignmentEvent');
+      const testTrack = createEmptySplitRegistryTestTrack();
+      const result = testTrack.vary('unknown_split', { context: 'spec', defaultVariant: 'default' });
+
+      expect(result).toBe('default');
+      expect(analytics.trackAssignment).not.toHaveBeenCalled();
+      expect(postAssignmentEventSpy).not.toHaveBeenCalled();
+
+      await new Promise(resolve => setTimeout(resolve, 50));
+      expect(await getRequests()).toEqual([]);
+    });
   });
 
   describe('.ab()', () => {

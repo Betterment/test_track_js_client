@@ -71,9 +71,10 @@ export class TestTrack {
     const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.visitorId });
     const calculatedVariant = calculateVariant({ assignmentBucket, splitRegistry: this.#splitRegistry, splitName });
     const variant = calculatedVariant ?? options.defaultVariant.toString();
+    const assignment = { splitName, variant, context: options.context, isUnsynced: false };
 
-    this.#updateAssignments([{ splitName, variant, context: options.context, isUnsynced: true }]);
-    this.#notifyUnsyncedAssignments();
+    this.#updateAssignments([assignment]);
+    this.#sendAssignmentNotification(assignment);
 
     return variant;
   }
@@ -117,34 +118,25 @@ export class TestTrack {
     this.#updateAssignments(visitor.assignments.map(parseAssignment));
   }
 
-  #notifyUnsyncedAssignments(): void {
-    this.assignments
-      .filter(assignment => assignment.isUnsynced)
-      .forEach(assignment => this.#sendAssignmentNotification(assignment));
-  }
-
   #sendAssignmentNotification(assignment: Assignment): void {
     const split = this.#splitRegistry.getSplit(assignment.splitName);
+    if (!split || split.isFeatureGate) return;
 
-    if (split && !split.isFeatureGate) {
-      try {
-        this.#analytics.trackAssignment(this.visitorId, assignment);
-      } catch (error) {
-        this.#errorLogger(`test_track trackAssignment error: ${String(error)}`);
-      }
-
-      void this.#client
-        .postAssignmentEvent({
-          visitor_id: this.visitorId,
-          split_name: assignment.splitName,
-          context: assignment.context
-        })
-        .catch(error => {
-          this.#errorLogger(`test_track persistAssignment error: ${error}`);
-        });
+    try {
+      this.#analytics.trackAssignment(this.visitorId, assignment);
+    } catch (error) {
+      this.#errorLogger(`test_track trackAssignment error: ${String(error)}`);
     }
 
-    this.#updateAssignments([{ ...assignment, isUnsynced: false }]);
+    void this.#client
+      .postAssignmentEvent({
+        visitor_id: this.visitorId,
+        split_name: assignment.splitName,
+        context: assignment.context
+      })
+      .catch(error => {
+        this.#errorLogger(`test_track persistAssignment error: ${error}`);
+      });
   }
 
   #updateAssignments(assignments: Assignment[]): void {

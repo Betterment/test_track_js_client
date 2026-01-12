@@ -1,5 +1,6 @@
 import type { Assignment } from './visitor';
-import { indexAssignments, parseAssignment, loadVisitor } from './visitor';
+import { indexAssignments, parseAssignment, parseVisitorConfig, loadVisitor } from './visitor';
+import type { V4VisitorConfig } from './client';
 import { v4 as uuid } from 'uuid';
 import { http, HttpResponse } from 'msw';
 import { server, getRequests } from './setupTests';
@@ -126,5 +127,41 @@ describe('indexAssignments', () => {
     const b: Assignment = { splitName: 'b', variant: 'true', context: null };
 
     expect(indexAssignments([a, b])).toEqual({ a, b });
+  });
+});
+
+describe('parseVisitorConfig', () => {
+  it('parses V4 API visitor config data', () => {
+    const v4VisitorConfig: V4VisitorConfig = {
+      splits: [
+        {
+          name: 'jabba',
+          variants: [
+            { name: 'cgi', weight: 50 },
+            { name: 'puppet', weight: 50 }
+          ],
+          feature_gate: true
+        }
+      ],
+      visitor: {
+        id: 'test_visitor_id',
+        assignments: [{ split_name: 'jabba', variant: 'puppet' }]
+      },
+      experience_sampling_weight: 1
+    };
+
+    const { visitor, splitRegistry } = parseVisitorConfig(v4VisitorConfig);
+
+    expect(visitor).toEqual({
+      id: 'test_visitor_id',
+      assignments: [{ splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false }]
+    });
+
+    expect(splitRegistry.isLoaded).toBe(true);
+    expect(splitRegistry.getSplit('jabba')).toEqual({
+      name: 'jabba',
+      isFeatureGate: true,
+      weighting: { cgi: 50, puppet: 50 }
+    });
   });
 });

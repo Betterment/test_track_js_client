@@ -1,4 +1,3 @@
-import { v4 as uuid } from 'uuid';
 import type { Client, V1Assignment, V4Assignment, V4Split, V4VisitorConfig } from './client';
 import { type Split, type SplitRegistry, createSplitRegistry } from './splitRegistry';
 
@@ -21,17 +20,6 @@ export type VisitorConfig = Readonly<{
   visitor: Visitor;
   splitRegistry: SplitRegistry;
 }>;
-
-export type LoadedVisitor = Readonly<{
-  visitor: Visitor;
-  isOffline: boolean;
-}>;
-
-type LoadVisitorOptions = {
-  client: Client;
-  id: string | undefined;
-  assignments: Assignment[] | null;
-};
 
 export function parseAssignment(data: V1Assignment): Assignment {
   return {
@@ -65,22 +53,14 @@ export function indexAssignments(assignments: Assignment[]): AssignmentRegistry 
   return Object.fromEntries(assignments.map(assignment => [assignment.splitName, assignment]));
 }
 
-export async function loadVisitorConfig(options: LoadVisitorOptions): Promise<Visitor> {
-  const { id, client } = options;
-
-  if (!id) {
-    return { id: uuid(), assignments: [] };
-  }
-
-  if (options.assignments) {
-    return { id, assignments: options.assignments };
-  }
-
+export async function loadVisitorConfig(client: Client, visitorId: string): Promise<VisitorConfig> {
   try {
-    const data = await client.getVisitor(id);
-    const assignments = data.assignments.map(parseAssignment);
-    return { id: data.id, assignments };
+    const visitorConfig = await client.getVisitorConfig(visitorId);
+    return parseVisitorConfig(visitorConfig);
   } catch {
-    return { id, assignments: [] };
+    return {
+      visitor: { id: visitorId, assignments: [] },
+      splitRegistry: createSplitRegistry(null)
+    };
   }
 }

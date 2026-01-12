@@ -1,34 +1,33 @@
-import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
+import { v4 as uuid } from 'uuid';
+import { loadConfig } from './config';
 import { TestTrack } from './testTrack';
-import { loadVisitorConfig } from './visitor';
+import { loadVisitorConfig, parseVisitorConfig } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import { createCookieStorage } from './storageProvider';
-import { createClient, type ClientConfig } from './client';
+import { createClient, type ClientConfig, type V4VisitorConfig } from './client';
 
-type SessionOptions = {
+type InitializeOptions = {
   client: ClientConfig;
+  visitorConfig?: V4VisitorConfig;
   analytics?: AnalyticsProvider;
   errorLogger?: (errorMessage: string) => void;
 };
 
-export async function initialize(options: SessionOptions): Promise<TestTrack> {
+export async function initialize(options: InitializeOptions): Promise<TestTrack> {
   const config = loadConfig();
   const client = createClient(options.client);
-
   const storage = createCookieStorage({ domain: config.cookieDomain, name: config.cookieName });
-  const splitRegistry = parseSplitRegistry(config.splits);
 
-  const visitor = await loadVisitorConfig({
-    client,
-    id: storage.getVisitorId(),
-    assignments: parseAssignments(config.assignments)
-  });
+  const visitorId = storage.getVisitorId() ?? uuid();
+  const visitorConfig = options.visitorConfig
+    ? parseVisitorConfig(options.visitorConfig)
+    : await loadVisitorConfig(client, visitorId);
 
   const testTrack = TestTrack.create({
     client,
     storage,
-    splitRegistry,
-    visitor,
+    splitRegistry: visitorConfig.splitRegistry,
+    visitor: visitorConfig.visitor,
     analytics: options.analytics,
     errorLogger: options.errorLogger
   });

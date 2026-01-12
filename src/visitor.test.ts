@@ -1,7 +1,6 @@
 import type { Assignment } from './visitor';
 import { indexAssignments, parseAssignment, parseVisitorConfig, loadVisitorConfig } from './visitor';
 import type { V4VisitorConfig } from './client';
-import { v4 as uuid } from 'uuid';
 import { http, HttpResponse } from 'msw';
 import { server, getRequests } from './setupTests';
 import { createClient } from './client';
@@ -16,93 +15,66 @@ const client = createClient({
 });
 
 describe('loadVisitorConfig()', () => {
+  const buildURL = 'http://testtrack.dev/api/v4/apps/test_app/versions/1.0.0/builds/2019-04-16T14:35:30Z';
+
   beforeEach(() => {
     server.use(
-      http.get('http://testtrack.dev/api/v1/visitors/server_visitor_id', () => {
-        return HttpResponse.json({
-          id: 'server_visitor_id',
-          assignments: [
+      http.get(`${buildURL}/visitors/test_visitor_id/config`, () => {
+        const visitorConfig: V4VisitorConfig = {
+          splits: [
             {
-              split_name: 'jabba',
-              variant: 'puppet',
-              unsynced: false
+              name: 'jabba',
+              variants: [
+                { name: 'cgi', weight: 50 },
+                { name: 'puppet', weight: 50 }
+              ],
+              feature_gate: true
             }
-          ]
-        });
-      }),
-      http.get('http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id', () => {
-        return HttpResponse.json({
-          id: 'puppeteer_visitor_id',
-          assignments: [
-            {
-              split_name: 'jabba',
-              variant: 'puppet',
-              context: 'mos_eisley',
-              unsynced: false
-            }
-          ]
-        });
+          ],
+          visitor: {
+            id: 'test_visitor_id',
+            assignments: [{ split_name: 'jabba', variant: 'puppet' }]
+          },
+          experience_sampling_weight: 1
+        };
+        return HttpResponse.json(visitorConfig);
       })
     );
   });
 
-  it('does not hit the server when not passed a visitorId', async () => {
-    // @ts-expect-error `uuid` has overloads
-    vi.mocked(uuid).mockReturnValue('generated_uuid');
+  it('loads visitor config from the V4 API', async () => {
+    const result = await loadVisitorConfig(client, 'test_visitor_id');
 
-    const result = await loadVisitorConfig({ client, id: undefined, assignments: null });
-    expect(result).toEqual({ id: 'generated_uuid', assignments: [] });
-    expect(await getRequests()).toEqual([]);
-  });
-
-  it('does not hit the server when passed a visitorId and there are baked assignments', async () => {
-    const jabbaAssignment: Assignment = {
-      splitName: 'jabba',
-      variant: 'puppet',
-      context: null
-    };
-
-    const wineAssignment: Assignment = {
-      splitName: 'wine',
-      variant: 'rose',
-      context: null
-    };
-
-    const result = await loadVisitorConfig({
-      client,
-      id: 'baked_visitor_id',
-      assignments: [jabbaAssignment, wineAssignment]
+    expect(result.visitor).toEqual({
+      id: 'test_visitor_id',
+      assignments: [{ splitName: 'jabba', variant: 'puppet', context: null }]
     });
 
-    expect(result).toEqual({ id: 'baked_visitor_id', assignments: [jabbaAssignment, wineAssignment] });
-    expect(await getRequests()).toEqual([]);
-  });
+    expect(result.splitRegistry.isLoaded).toBe(true);
+    expect(result.splitRegistry.getSplit('jabba')).toEqual({
+      name: 'jabba',
+      isFeatureGate: true,
+      weighting: { cgi: 50, puppet: 50 }
+    });
 
-  it('loads a visitor from the server for an existing visitor if there are no baked assignments', async () => {
-    const jabbaAssignment: Assignment = {
-      splitName: 'jabba',
-      variant: 'puppet',
-      context: 'mos_eisley'
-    };
-
-    const result = await loadVisitorConfig({ client, id: 'puppeteer_visitor_id', assignments: null });
-    expect(result).toEqual({ id: 'puppeteer_visitor_id', assignments: [jabbaAssignment] });
     expect(await getRequests()).toEqual([
-      { method: 'GET', url: 'http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id', body: null }
+      { method: 'GET', url: `${buildURL}/visitors/test_visitor_id/config`, body: null }
     ]);
   });
 
-  it('builds a visitor in offline mode if the request fails', async () => {
+  it('returns empty visitor config if the request fails', async () => {
     server.use(
-      http.get('http://testtrack.dev/api/v1/visitors/failed_visitor_id', () => {
+      http.get(`${buildURL}/visitors/failed_visitor_id/config`, () => {
         return HttpResponse.error();
       })
     );
 
-    const result = await loadVisitorConfig({ client, id: 'failed_visitor_id', assignments: null });
-    expect(result).toEqual({ id: 'failed_visitor_id', assignments: [] });
+    const result = await loadVisitorConfig(client, 'failed_visitor_id');
+    expect(result.visitor).toEqual({ id: 'failed_visitor_id', assignments: [] });
+    expect(result.splitRegistry.isLoaded).toBe(false);
+
     expect(await getRequests()).toEqual([
-      { method: 'GET', url: 'http://testtrack.dev/api/v1/visitors/failed_visitor_id', body: null }
+      { method: 'GET', url: `${buildURL}/visitors/failed_visitor_id/config`, body: null }
     ]);
   });
 });

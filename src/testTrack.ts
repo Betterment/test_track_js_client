@@ -114,9 +114,7 @@ export class TestTrack {
 
     this.#visitorId = visitor.id;
     this.#storage.setVisitorId(visitor.id);
-
     this.#updateAssignments(visitor.assignments.map(parseAssignment));
-    this.#notifyUnsyncedAssignments();
   }
 
   #notifyUnsyncedAssignments(): void {

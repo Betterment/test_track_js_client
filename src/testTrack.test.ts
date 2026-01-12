@@ -340,7 +340,7 @@ describe('TestTrack', () => {
               id: 'actual_visitor_id',
               assignments: [
                 { split_name: 'jabba', variant: 'cgi', context: 'mos_eisley', unsynced: false },
-                { split_name: 'wine', variant: 'red', context: 'spec', unsynced: true }
+                { split_name: 'wine', variant: 'red', context: 'spec', unsynced: false }
               ]
             }
           });
@@ -348,7 +348,7 @@ describe('TestTrack', () => {
       );
     });
 
-    it('links identifier, overrides assignments, and updates visitor', async () => {
+    it('links identifier, overrides assignments, and updates visitorId', async () => {
       const testTrack = createTestTrack([
         { splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false },
         { splitName: 'element', variant: 'earth', context: null, isUnsynced: false }
@@ -361,11 +361,6 @@ describe('TestTrack', () => {
           method: 'POST',
           url: 'http://testtrack.dev/api/v1/identifier',
           body: { visitor_id: 'EXISTING_VISITOR_ID', identifier_type: 'myappdb_user_id', value: '444' }
-        },
-        {
-          method: 'POST',
-          url: 'http://testtrack.dev/api/v1/assignment_event',
-          body: { visitor_id: 'actual_visitor_id', split_name: 'wine', context: 'spec' }
         }
       ]);
 
@@ -378,8 +373,6 @@ describe('TestTrack', () => {
         { splitName: 'element', variant: 'earth', context: null, isUnsynced: false },
         { splitName: 'wine', variant: 'red', context: 'spec', isUnsynced: false }
       ]);
-
-      expect(analytics.trackAssignment).toHaveBeenCalledTimes(1);
     });
   });
 });

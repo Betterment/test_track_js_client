@@ -40,7 +40,6 @@ export class TestTrack {
 
   static create(options: Options): TestTrack {
     const testTrack = new TestTrack(options);
-    testTrack.#notifyUnsyncedAssignments();
     testTrack.#connectWebExtension();
     return testTrack;
   }

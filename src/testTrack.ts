@@ -1,5 +1,5 @@
 import { getFalseVariant } from './abConfiguration';
-import { indexAssignments, parseV4Assignment, type Assignment, type AssignmentRegistry } from './visitor';
+import { indexAssignments, parseVisitorConfig, type Assignment, type AssignmentRegistry } from './visitor';
 import { nullAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
 import { connectWebExtension, createWebExtension } from './webExtension';
@@ -31,12 +31,12 @@ type Options = {
 export class TestTrack {
   readonly #client: Client;
   readonly #storage: StorageProvider;
-  readonly #splitRegistry: SplitRegistry;
   readonly #analytics: AnalyticsProvider;
   readonly #errorLogger: (errorMessage: string) => void;
 
   #visitorId: string;
   #assignments: AssignmentRegistry;
+  #splitRegistry: SplitRegistry;
 
   static create(options: Options): TestTrack {
     const testTrack = new TestTrack(options);
@@ -74,7 +74,7 @@ export class TestTrack {
     const variant = calculatedVariant ?? options.defaultVariant.toString();
     const assignment = { splitName, variant, context: options.context };
 
-    this.#updateAssignments([assignment]);
+    this.#assignments = { ...this.#assignments, ...indexAssignments([assignment]) };
     this.#sendAssignmentNotification(assignment);
 
     return variant;
@@ -108,15 +108,18 @@ export class TestTrack {
   }
 
   async #linkIdentifier(identifierType: string, value: number): Promise<void> {
-    const config = await this.#client.postIdentifier({
+    const response = await this.#client.postIdentifier({
       visitor_id: this.visitorId,
       identifier_type: identifierType,
       value: value.toString()
     });
 
-    this.#visitorId = config.visitor.id;
+    const { visitor, splitRegistry } = parseVisitorConfig(response);
+
+    this.#visitorId = visitor.id;
+    this.#assignments = indexAssignments(visitor.assignments);
+    this.#splitRegistry = splitRegistry;
     this.#saveVisitorId();
-    this.#updateAssignments(config.visitor.assignments.map(parseV4Assignment));
   }
 
   #sendAssignmentNotification(assignment: Assignment): void {
@@ -138,10 +141,6 @@ export class TestTrack {
       .catch(error => {
         this.#errorLogger(`test_track persistAssignment error: ${error}`);
       });
-  }
-
-  #updateAssignments(assignments: Assignment[]): void {
-    this.#assignments = { ...this.#assignments, ...indexAssignments(assignments) };
   }
 
   #saveVisitorId(): void {

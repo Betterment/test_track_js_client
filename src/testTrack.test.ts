@@ -377,7 +377,6 @@ describe('TestTrack', () => {
 
       expect(testTrack.assignments).toEqual([
         { splitName: 'jabba', variant: 'cgi', context: null },
-        { splitName: 'element', variant: 'earth', context: null },
         { splitName: 'wine', variant: 'red', context: null }
       ]);
     });

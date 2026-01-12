@@ -21,11 +21,11 @@ export type VisitorConfig = Readonly<{
   splitRegistry: SplitRegistry;
 }>;
 
-export function parseV4Assignment(data: V4Assignment): Assignment {
+function parseAssignment(data: V4Assignment): Assignment {
   return { splitName: data.split_name, variant: data.variant, context: null };
 }
 
-function parseV4Split(data: V4Split): Split {
+function parseSplit(data: V4Split): Split {
   return {
     name: data.name,
     isFeatureGate: data.feature_gate,
@@ -34,9 +34,9 @@ function parseV4Split(data: V4Split): Split {
 }
 
 export function parseVisitorConfig(config: V4VisitorConfig): VisitorConfig {
-  const splits = config.splits.map(parseV4Split);
+  const splits = config.splits.map(parseSplit);
   const splitRegistry = createSplitRegistry(splits);
-  const assignments = config.visitor.assignments.map(parseV4Assignment);
+  const assignments = config.visitor.assignments.map(parseAssignment);
   const visitor = { id: config.visitor.id, assignments };
   return { visitor, splitRegistry };
 }

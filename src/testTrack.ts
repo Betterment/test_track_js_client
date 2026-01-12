@@ -1,7 +1,7 @@
 import { getFalseVariant } from './abConfiguration';
 import { indexAssignments, parseAssignment, type Assignment, type AssignmentRegistry } from './visitor';
 import { sendAssignmentNotification } from './assignmentNotification';
-import { mixpanelAnalytics } from './analyticsProvider';
+import { nullAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
 import { connectWebExtension, createWebExtension } from './webExtension';
 import type { AnalyticsProvider } from './analyticsProvider';
@@ -56,7 +56,7 @@ export class TestTrack {
     this.#visitorId = visitor.id;
     this.#assignments = indexAssignments(visitor.assignments);
     this.#errorLogger = errorLogger ?? (errorMessage => console.error(errorMessage));
-    this.#analytics = analytics ?? mixpanelAnalytics;
+    this.#analytics = analytics ?? nullAnalytics;
   }
 
   get visitorId(): string {

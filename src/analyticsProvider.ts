@@ -1,43 +1,13 @@
 import type { Assignment } from './visitor';
 
-export interface AnalyticsProvider {
-  trackAssignment(visitorId: string, assignment: Assignment): void;
-  identify(visitorId: string): void;
-  alias(visitorId: string): void;
-}
-
-type EventProperties = {
-  TTVisitorID: string;
-  SplitName: string;
-  SplitVariant: string | null;
-  SplitContext: string | null;
+export type AnalyticsProvider = {
+  trackAssignment: (visitorId: string, assignment: Assignment) => void;
+  identify: (visitorId: string) => void;
+  alias: (visitorId: string) => void;
 };
 
-declare global {
-  interface Window {
-    mixpanel?: {
-      track(eventName: string, properties: EventProperties, callback: (value: boolean) => void): void;
-      identify(id: string): void;
-      alias(id: string): void;
-    };
-  }
-}
-
-export const mixpanelAnalytics: AnalyticsProvider = {
-  trackAssignment(visitorId, assignment) {
-    const assignmentProperties = {
-      TTVisitorID: visitorId,
-      SplitName: assignment.splitName,
-      SplitVariant: assignment.variant,
-      SplitContext: assignment.context
-    };
-
-    window.mixpanel?.track('SplitAssigned', assignmentProperties, () => {});
-  },
-  identify(visitorId: string) {
-    window.mixpanel?.identify(visitorId);
-  },
-  alias(visitorId: string) {
-    window.mixpanel?.alias(visitorId);
-  }
+export const nullAnalytics: AnalyticsProvider = {
+  trackAssignment: () => {},
+  identify: () => {},
+  alias: () => {}
 };

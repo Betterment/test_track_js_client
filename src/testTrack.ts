@@ -40,6 +40,7 @@ export class TestTrack {
 
   static create(options: Options): TestTrack {
     const testTrack = new TestTrack(options);
+    testTrack.#saveVisitorId();
     testTrack.#connectWebExtension();
     return testTrack;
   }
@@ -114,7 +115,7 @@ export class TestTrack {
     });
 
     this.#visitorId = visitor.id;
-    this.#storage.setVisitorId(visitor.id);
+    this.#saveVisitorId();
     this.#updateAssignments(visitor.assignments.map(parseAssignment));
   }
 
@@ -143,10 +144,14 @@ export class TestTrack {
     this.#assignments = { ...this.#assignments, ...indexAssignments(assignments) };
   }
 
+  #saveVisitorId(): void {
+    this.#storage.setVisitorId(this.visitorId);
+  }
+
   #connectWebExtension() {
     const webExtension = createWebExtension({
       client: this.#client,
-      visitorId: this.#visitorId,
+      visitorId: this.visitorId,
       splitRegistry: this.#splitRegistry,
       assignments: Object.values(this.#assignments),
       errorLogger: this.#errorLogger

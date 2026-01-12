@@ -31,7 +31,5 @@ export async function initialize(options: InitializeOptions): Promise<TestTrack>
     errorLogger
   });
 
-  storage.setVisitorId(testTrack.visitorId);
-
   return testTrack;
 }

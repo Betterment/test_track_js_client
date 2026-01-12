@@ -11,13 +11,7 @@ vi.mock('uuid');
 
 const rawConfig: Config = {
   cookieDomain: '.example.com',
-  cookieName: 'custom_cookie_name',
-  experienceSamplingWeight: 1,
-  assignments: { jabba: 'puppet', wine: 'rose' },
-  splits: {
-    jabba: { weights: { cgi: 50, puppet: 50 }, feature_gate: true },
-    wine: { weights: { red: 50, white: 25, rose: 25 }, feature_gate: false }
-  }
+  cookieName: 'custom_cookie_name'
 };
 
 const clientConfig: ClientConfig = {

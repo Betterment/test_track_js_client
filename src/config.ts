@@ -1,6 +1,3 @@
-import type { Assignment } from './visitor';
-import { type Split, createSplitRegistry, type SplitRegistry } from './splitRegistry';
-
 declare global {
   interface Window {
     TT?: string;
@@ -10,39 +7,7 @@ declare global {
 export type Config = Readonly<{
   cookieDomain: string;
   cookieName?: string;
-  experienceSamplingWeight: number;
-  assignments?: Readonly<{ [splitName: string]: string }>;
-  splits?: Readonly<{
-    [splitName: string]: Readonly<{
-      feature_gate: boolean;
-      weights: Readonly<{ [variant: string]: number }>;
-    }>;
-  }>;
 }>;
-
-export function parseSplitRegistry(rawSplits: Config['splits']): SplitRegistry {
-  if (!rawSplits) {
-    return createSplitRegistry(null);
-  }
-
-  const splits = Object.entries(rawSplits).map<Split>(([name, values]) => ({
-    name,
-    isFeatureGate: values.feature_gate,
-    weighting: values.weights
-  }));
-
-  return createSplitRegistry(splits);
-}
-
-export function parseAssignments(rawAssignments: Config['assignments']): Assignment[] | null {
-  if (!rawAssignments) {
-    return null;
-  }
-
-  return Object.entries(rawAssignments).map(([splitName, variant]) => {
-    return { splitName, variant, context: null };
-  });
-}
 
 export function loadConfig(): Config {
   try {

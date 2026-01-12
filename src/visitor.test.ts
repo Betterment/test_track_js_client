@@ -1,5 +1,5 @@
 import type { Assignment } from './visitor';
-import { indexAssignments, parseAssignment, parseVisitorConfig, loadVisitor } from './visitor';
+import { indexAssignments, parseAssignment, parseVisitorConfig, loadVisitorConfig } from './visitor';
 import type { V4VisitorConfig } from './client';
 import { v4 as uuid } from 'uuid';
 import { http, HttpResponse } from 'msw';
@@ -15,7 +15,7 @@ const client = createClient({
   buildTimestamp: '2019-04-16T14:35:30Z'
 });
 
-describe('loadVisitor()', () => {
+describe('loadVisitorConfig()', () => {
   beforeEach(() => {
     server.use(
       http.get('http://testtrack.dev/api/v1/visitors/server_visitor_id', () => {
@@ -50,7 +50,7 @@ describe('loadVisitor()', () => {
     // @ts-expect-error `uuid` has overloads
     vi.mocked(uuid).mockReturnValue('generated_uuid');
 
-    const result = await loadVisitor({ client, id: undefined, assignments: null });
+    const result = await loadVisitorConfig({ client, id: undefined, assignments: null });
     expect(result).toEqual({ id: 'generated_uuid', assignments: [] });
     expect(await getRequests()).toEqual([]);
   });
@@ -68,7 +68,7 @@ describe('loadVisitor()', () => {
       context: null
     };
 
-    const result = await loadVisitor({
+    const result = await loadVisitorConfig({
       client,
       id: 'baked_visitor_id',
       assignments: [jabbaAssignment, wineAssignment]
@@ -85,7 +85,7 @@ describe('loadVisitor()', () => {
       context: 'mos_eisley'
     };
 
-    const result = await loadVisitor({ client, id: 'puppeteer_visitor_id', assignments: null });
+    const result = await loadVisitorConfig({ client, id: 'puppeteer_visitor_id', assignments: null });
     expect(result).toEqual({ id: 'puppeteer_visitor_id', assignments: [jabbaAssignment] });
     expect(await getRequests()).toEqual([
       { method: 'GET', url: 'http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id', body: null }
@@ -99,7 +99,7 @@ describe('loadVisitor()', () => {
       })
     );
 
-    const result = await loadVisitor({ client, id: 'failed_visitor_id', assignments: null });
+    const result = await loadVisitorConfig({ client, id: 'failed_visitor_id', assignments: null });
     expect(result).toEqual({ id: 'failed_visitor_id', assignments: [] });
     expect(await getRequests()).toEqual([
       { method: 'GET', url: 'http://testtrack.dev/api/v1/visitors/failed_visitor_id', body: null }
@@ -154,7 +154,7 @@ describe('parseVisitorConfig', () => {
 
     expect(visitor).toEqual({
       id: 'test_visitor_id',
-      assignments: [{ splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false }]
+      assignments: [{ splitName: 'jabba', variant: 'puppet', context: null }]
     });
 
     expect(splitRegistry.isLoaded).toBe(true);

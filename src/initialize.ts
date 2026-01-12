@@ -1,6 +1,6 @@
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
 import { TestTrack } from './testTrack';
-import { loadVisitor } from './visitor';
+import { loadVisitorConfig } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import { createCookieStorage } from './storageProvider';
 import { createClient, type ClientConfig } from './client';
@@ -18,7 +18,7 @@ export async function initialize(options: SessionOptions): Promise<TestTrack> {
   const storage = createCookieStorage({ domain: config.cookieDomain, name: config.cookieName });
   const splitRegistry = parseSplitRegistry(config.splits);
 
-  const visitor = await loadVisitor({
+  const visitor = await loadVisitorConfig({
     client,
     id: storage.getVisitorId(),
     assignments: parseAssignments(config.assignments)

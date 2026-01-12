@@ -65,7 +65,7 @@ export function indexAssignments(assignments: Assignment[]): AssignmentRegistry 
   return Object.fromEntries(assignments.map(assignment => [assignment.splitName, assignment]));
 }
 
-export async function loadVisitor(options: LoadVisitorOptions): Promise<Visitor> {
+export async function loadVisitorConfig(options: LoadVisitorOptions): Promise<Visitor> {
   const { id, client } = options;
 
   if (!id) {

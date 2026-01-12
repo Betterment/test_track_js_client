@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
 import { initialize } from './initialize';
+import { createCookieStorage } from './storageProvider';
 import type { Config } from './config';
 import type { ClientConfig, V4VisitorConfig } from './client';
 import { v4 as uuid } from 'uuid';
@@ -58,7 +59,8 @@ describe('initialize', () => {
   });
 
   it('reads the visitor id from a cookie and sets it back in the cookie', async () => {
-    await initialize({ client: clientConfig });
+    const storage = createCookieStorage({ domain: rawConfig.cookieDomain, name: rawConfig.cookieName });
+    await initialize({ client: clientConfig, storage });
     expect(Cookies.get).toHaveBeenCalledTimes(1);
     expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
     expect(Cookies.set).toHaveBeenCalledTimes(1);
@@ -75,7 +77,9 @@ describe('initialize', () => {
     // @ts-expect-error uuid mock return type
     vi.mocked(uuid).mockReturnValue('generated_visitor_id');
 
-    await initialize({ client: clientConfig });
+    const storage = createCookieStorage({ domain: rawConfig.cookieDomain, name: rawConfig.cookieName });
+    await initialize({ client: clientConfig, storage });
+
     expect(Cookies.get).toHaveBeenCalledTimes(1);
     expect(Cookies.get).toHaveBeenCalledWith('custom_cookie_name');
     expect(Cookies.set).toHaveBeenCalledTimes(1);
@@ -88,7 +92,8 @@ describe('initialize', () => {
 
   it('does not fetch visitor config when visitorConfig is provided', async () => {
     const visitorConfig = buildVisitorConfig('existing_visitor_id');
-    await initialize({ client: clientConfig, visitorConfig });
+    const storage = createCookieStorage({ domain: rawConfig.cookieDomain, name: rawConfig.cookieName });
+    await initialize({ client: clientConfig, storage, visitorConfig });
 
     expect(await getRequests()).toEqual([]);
   });

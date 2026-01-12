@@ -33,5 +33,4 @@ export type V1AssignmentEventParams = {
   visitor_id: string;
   split_name: string;
   context: string | null | undefined;
-  mixpanel_result: string | null | undefined;
 };

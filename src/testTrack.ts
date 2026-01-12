@@ -142,8 +142,7 @@ export class TestTrack {
       .postAssignmentEvent({
         visitor_id: this.visitorId,
         split_name: assignment.splitName,
-        context: assignment.context,
-        mixpanel_result: 'success'
+        context: assignment.context
       })
       .catch(error => {
         this.#errorLogger(`test_track persistAssignment error: ${error}`);

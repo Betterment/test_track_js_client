@@ -112,7 +112,7 @@ describe('TestTrack', () => {
         await expect.poll(getRequests).toContainEqual({
           method: 'POST',
           url: 'http://testtrack.dev/api/v1/assignment_event',
-          body: { visitor_id: 'EXISTING_VISITOR_ID', split_name: 'wine', context: 'spec', mixpanel_result: 'success' }
+          body: { visitor_id: 'EXISTING_VISITOR_ID', split_name: 'wine', context: 'spec' }
         });
       });
 
@@ -155,7 +155,7 @@ describe('TestTrack', () => {
         await expect.poll(getRequests).toContainEqual({
           method: 'POST',
           url: 'http://testtrack.dev/api/v1/assignment_event',
-          body: { visitor_id: 'EXISTING_VISITOR_ID', split_name: 'wine', context: 'spec', mixpanel_result: 'success' }
+          body: { visitor_id: 'EXISTING_VISITOR_ID', split_name: 'wine', context: 'spec' }
         });
       });
     });
@@ -192,7 +192,7 @@ describe('TestTrack', () => {
         await expect.poll(getRequests).toContainEqual({
           method: 'POST',
           url: 'http://testtrack.dev/api/v1/assignment_event',
-          body: { visitor_id: 'EXISTING_VISITOR_ID', split_name: 'wine', context: 'spec', mixpanel_result: 'success' }
+          body: { visitor_id: 'EXISTING_VISITOR_ID', split_name: 'wine', context: 'spec' }
         });
       });
     });
@@ -389,7 +389,7 @@ describe('TestTrack', () => {
         {
           method: 'POST',
           url: 'http://testtrack.dev/api/v1/assignment_event',
-          body: { visitor_id: 'actual_visitor_id', split_name: 'wine', context: 'spec', mixpanel_result: 'success' }
+          body: { visitor_id: 'actual_visitor_id', split_name: 'wine', context: 'spec' }
         }
       ]);
 

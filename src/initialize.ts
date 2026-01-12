@@ -3,21 +3,17 @@ import { TestTrack } from './testTrack';
 import { loadVisitor } from './visitor';
 import type { AnalyticsProvider } from './analyticsProvider';
 import { createCookieStorage } from './storageProvider';
-import { createClient } from './client';
+import { createClient, type ClientConfig } from './client';
 
 type SessionOptions = {
+  client: ClientConfig;
   analytics?: AnalyticsProvider;
   errorLogger?: (errorMessage: string) => void;
 };
 
-export async function initialize(options: SessionOptions = {}): Promise<TestTrack> {
+export async function initialize(options: SessionOptions): Promise<TestTrack> {
   const config = loadConfig();
-  const client = createClient({
-    url: config.url,
-    appName: config.appName,
-    appVersion: config.appVersion,
-    buildTimestamp: config.buildTimestamp
-  });
+  const client = createClient(options.client);
 
   const storage = createCookieStorage({ domain: config.cookieDomain, name: config.cookieName });
   const splitRegistry = parseSplitRegistry(config.splits);

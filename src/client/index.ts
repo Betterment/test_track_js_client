@@ -8,7 +8,7 @@ import type {
   V1AssignmentEventParams
 } from './types';
 
-type ClientConfig = {
+export type ClientConfig = {
   url: string;
   appName: string;
   appVersion: string;

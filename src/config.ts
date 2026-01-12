@@ -8,10 +8,6 @@ declare global {
 }
 
 export type Config = Readonly<{
-  url: string;
-  appName: string;
-  appVersion: string;
-  buildTimestamp: string;
   cookieDomain: string;
   cookieName?: string;
   experienceSamplingWeight: number;

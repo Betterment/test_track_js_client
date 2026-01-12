@@ -1,5 +1,5 @@
 import { getFalseVariant } from './abConfiguration';
-import { indexAssignments, parseAssignment, type Assignment, type AssignmentRegistry } from './visitor';
+import { indexAssignments, parseV4Assignment, type Assignment, type AssignmentRegistry } from './visitor';
 import { nullAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
 import { connectWebExtension, createWebExtension } from './webExtension';
@@ -108,15 +108,15 @@ export class TestTrack {
   }
 
   async #linkIdentifier(identifierType: string, value: number): Promise<void> {
-    const { visitor } = await this.#client.postIdentifier({
+    const config = await this.#client.postIdentifier({
       visitor_id: this.visitorId,
       identifier_type: identifierType,
       value: value.toString()
     });
 
-    this.#visitorId = visitor.id;
+    this.#visitorId = config.visitor.id;
     this.#saveVisitorId();
-    this.#updateAssignments(visitor.assignments.map(parseAssignment));
+    this.#updateAssignments(config.visitor.assignments.map(parseV4Assignment));
   }
 
   #sendAssignmentNotification(assignment: Assignment): void {

@@ -1,5 +1,5 @@
 import type { Assignment } from './visitor';
-import { indexAssignments, parseAssignment, parseVisitorConfig, loadVisitorConfig } from './visitor';
+import { indexAssignments, parseVisitorConfig, loadVisitorConfig } from './visitor';
 import type { V4VisitorConfig } from './client';
 import { http, HttpResponse } from 'msw';
 import { server, getRequests } from './setupTests';
@@ -76,20 +76,6 @@ describe('loadVisitorConfig()', () => {
     expect(await getRequests()).toEqual([
       { method: 'GET', url: `${buildURL}/visitors/failed_visitor_id/config`, body: null }
     ]);
-  });
-});
-
-describe('parseAssignment', () => {
-  it('parses V1 API data', () => {
-    const assignment = parseAssignment({
-      split_name: 'button_color',
-      variant: 'red',
-      context: 'homepage',
-      unsynced: false
-    });
-
-    expect(assignment.splitName).toBe('button_color');
-    expect(assignment.variant).toBe('red');
   });
 });
 

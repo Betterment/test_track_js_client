@@ -1,11 +1,11 @@
-import type { Assignment } from './visitor';
-import { getAssignmentBucket } from './calculateVariant';
-import { TestTrack } from './testTrack';
 import { http, HttpResponse } from 'msw';
+import { TestTrack } from './testTrack';
+import { getAssignmentBucket } from './calculateVariant';
 import { server, getRequests } from './setupTests';
-import type { AnalyticsProvider } from './analyticsProvider';
-import { createClient } from './client';
+import { createClient, type V4VisitorConfig } from './client';
 import { createSplitRegistry } from './splitRegistry';
+import type { Assignment } from './visitor';
+import type { AnalyticsProvider } from './analyticsProvider';
 import type { StorageProvider } from './storageProvider';
 
 vi.mock('./calculateVariant', async () => {
@@ -336,17 +336,22 @@ describe('TestTrack', () => {
   ])('.$method()', ({ method, analyticsMethod }) => {
     beforeEach(() => {
       server.use(
-        http.post('http://testtrack.dev/api/v1/identifier', () => {
-          return HttpResponse.json({
-            visitor: {
-              id: 'actual_visitor_id',
-              assignments: [
-                { split_name: 'jabba', variant: 'cgi', context: 'mos_eisley', unsynced: false },
-                { split_name: 'wine', variant: 'red', context: 'spec', unsynced: false }
-              ]
-            }
-          });
-        })
+        http.post(
+          'http://testtrack.dev/api/v4/apps/test_app/versions/1.0.0/builds/2019-04-16T14:35:30Z/identifier',
+          () => {
+            return HttpResponse.json<V4VisitorConfig>({
+              splits: [],
+              visitor: {
+                id: 'actual_visitor_id',
+                assignments: [
+                  { split_name: 'jabba', variant: 'cgi' },
+                  { split_name: 'wine', variant: 'red' }
+                ]
+              },
+              experience_sampling_weight: 10
+            });
+          }
+        )
       );
     });
 
@@ -361,7 +366,7 @@ describe('TestTrack', () => {
       expect(await getRequests()).toEqual([
         {
           method: 'POST',
-          url: 'http://testtrack.dev/api/v1/identifier',
+          url: 'http://testtrack.dev/api/v4/apps/test_app/versions/1.0.0/builds/2019-04-16T14:35:30Z/identifier',
           body: { visitor_id: 'EXISTING_VISITOR_ID', identifier_type: 'myappdb_user_id', value: '444' }
         }
       ]);
@@ -371,9 +376,9 @@ describe('TestTrack', () => {
       expect(analytics[analyticsMethod]).toHaveBeenCalledWith('actual_visitor_id');
 
       expect(testTrack.assignments).toEqual([
-        { splitName: 'jabba', variant: 'cgi', context: 'mos_eisley' },
+        { splitName: 'jabba', variant: 'cgi', context: null },
         { splitName: 'element', variant: 'earth', context: null },
-        { splitName: 'wine', variant: 'red', context: 'spec' }
+        { splitName: 'wine', variant: 'red', context: null }
       ]);
     });
   });

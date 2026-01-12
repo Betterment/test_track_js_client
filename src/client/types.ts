@@ -1,25 +1,3 @@
-export type V1Assignment = Readonly<{
-  split_name: string;
-  variant: string;
-  context: string;
-  unsynced: boolean;
-}>;
-
-export type V1Visitor = Readonly<{
-  id: string;
-  assignments: V1Assignment[];
-}>;
-
-export type V1Identifier = Readonly<{
-  visitor: V1Visitor;
-}>;
-
-export type V1IdentifierParams = {
-  visitor_id: string;
-  identifier_type: string;
-  value: string;
-};
-
 export type V1AssignmentOverrideParams = {
   visitor_id: string;
   split_name: string;
@@ -61,3 +39,9 @@ export type V4VisitorConfig = Readonly<{
   visitor: V4Visitor;
   experience_sampling_weight: number;
 }>;
+
+export type V4IdentifierParams = {
+  visitor_id: string;
+  identifier_type: string;
+  value: string;
+};

@@ -1,8 +1,7 @@
 import { request } from './request';
 import type {
   V4VisitorConfig,
-  V1IdentifierParams,
-  V1Identifier,
+  V4IdentifierParams,
   V1AssignmentOverrideParams,
   V1AssignmentEventParams
 } from './types';
@@ -32,10 +31,10 @@ export function createClient(config: ClientConfig) {
       return data;
     },
 
-    async postIdentifier(params: V1IdentifierParams): Promise<V1Identifier> {
-      const { data } = await request<V1Identifier>({
+    async postIdentifier(params: V4IdentifierParams): Promise<V4VisitorConfig> {
+      const { data } = await request<V4VisitorConfig>({
         method: 'POST',
-        url: new URL('/api/v1/identifier', config.url),
+        url: new URL(`${buildURL}/identifier`, config.url),
         body: JSON.stringify(params)
       });
 

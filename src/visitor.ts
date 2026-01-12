@@ -1,4 +1,4 @@
-import type { Client, V1Assignment, V4Assignment, V4Split, V4VisitorConfig } from './client';
+import type { Client, V4Assignment, V4Split, V4VisitorConfig } from './client';
 import { type Split, type SplitRegistry, createSplitRegistry } from './splitRegistry';
 
 export type Assignment = Readonly<{
@@ -21,15 +21,7 @@ export type VisitorConfig = Readonly<{
   splitRegistry: SplitRegistry;
 }>;
 
-export function parseAssignment(data: V1Assignment): Assignment {
-  return {
-    splitName: data.split_name,
-    variant: data.variant,
-    context: data.context
-  };
-}
-
-function parseV4Assignment(data: V4Assignment): Assignment {
+export function parseV4Assignment(data: V4Assignment): Assignment {
   return { splitName: data.split_name, variant: data.variant, context: null };
 }
 

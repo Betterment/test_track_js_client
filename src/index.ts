@@ -1,4 +1,4 @@
-export { initialize } from './initialize';
+export { initialize, create } from './initialize';
 export { createCookieStorage } from './storageProvider';
 
 export type { TestTrack } from './testTrack';

@@ -14,7 +14,7 @@ async function captureRequest(request: Request): Promise<CapturedRequest> {
   return {
     method: request.method,
     url: request.url,
-    body: Object.fromEntries(new URLSearchParams(await request.text()).entries())
+    body: await request.json().catch(() => null)
   };
 }
 

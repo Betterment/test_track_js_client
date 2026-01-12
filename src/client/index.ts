@@ -1,4 +1,4 @@
-import { request, toSearchParams } from './request';
+import { request } from './request';
 import type {
   V1Visitor,
   V1IdentifierParams,
@@ -31,7 +31,7 @@ export function createClient(config: ClientConfig) {
       const { data } = await request<V1Identifier>({
         method: 'POST',
         url: new URL('/api/v1/identifier', config.url),
-        body: toSearchParams(params)
+        body: JSON.stringify(params)
       });
 
       return data;
@@ -41,7 +41,7 @@ export function createClient(config: ClientConfig) {
       await request({
         method: 'POST',
         url: new URL('/api/v1/assignment_override', config.url),
-        body: toSearchParams(params),
+        body: JSON.stringify(params),
         auth
       });
     },
@@ -50,7 +50,7 @@ export function createClient(config: ClientConfig) {
       await request({
         method: 'POST',
         url: new URL('/api/v1/assignment_event', config.url),
-        body: toSearchParams(params)
+        body: JSON.stringify(params)
       });
     }
   };

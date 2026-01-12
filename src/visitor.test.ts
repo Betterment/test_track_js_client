@@ -82,7 +82,7 @@ describe('loadVisitor()', () => {
     const result = await loadVisitor({ client, id: 'puppeteer_visitor_id', assignments: null });
     expect(result).toEqual({ id: 'puppeteer_visitor_id', assignments: [jabbaAssignment] });
     expect(await getRequests()).toEqual([
-      { method: 'GET', url: 'http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id', body: {} }
+      { method: 'GET', url: 'http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id', body: null }
     ]);
   });
 
@@ -96,7 +96,7 @@ describe('loadVisitor()', () => {
     const result = await loadVisitor({ client, id: 'failed_visitor_id', assignments: null });
     expect(result).toEqual({ id: 'failed_visitor_id', assignments: [] });
     expect(await getRequests()).toEqual([
-      { method: 'GET', url: 'http://testtrack.dev/api/v1/visitors/failed_visitor_id', body: {} }
+      { method: 'GET', url: 'http://testtrack.dev/api/v1/visitors/failed_visitor_id', body: null }
     ]);
   });
 });

@@ -1,6 +1,5 @@
 import { getFalseVariant } from './abConfiguration';
 import { indexAssignments, parseAssignment, type Assignment, type AssignmentRegistry } from './visitor';
-import { sendAssignmentNotification } from './assignmentNotification';
 import { nullAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
 import { connectWebExtension, createWebExtension } from './webExtension';
@@ -131,23 +130,26 @@ export class TestTrack {
   }
 
   #sendAssignmentNotification(assignment: Assignment): void {
-    try {
-      if (this.#isOffline) {
-        return;
-      }
+    if (this.#isOffline) return;
 
-      void sendAssignmentNotification({
-        client: this.#client,
-        visitorId: this.visitorId,
-        analytics: this.#analytics,
-        assignment,
-        errorLogger: this.#errorLogger
+    try {
+      this.#analytics.trackAssignment(this.visitorId, assignment);
+    } catch (error) {
+      this.#errorLogger(`test_track trackAssignment error: ${String(error)}`);
+    }
+
+    void this.#client
+      .postAssignmentEvent({
+        visitor_id: this.visitorId,
+        split_name: assignment.splitName,
+        context: assignment.context,
+        mixpanel_result: 'success'
+      })
+      .catch(error => {
+        this.#errorLogger(`test_track persistAssignment error: ${error}`);
       });
 
-      this.#updateAssignments([{ ...assignment, isUnsynced: false }]);
-    } catch (e) {
-      this.#errorLogger(`test_track notify error: ${String(e)}`);
-    }
+    this.#updateAssignments([{ ...assignment, isUnsynced: false }]);
   }
 
   #updateAssignments(assignments: Assignment[]): void {

@@ -1,5 +1,4 @@
 import type { Assignment } from './visitor';
-import { sendAssignmentNotification } from './assignmentNotification';
 import { getAssignmentBucket } from './calculateVariant';
 import { TestTrack } from './testTrack';
 import { http, HttpResponse } from 'msw';
@@ -9,14 +8,12 @@ import { createClient } from './client';
 import { createSplitRegistry } from './splitRegistry';
 import type { StorageProvider } from './storageProvider';
 
-vi.mock('./assignmentNotification');
 vi.mock('./calculateVariant', async () => {
   const actual = await vi.importActual('./calculateVariant');
   return { ...actual, getAssignmentBucket: vi.fn() };
 });
 
 const mockGetAssignmentBucket = vi.mocked(getAssignmentBucket);
-const mockSendAssignmentNotification = vi.mocked(sendAssignmentNotification);
 
 const client = createClient({ url: 'http://testtrack.dev' });
 const emptySplitRegistry = createSplitRegistry(null);
@@ -68,6 +65,14 @@ function createOfflineTestTrack() {
 }
 
 describe('TestTrack', () => {
+  beforeEach(() => {
+    server.use(
+      http.post('http://testtrack.dev/api/v1/assignment_event', () => {
+        return HttpResponse.json(null, { status: 200 });
+      })
+    );
+  });
+
   describe('.vary()', () => {
     beforeEach(() => {
       // Assignment bucket 25 will select: red (wine), puppet (jabba), false (blue_button)
@@ -97,17 +102,17 @@ describe('TestTrack', () => {
         ]);
       });
 
-      it('sends an AssignmentNotification', () => {
+      it('sends an AssignmentNotification', async () => {
         const testTrack = createTestTrack();
         const result = testTrack.vary('wine', { context: 'spec', defaultVariant: 'white' });
 
         expect(result).toBe('red');
-        expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-          client,
-          visitorId: 'EXISTING_VISITOR_ID',
-          analytics,
-          assignment: { splitName: 'wine', variant: 'red', context: 'spec', isUnsynced: true },
-          errorLogger
+        expect(analytics.trackAssignment).toHaveBeenCalledTimes(1);
+
+        await expect.poll(getRequests).toContainEqual({
+          method: 'POST',
+          url: 'http://testtrack.dev/api/v1/assignment_event',
+          body: { visitor_id: 'EXISTING_VISITOR_ID', split_name: 'wine', context: 'spec', mixpanel_result: 'success' }
         });
       });
 
@@ -122,22 +127,36 @@ describe('TestTrack', () => {
         expect(result).toBe('red');
       });
 
-      it('logs an error if the AssignmentNotification throws an error', () => {
+      it('logs an error if the HTTP request fails', async () => {
+        server.use(
+          http.post('http://testtrack.dev/api/v1/assignment_event', () => {
+            return HttpResponse.json(null, { status: 500 });
+          })
+        );
+
         const testTrack = createTestTrack();
+        testTrack.vary('wine', { context: 'spec', defaultVariant: 'white' });
 
-        mockSendAssignmentNotification.mockImplementationOnce(() => {
-          throw new Error('something bad happened');
+        await expect
+          .poll(() => errorLogger)
+          .toHaveBeenCalledWith('test_track persistAssignment error: Error: HTTP request failed with 500 status');
+      });
+
+      it('logs an error if analytics.trackAssignment throws', async () => {
+        vi.spyOn(analytics, 'trackAssignment').mockImplementationOnce(() => {
+          throw new Error('analytics error');
         });
 
-        expect(testTrack.vary('wine', { context: 'spec', defaultVariant: 'white' })).toEqual('red');
-        expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-          client,
-          visitorId: 'EXISTING_VISITOR_ID',
-          analytics,
-          assignment: { splitName: 'wine', variant: 'red', context: 'spec', isUnsynced: true },
-          errorLogger
+        const testTrack = createTestTrack();
+        testTrack.vary('wine', { context: 'spec', defaultVariant: 'white' });
+
+        expect(errorLogger).toHaveBeenCalledWith('test_track trackAssignment error: Error: analytics error');
+
+        await expect.poll(getRequests).toContainEqual({
+          method: 'POST',
+          url: 'http://testtrack.dev/api/v1/assignment_event',
+          body: { visitor_id: 'EXISTING_VISITOR_ID', split_name: 'wine', context: 'spec', mixpanel_result: 'success' }
         });
-        expect(errorLogger).toHaveBeenCalledWith('test_track notify error: Error: something bad happened');
       });
     });
 
@@ -154,25 +173,26 @@ describe('TestTrack', () => {
       });
 
       it('does not send an AssignmentNotification', () => {
+        const postAssignmentEventSpy = vi.spyOn(client, 'postAssignmentEvent');
         const testTrack = createTestTrack();
         const result = testTrack.vary('jabba', { context: 'spec', defaultVariant: 'cgi' });
 
         expect(result).toBe('puppet');
-        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
-        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
+        expect(analytics.trackAssignment).not.toHaveBeenCalled();
+        expect(postAssignmentEventSpy).not.toHaveBeenCalled();
       });
 
-      it('calculates and notifies when existing assignment has a null variant', () => {
+      it('calculates and notifies when existing assignment has a null variant', async () => {
         const testTrack = createTestTrack([{ splitName: 'wine', variant: null, context: null, isUnsynced: false }]);
         const result = testTrack.vary('wine', { context: 'spec', defaultVariant: 'white' });
 
         expect(result).toBe('red');
-        expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-          client,
-          visitorId: 'EXISTING_VISITOR_ID',
-          analytics,
-          assignment: { splitName: 'wine', variant: 'red', context: 'spec', isUnsynced: true },
-          errorLogger
+        expect(analytics.trackAssignment).toHaveBeenCalledTimes(1);
+
+        await expect.poll(getRequests).toContainEqual({
+          method: 'POST',
+          url: 'http://testtrack.dev/api/v1/assignment_event',
+          body: { visitor_id: 'EXISTING_VISITOR_ID', split_name: 'wine', context: 'spec', mixpanel_result: 'success' }
         });
       });
     });
@@ -190,12 +210,13 @@ describe('TestTrack', () => {
       });
 
       it('does not send an AssignmentNotification', () => {
+        const postAssignmentEventSpy = vi.spyOn(client, 'postAssignmentEvent');
         const testTrack = createOfflineTestTrack();
         const result = testTrack.vary('wine', { context: 'spec', defaultVariant: 'white' });
 
         expect(result).toBe('white');
-        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
-        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
+        expect(analytics.trackAssignment).not.toHaveBeenCalled();
+        expect(postAssignmentEventSpy).not.toHaveBeenCalled();
       });
     });
 
@@ -213,12 +234,13 @@ describe('TestTrack', () => {
 
       it('does not send an AssignmentNotification', () => {
         // Empty split registry returns null from calculateVariant
+        const postAssignmentEventSpy = vi.spyOn(client, 'postAssignmentEvent');
         const testTrack = createOfflineTestTrack();
         const result = testTrack.vary('wine', { context: 'spec', defaultVariant: 'white' });
 
         expect(result).toBe('white');
-        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
-        expect(mockSendAssignmentNotification).not.toHaveBeenCalled();
+        expect(analytics.trackAssignment).not.toHaveBeenCalled();
+        expect(postAssignmentEventSpy).not.toHaveBeenCalled();
       });
     });
 
@@ -352,8 +374,8 @@ describe('TestTrack', () => {
 
     it('links identifier, overrides assignments, and updates visitor', async () => {
       const testTrack = createTestTrack([
-        { splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: true },
-        { splitName: 'element', variant: 'earth', context: null, isUnsynced: true }
+        { splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false },
+        { splitName: 'element', variant: 'earth', context: null, isUnsynced: false }
       ]);
 
       await testTrack[method]('myappdb_user_id', 444);
@@ -363,6 +385,11 @@ describe('TestTrack', () => {
           method: 'POST',
           url: 'http://testtrack.dev/api/v1/identifier',
           body: { visitor_id: 'EXISTING_VISITOR_ID', identifier_type: 'myappdb_user_id', value: '444' }
+        },
+        {
+          method: 'POST',
+          url: 'http://testtrack.dev/api/v1/assignment_event',
+          body: { visitor_id: 'actual_visitor_id', split_name: 'wine', context: 'spec', mixpanel_result: 'success' }
         }
       ]);
 
@@ -376,13 +403,7 @@ describe('TestTrack', () => {
         { splitName: 'wine', variant: 'red', context: 'spec', isUnsynced: false }
       ]);
 
-      expect(mockSendAssignmentNotification).toHaveBeenCalledWith({
-        client,
-        visitorId: 'actual_visitor_id',
-        analytics,
-        assignment: { splitName: 'wine', variant: 'red', context: 'spec', isUnsynced: true },
-        errorLogger
-      });
+      expect(analytics.trackAssignment).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -53,15 +53,13 @@ describe('loadVisitor()', () => {
     const jabbaAssignment: Assignment = {
       splitName: 'jabba',
       variant: 'puppet',
-      context: null,
-      isUnsynced: false
+      context: null
     };
 
     const wineAssignment: Assignment = {
       splitName: 'wine',
       variant: 'rose',
-      context: null,
-      isUnsynced: false
+      context: null
     };
 
     const result = await loadVisitor({
@@ -78,8 +76,7 @@ describe('loadVisitor()', () => {
     const jabbaAssignment: Assignment = {
       splitName: 'jabba',
       variant: 'puppet',
-      context: 'mos_eisley',
-      isUnsynced: false
+      context: 'mos_eisley'
     };
 
     const result = await loadVisitor({ client, id: 'puppeteer_visitor_id', assignments: null });
@@ -120,8 +117,8 @@ describe('parseAssignment', () => {
 
 describe('indexAssignments', () => {
   it('indexes assignments by splitName', () => {
-    const a: Assignment = { splitName: 'a', variant: 'true', context: null, isUnsynced: false };
-    const b: Assignment = { splitName: 'b', variant: 'true', context: null, isUnsynced: false };
+    const a: Assignment = { splitName: 'a', variant: 'true', context: null };
+    const b: Assignment = { splitName: 'b', variant: 'true', context: null };
 
     expect(indexAssignments([a, b])).toEqual({ a, b });
   });

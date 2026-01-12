@@ -47,7 +47,7 @@ function createTestTrack(assignments?: Assignment[]) {
     errorLogger,
     visitor: {
       id: 'EXISTING_VISITOR_ID',
-      assignments: assignments ?? [{ splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false }]
+      assignments: assignments ?? [{ splitName: 'jabba', variant: 'puppet', context: null }]
     }
   });
 }
@@ -96,8 +96,8 @@ describe('TestTrack', () => {
 
         expect(result).toBe('red');
         expect(testTrack.assignments).toEqual([
-          { splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false },
-          { splitName: 'wine', variant: 'red', context: 'spec', isUnsynced: false }
+          { splitName: 'jabba', variant: 'puppet', context: null },
+          { splitName: 'wine', variant: 'red', context: 'spec' }
         ]);
       });
 
@@ -178,7 +178,7 @@ describe('TestTrack', () => {
       });
 
       it('calculates and notifies when existing assignment has a null variant', async () => {
-        const testTrack = createTestTrack([{ splitName: 'wine', variant: null, context: null, isUnsynced: false }]);
+        const testTrack = createTestTrack([{ splitName: 'wine', variant: null, context: null }]);
         const result = testTrack.vary('wine', { context: 'spec', defaultVariant: 'white' });
 
         expect(result).toBe('red');
@@ -255,8 +255,7 @@ describe('TestTrack', () => {
           {
             splitName: 'jabba',
             variant: 'puppet',
-            context: null,
-            isUnsynced: false
+            context: null
           }
         ]);
 
@@ -273,8 +272,7 @@ describe('TestTrack', () => {
           {
             splitName: 'jabba',
             variant: 'cgi',
-            context: null,
-            isUnsynced: false
+            context: null
           }
         ]);
 
@@ -293,8 +291,7 @@ describe('TestTrack', () => {
           {
             splitName: 'blue_button',
             variant: 'true',
-            context: null,
-            isUnsynced: false
+            context: null
           }
         ]);
 
@@ -308,8 +305,7 @@ describe('TestTrack', () => {
           {
             splitName: 'blue_button',
             variant: 'false',
-            context: null,
-            isUnsynced: false
+            context: null
           }
         ]);
 
@@ -350,8 +346,8 @@ describe('TestTrack', () => {
 
     it('links identifier, overrides assignments, and updates visitorId', async () => {
       const testTrack = createTestTrack([
-        { splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false },
-        { splitName: 'element', variant: 'earth', context: null, isUnsynced: false }
+        { splitName: 'jabba', variant: 'puppet', context: null },
+        { splitName: 'element', variant: 'earth', context: null }
       ]);
 
       await testTrack[method]('myappdb_user_id', 444);
@@ -369,9 +365,9 @@ describe('TestTrack', () => {
       expect(analytics[analyticsMethod]).toHaveBeenCalledWith('actual_visitor_id');
 
       expect(testTrack.assignments).toEqual([
-        { splitName: 'jabba', variant: 'cgi', context: 'mos_eisley', isUnsynced: false },
-        { splitName: 'element', variant: 'earth', context: null, isUnsynced: false },
-        { splitName: 'wine', variant: 'red', context: 'spec', isUnsynced: false }
+        { splitName: 'jabba', variant: 'cgi', context: 'mos_eisley' },
+        { splitName: 'element', variant: 'earth', context: null },
+        { splitName: 'wine', variant: 'red', context: 'spec' }
       ]);
     });
   });

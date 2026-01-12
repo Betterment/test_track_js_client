@@ -71,7 +71,7 @@ export class TestTrack {
     const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.visitorId });
     const calculatedVariant = calculateVariant({ assignmentBucket, splitRegistry: this.#splitRegistry, splitName });
     const variant = calculatedVariant ?? options.defaultVariant.toString();
-    const assignment = { splitName, variant, context: options.context, isUnsynced: false };
+    const assignment = { splitName, variant, context: options.context };
 
     this.#updateAssignments([assignment]);
     this.#sendAssignmentNotification(assignment);

@@ -41,7 +41,7 @@ export function parseAssignments(rawAssignments: Config['assignments']): Assignm
   }
 
   return Object.entries(rawAssignments).map(([splitName, variant]) => {
-    return { splitName, variant, context: null, isUnsynced: false };
+    return { splitName, variant, context: null };
   });
 }
 

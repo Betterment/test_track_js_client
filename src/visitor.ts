@@ -5,7 +5,6 @@ export type Assignment = Readonly<{
   splitName: string;
   variant: string | null;
   context: string | null;
-  isUnsynced: boolean;
 }>;
 
 export type AssignmentRegistry = Readonly<{
@@ -27,8 +26,7 @@ export function parseAssignment(data: V1Assignment): Assignment {
   return {
     splitName: data.split_name,
     variant: data.variant,
-    context: data.context,
-    isUnsynced: data.unsynced
+    context: data.context
   };
 }
 

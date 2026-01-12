@@ -35,8 +35,8 @@ describe('parseSplitRegistry', () => {
 describe('parseAssignments', () => {
   it('parses assignments from object', () => {
     expect(parseAssignments(rawConfig.assignments)).toEqual([
-      { splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false },
-      { splitName: 'wine', variant: 'rose', context: null, isUnsynced: false }
+      { splitName: 'jabba', variant: 'puppet', context: null },
+      { splitName: 'wine', variant: 'rose', context: null }
     ]);
   });
 

@@ -24,7 +24,6 @@ type Options = {
   storage: StorageProvider;
   splitRegistry: SplitRegistry;
   visitor: Visitor;
-  isOffline?: boolean;
   analytics?: AnalyticsProvider;
   errorLogger?: (errorMessage: string) => void;
 };

@@ -1,6 +1,5 @@
 import { v4 as uuid } from 'uuid';
 import type { Client, V1Assignment } from './client';
-import type { SplitRegistry } from './splitRegistry';
 
 export type Assignment = Readonly<{
   splitName: string;
@@ -18,14 +17,8 @@ export type Visitor = Readonly<{
   assignments: Assignment[];
 }>;
 
-export type LoadedVisitor = Readonly<{
-  visitor: Visitor;
-  isOffline: boolean;
-}>;
-
 type LoadVisitorOptions = {
   client: Client;
-  splitRegistry: SplitRegistry;
   id: string | undefined;
   assignments: Assignment[] | null;
 };
@@ -43,22 +36,22 @@ export function indexAssignments(assignments: Assignment[]): AssignmentRegistry 
   return Object.fromEntries(assignments.map(assignment => [assignment.splitName, assignment]));
 }
 
-export async function loadVisitor(options: LoadVisitorOptions): Promise<LoadedVisitor> {
+export async function loadVisitor(options: LoadVisitorOptions): Promise<Visitor> {
   const { id, client } = options;
 
   if (!id) {
-    return { visitor: { id: uuid(), assignments: [] }, isOffline: false };
+    return { id: uuid(), assignments: [] };
   }
 
   if (options.assignments) {
-    return { visitor: { id, assignments: options.assignments }, isOffline: false };
+    return { id, assignments: options.assignments };
   }
 
   try {
     const data = await client.getVisitor(id);
     const assignments = data.assignments.map(parseAssignment);
-    return { visitor: { id: data.id, assignments }, isOffline: false };
+    return { id: data.id, assignments };
   } catch {
-    return { visitor: { id, assignments: [] }, isOffline: true };
+    return { id, assignments: [] };
   }
 }

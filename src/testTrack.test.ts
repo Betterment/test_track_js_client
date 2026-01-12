@@ -52,15 +52,14 @@ function createTestTrack(assignments?: Assignment[]) {
   });
 }
 
-function createOfflineTestTrack() {
+function createEmptySplitRegistryTestTrack() {
   return new TestTrack({
     client,
     storage,
     splitRegistry: emptySplitRegistry,
     errorLogger,
     analytics,
-    visitor: { id: 'offline_visitor_id', assignments: [] },
-    isOffline: true
+    visitor: { id: 'offline_visitor_id', assignments: [] }
   });
 }
 
@@ -117,7 +116,7 @@ describe('TestTrack', () => {
       });
 
       it('uses the defaultVariant when the split registry is not loaded', () => {
-        const testTrack = createOfflineTestTrack();
+        const testTrack = createEmptySplitRegistryTestTrack();
         const result = testTrack.vary('jabba', { context: 'spec', defaultVariant: 'cgi' });
 
         expect(result).toBe('cgi');

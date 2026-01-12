@@ -12,7 +12,13 @@ type SessionOptions = {
 
 export async function initialize(options: SessionOptions = {}): Promise<TestTrack> {
   const config = loadConfig();
-  const client = createClient({ url: config.url });
+  const client = createClient({
+    url: config.url,
+    appName: config.appName,
+    appVersion: config.appVersion,
+    buildTimestamp: config.buildTimestamp
+  });
+
   const storage = createCookieStorage({ domain: config.cookieDomain, name: config.cookieName });
   const splitRegistry = parseSplitRegistry(config.splits);
 

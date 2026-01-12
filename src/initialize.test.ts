@@ -5,6 +5,9 @@ import { v4 as uuid } from 'uuid';
 
 const rawConfig: Config = {
   url: 'http://testtrack.dev',
+  appName: 'test_app',
+  appVersion: '1.0.0',
+  buildTimestamp: '2019-04-16T14:35:30Z',
   cookieDomain: '.example.com',
   cookieName: 'custom_cookie_name',
   experienceSamplingWeight: 1,

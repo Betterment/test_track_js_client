@@ -15,7 +15,13 @@ vi.mock('./calculateVariant', async () => {
 
 const mockGetAssignmentBucket = vi.mocked(getAssignmentBucket);
 
-const client = createClient({ url: 'http://testtrack.dev' });
+const client = createClient({
+  url: 'http://testtrack.dev',
+  appName: 'test_app',
+  appVersion: '1.0.0',
+  buildTimestamp: '2019-04-16T14:35:30Z'
+});
+
 const emptySplitRegistry = createSplitRegistry(null);
 
 const splitRegistry = createSplitRegistry([

@@ -1,4 +1,4 @@
-export { load, create } from './api';
+export { initialize, load, create } from './api';
 export { createCookieStorage } from './storageProvider';
 
 export type { TestTrack } from './testTrack';

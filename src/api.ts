@@ -12,7 +12,7 @@ type InitializeOptions = {
   errorLogger?: (errorMessage: string) => void;
 };
 
-type LoadOptions = InitializeOptions & {
+type LoadOptions = {
   client: ClientConfig;
   storage: StorageProvider;
   analytics?: AnalyticsProvider;

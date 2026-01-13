@@ -23,6 +23,9 @@ type CreateOptions = LoadOptions & {
   visitorConfig: V4VisitorConfig;
 };
 
+/**
+ * Fetches visitor config from the server to create a `TestTrack` instance
+ */
 export async function load(options: LoadOptions): Promise<TestTrack> {
   const { storage, analytics, errorLogger } = options;
 
@@ -33,6 +36,9 @@ export async function load(options: LoadOptions): Promise<TestTrack> {
   return TestTrack.create({ client, storage, splitRegistry, visitor, analytics, errorLogger });
 }
 
+/**
+ * Creates a `TestTrack` instance with preloaded data
+ */
 export function create(options: CreateOptions): TestTrack {
   const { storage, analytics, errorLogger } = options;
 
@@ -43,7 +49,7 @@ export function create(options: CreateOptions): TestTrack {
 }
 
 /**
- * Initialize TestTrack using `window.TT`
+ * Initialize `TestTrack` using `window.TT`
  *
  * @deprecated Use `load` or `create`
  */

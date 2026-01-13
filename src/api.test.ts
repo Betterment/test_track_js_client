@@ -1,4 +1,4 @@
-import { create, load } from './initialize';
+import { create, load } from './api';
 import type { StorageProvider } from './storageProvider';
 import type { ClientConfig, V4VisitorConfig } from './client';
 import { v4 as uuid } from 'uuid';

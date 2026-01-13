@@ -50,6 +50,8 @@ export function createWebExtension(options: Options): WebExtension {
 }
 
 export function connectWebExtension(webExtension: WebExtension): void {
+  if (typeof document === 'undefined') return;
+
   const TestTrack = {
     _crx: webExtension
   };

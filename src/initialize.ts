@@ -5,18 +5,18 @@ import { createClient, type ClientConfig, type V4VisitorConfig } from './client'
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { StorageProvider } from './storageProvider';
 
-type InitializeOptions = {
+type LoadOptions = {
   client: ClientConfig;
   storage: StorageProvider;
   analytics?: AnalyticsProvider;
   errorLogger?: (errorMessage: string) => void;
 };
 
-type CreateOptions = InitializeOptions & {
+type CreateOptions = LoadOptions & {
   visitorConfig: V4VisitorConfig;
 };
 
-export async function initialize(options: InitializeOptions): Promise<TestTrack> {
+export async function load(options: LoadOptions): Promise<TestTrack> {
   const { storage, analytics, errorLogger } = options;
 
   const client = createClient(options.client);

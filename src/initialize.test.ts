@@ -1,4 +1,4 @@
-import { create, initialize } from './initialize';
+import { create, load } from './initialize';
 import type { StorageProvider } from './storageProvider';
 import type { ClientConfig, V4VisitorConfig } from './client';
 import { v4 as uuid } from 'uuid';
@@ -38,7 +38,7 @@ const buildVisitorConfig = (visitorId: string): V4VisitorConfig => ({
   experience_sampling_weight: 1
 });
 
-describe('initialize', () => {
+describe('load', () => {
   beforeEach(() => {
     server.use(
       http.get(`${buildURL}/visitors/:visitorId/config`, ({ params }) => {
@@ -50,7 +50,7 @@ describe('initialize', () => {
   it('reads the visitor id from storage and sets it back', async () => {
     vi.mocked(storage.getVisitorId).mockReturnValue('existing_visitor_id');
 
-    const testTrack = await initialize({ client: clientConfig, storage });
+    const testTrack = await load({ client: clientConfig, storage });
     expect(testTrack.visitorId).toEqual('existing_visitor_id');
 
     expect(storage.getVisitorId).toHaveBeenCalledTimes(1);
@@ -62,7 +62,7 @@ describe('initialize', () => {
     vi.mocked(uuid).mockReturnValue('generated_visitor_id');
     vi.mocked(storage.getVisitorId).mockReturnValue(undefined);
 
-    const testTrack = await initialize({ client: clientConfig, storage });
+    const testTrack = await load({ client: clientConfig, storage });
     expect(testTrack.visitorId).toEqual('generated_visitor_id');
 
     expect(storage.getVisitorId).toHaveBeenCalledTimes(1);

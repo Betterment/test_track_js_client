@@ -18,15 +18,78 @@ pnpm add @betterment-oss/test-track
 
 You can find the latest version of the test track JS client [here](https://github.com/Betterment/test_track_js_client/releases).
 
-```javascript
-import { initialize } from '@betterment-oss/test-track';
+## Setup
 
-const testTrack = await initialize();
+There are two ways to set up TestTrack:
+
+### `load(options)`
+
+Fetches visitor configuration from the TestTrack server and creates a TestTrack instance. This is the recommended approach for most use cases.
+
+```javascript
+import { load, createCookieStorage } from '@betterment-oss/test-track';
+
+const testTrack = await load({
+  client: {
+    url: 'https://testtrack.example.com',
+    appName: 'my_app',
+    appVersion: '1.0.0',
+    buildTimestamp: '2024-01-01T00:00:00Z'
+  },
+  storage: createCookieStorage({
+    domain: '.example.com'
+  })
+});
 ```
 
-## Configuration
+**Parameters:**
+- `client.url` - The URL of your TestTrack server
+- `client.appName` - Your application name
+- `client.appVersion` - Your application version
+- `client.buildTimestamp` - The build timestamp (ISO 8601 format)
+- `storage` - A storage provider for persisting visitor IDs (e.g. `createCookieStorage()`)
+- `analytics` (optional) - An analytics provider for tracking assignments (see [Advanced Configuration](#advanced-configuration))
+- `errorLogger` (optional) - A function for logging errors
 
-Before using the client you must call `initialize()`. This method also takes some optional [configuration parameters](#advanced-configuration), if you fancy.
+### `create(options)`
+
+Creates a TestTrack instance with preloaded visitor configuration. Use this when you have visitor configuration data available (e.g., from server-side rendering or a cached response).
+
+```javascript
+import { create, createCookieStorage } from '@betterment-oss/test-track';
+
+const testTrack = create({
+  client: {
+    url: 'https://testtrack.example.com',
+    appName: 'my_app',
+    appVersion: '1.0.0',
+    buildTimestamp: '2024-01-01T00:00:00Z'
+  },
+  storage: createCookieStorage({
+    domain: '.example.com'
+  }),
+  visitorConfig: {
+    splits: [
+      {
+        name: 'button_color',
+        variants: [{ name: 'blue', weight: 50 }, { name: 'red', weight: 50 }],
+        feature_gate: false
+      }
+    ],
+    visitor: {
+      id: 'visitor-uuid',
+      assignments: [{ split_name: 'button_color', variant: 'blue' }]
+    },
+    experience_sampling_weight: 1
+  }
+});
+```
+
+**Parameters:**
+- Same as `load()`, plus:
+- `visitorConfig` - Preloaded visitor configuration data from the TestTrack API
+
+## Configuration
 
 ### API
 
@@ -99,10 +162,17 @@ await testTrack.logIn('myapp_user_id', 12345);
 
 ## Advanced Configuration
 
-When you call `initialize()` you can optionally pass in an analytics object and an error logger. For example:
+When you call `load()` or `create()` you can optionally pass in an analytics object and an error logger. For example:
 
 ```js
-const testTrack = await initialize({
+const testTrack = await load({
+  client: {
+    url: 'https://testtrack.example.com',
+    appName: 'my_app',
+    appVersion: '1.0.0',
+    buildTimestamp: '2024-01-01T00:00:00Z'
+  },
+  storage: createCookieStorage({ domain: '.example.com' }),
   analytics: {
     trackAssignment: function (visitorId, assignment, callback) {
       var props = {
@@ -128,19 +198,22 @@ const testTrack = await initialize({
 
 ## Using TestTrack without a build tool
 
-The `@betterment-oss/test-track` package is distributed as an ES module. The package also provides `dist/index.iffe.js`. This artifact includes all dependencies and can be used directly in the browser.
+The `@betterment-oss/test-track` package is distributed as an ES module. The package also provides `dist/index.iife.js`. This artifact includes all dependencies and can be used directly in the browser.
 
 ```html
-<script>
-  window.TT = btoa(
-    JSON.stringify({
-      /* Config */
-    })
-  );
-</script>
 <script src="/path/to/index.iife.js"></script>
 <script type="module">
-  const testTrack = await TestTrack.initialize();
+  const testTrack = await TestTrack.load({
+    client: {
+      url: 'https://testtrack.example.com',
+      appName: 'my_app',
+      appVersion: '1.0.0',
+      buildTimestamp: '2024-01-01T00:00:00Z'
+    },
+    storage: TestTrack.createCookieStorage({
+      domain: '.example.com'
+    })
+  });
   // Use testTrack.vary(), testTrack.ab(), etc.
 </script>
 ```

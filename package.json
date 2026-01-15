@@ -8,6 +8,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.ts",
+      "default": "./dist/vite.js"
     }
   },
   "scripts": {
@@ -38,6 +42,14 @@
     "js-cookie": "^2.2.1",
     "js-md5": "^0.8.3",
     "uuid": "^13.0.0"
+  },
+  "peerDependencies": {
+    "vite": ">=7.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
   },
   "files": [
     "dist/*"

@@ -59,6 +59,7 @@ export class TestTrack {
     return this.#visitorId;
   }
 
+  /** @internal */
   get assignments(): ReadonlyArray<Assignment> {
     return Object.values(this.#assignments);
   }

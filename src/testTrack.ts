@@ -97,21 +97,21 @@ export class TestTrack {
     return variant === trueVariant;
   }
 
-  async logIn(identifierType: string, value: number): Promise<void> {
+  async logIn(identifierType: string, value: string): Promise<void> {
     await this.#linkIdentifier(identifierType, value);
     this.#analytics.identify(this.visitorId);
   }
 
-  async signUp(identifierType: string, value: number): Promise<void> {
+  async signUp(identifierType: string, value: string): Promise<void> {
     await this.#linkIdentifier(identifierType, value);
     this.#analytics.alias(this.visitorId);
   }
 
-  async #linkIdentifier(identifierType: string, value: number): Promise<void> {
+  async #linkIdentifier(identifierType: string, value: string): Promise<void> {
     const response = await this.#client.postIdentifier({
       visitor_id: this.visitorId,
       identifier_type: identifierType,
-      value: value.toString()
+      value
     });
 
     const { visitor, splitRegistry } = parseVisitorConfig(response);

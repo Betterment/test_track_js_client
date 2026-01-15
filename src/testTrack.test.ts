@@ -361,7 +361,7 @@ describe('TestTrack', () => {
         { splitName: 'element', variant: 'earth', context: null }
       ]);
 
-      await testTrack[method]('myappdb_user_id', 444);
+      await testTrack[method]('myappdb_user_id', '444');
 
       expect(await getRequests()).toEqual([
         {

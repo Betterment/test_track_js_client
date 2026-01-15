@@ -43,6 +43,7 @@ const testTrack = await load({
 ```
 
 **Parameters:**
+
 - `client.url` - The URL of your TestTrack server
 - `client.appName` - Your application name
 - `client.appVersion` - Your application version
@@ -72,7 +73,10 @@ const testTrack = create({
     splits: [
       {
         name: 'button_color',
-        variants: [{ name: 'blue', weight: 50 }, { name: 'red', weight: 50 }],
+        variants: [
+          { name: 'blue', weight: 50 },
+          { name: 'red', weight: 50 }
+        ],
         feature_gate: false
       }
     ],
@@ -86,12 +90,21 @@ const testTrack = create({
 ```
 
 **Parameters:**
+
 - Same as `load()`, plus:
 - `visitorConfig` - Preloaded visitor configuration data from the TestTrack API
 
 ## Configuration
 
 ### API
+
+#### `.visitorId`
+
+Returns the current visitor's unique identifier as a string. This ID is persisted in the storage provider and used to maintain consistent split assignments across sessions.
+
+```js
+console.log(testTrack.visitorId); // "abc123-def456-..."
+```
 
 #### `.vary(split_name, options)`
 
@@ -153,10 +166,10 @@ The `ab` method is used exclusively for two-way splits and feature toggles. It t
 The `logIn` method is used to ensure a consistent experience across devices. For instance, when a user logs in to your app on a new device, you should also log the user into Test Track in order to grab their existing split assignments instead of treating them like a new visitor. It takes 2 arguments.
 
 - `identifier` -- The first argument is the name of the identifier. This will be a snake_case string, e.g. `"myapp_user_id"`.
-- `value` -- The second argument is a primitive value, e.g. `12345`, `"abcd"`
+- `value` -- The second argument is a string value, e.g. `"12345"`, `"abcd"`
 
 ```js
-await testTrack.logIn('myapp_user_id', 12345);
+await testTrack.logIn('myapp_user_id', '12345');
 // From this point on you have existing split assignments from a previous device.
 ```
 
@@ -174,25 +187,41 @@ const testTrack = await load({
   },
   storage: createCookieStorage({ domain: '.example.com' }),
   analytics: {
-    trackAssignment: function (visitorId, assignment, callback) {
-      var props = {
+    trackAssignment: (visitorId, assignment) => {
+      const props = {
         SplitName: assignment.splitName,
         SplitVariant: assignment.variant,
         SplitContext: assignment.context
       };
 
-      remoteAnalyticsService.track('SplitAssigned', props, callback);
+      remoteAnalyticsService.track('SplitAssigned', props);
     },
-    identify: function (visitorId) {
+    identify: visitorId => {
       remoteAnalyticsService.identify(visitorId);
     },
-    alias: function (visitorId) {
+    alias: visitorId => {
       remoteAnalyticsService.alias(visitorId);
     }
   },
-  errorLogger: function (message) {
+  errorLogger: message => {
     RemoteLoggingService.log(message); // logs remotely so that you can be alerted to any misconfigured splits
   }
+});
+```
+
+## Vite Plugin
+
+The `@betterment-oss/test-track` package includes a Vite plugin that automatically defines the following environment variables:
+
+- `import.meta.env.TT_APP_VERSION` - Generated as `0.0.[UNIX TIMESTAMP]`
+- `import.meta.env.TT_BUILD_TIMESTAMP` - The build timestamp in ISO 8601 format
+
+```ts
+import { defineConfig } from 'vite';
+import { testTrackPlugin } from '@betterment-oss/test-track/vite';
+
+export default defineConfig({
+  plugins: [testTrackPlugin()]
 });
 ```
 

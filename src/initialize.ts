@@ -15,9 +15,9 @@ export async function initialize(options: SessionOptions = {}): Promise<TestTrac
   const client = createClient({ url: config.url });
   const storage = createCookieStorage({ domain: config.cookieDomain, name: config.cookieName });
   const splitRegistry = parseSplitRegistry(config.splits);
-  const { visitor, isOffline } = await loadVisitor({
+
+  const visitor = await loadVisitor({
     client,
-    splitRegistry,
     id: storage.getVisitorId(),
     assignments: parseAssignments(config.assignments)
   });
@@ -27,7 +27,6 @@ export async function initialize(options: SessionOptions = {}): Promise<TestTrac
     storage,
     splitRegistry,
     visitor,
-    isOffline,
     analytics: options.analytics,
     errorLogger: options.errorLogger
   });

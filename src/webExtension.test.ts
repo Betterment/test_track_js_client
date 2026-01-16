@@ -13,8 +13,8 @@ const splitRegistry = createSplitRegistry([
 ]);
 
 const assignments: Assignment[] = [
-  { splitName: 'jabba', variant: 'puppet', context: null, isUnsynced: false },
-  { splitName: 'wine', variant: 'rose', context: null, isUnsynced: false }
+  { splitName: 'jabba', variant: 'puppet', context: null },
+  { splitName: 'wine', variant: 'rose', context: null }
 ];
 
 describe('createWebExtension', () => {

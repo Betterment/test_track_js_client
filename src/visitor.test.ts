@@ -4,18 +4,10 @@ import { v4 as uuid } from 'uuid';
 import { http, HttpResponse } from 'msw';
 import { server, getRequests } from './setupTests';
 import { createClient } from './client';
-import { createSplitRegistry } from './splitRegistry';
 
 vi.mock('uuid');
 
 const client = createClient({ url: 'http://testtrack.dev' });
-const splitRegistry = createSplitRegistry([
-  {
-    name: 'element',
-    isFeatureGate: false,
-    weighting: { earth: 25, wind: 25, fire: 25, water: 25 }
-  }
-]);
 
 describe('loadVisitor()', () => {
   beforeEach(() => {
@@ -52,46 +44,31 @@ describe('loadVisitor()', () => {
     // @ts-expect-error `uuid` has overloads
     vi.mocked(uuid).mockReturnValue('generated_uuid');
 
-    const result = await loadVisitor({
-      client,
-      splitRegistry,
-      id: undefined,
-      assignments: null
-    });
+    const result = await loadVisitor({ client, id: undefined, assignments: null });
+    expect(result).toEqual({ id: 'generated_uuid', assignments: [] });
     expect(await getRequests()).toEqual([]);
-    expect(result).toEqual({
-      visitor: { id: 'generated_uuid', assignments: [] },
-      isOffline: false
-    });
   });
 
   it('does not hit the server when passed a visitorId and there are baked assignments', async () => {
     const jabbaAssignment: Assignment = {
       splitName: 'jabba',
       variant: 'puppet',
-      context: null,
-      isUnsynced: false
+      context: null
     };
 
     const wineAssignment: Assignment = {
       splitName: 'wine',
       variant: 'rose',
-      context: null,
-      isUnsynced: false
+      context: null
     };
 
     const result = await loadVisitor({
       client,
-      splitRegistry,
       id: 'baked_visitor_id',
       assignments: [jabbaAssignment, wineAssignment]
     });
 
-    expect(result).toEqual({
-      visitor: { id: 'baked_visitor_id', assignments: [jabbaAssignment, wineAssignment] },
-      isOffline: false
-    });
-
+    expect(result).toEqual({ id: 'baked_visitor_id', assignments: [jabbaAssignment, wineAssignment] });
     expect(await getRequests()).toEqual([]);
   });
 
@@ -99,22 +76,11 @@ describe('loadVisitor()', () => {
     const jabbaAssignment: Assignment = {
       splitName: 'jabba',
       variant: 'puppet',
-      context: 'mos_eisley',
-      isUnsynced: false
+      context: 'mos_eisley'
     };
 
-    const result = await loadVisitor({
-      client,
-      splitRegistry,
-      id: 'puppeteer_visitor_id',
-      assignments: null
-    });
-
-    expect(result).toEqual({
-      visitor: { id: 'puppeteer_visitor_id', assignments: [jabbaAssignment] },
-      isOffline: false
-    });
-
+    const result = await loadVisitor({ client, id: 'puppeteer_visitor_id', assignments: null });
+    expect(result).toEqual({ id: 'puppeteer_visitor_id', assignments: [jabbaAssignment] });
     expect(await getRequests()).toEqual([
       { method: 'GET', url: 'http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id', body: {} }
     ]);
@@ -127,18 +93,8 @@ describe('loadVisitor()', () => {
       })
     );
 
-    const result = await loadVisitor({
-      client,
-      splitRegistry,
-      id: 'failed_visitor_id',
-      assignments: null
-    });
-
-    expect(result).toEqual({
-      visitor: { id: 'failed_visitor_id', assignments: [] },
-      isOffline: true
-    });
-
+    const result = await loadVisitor({ client, id: 'failed_visitor_id', assignments: null });
+    expect(result).toEqual({ id: 'failed_visitor_id', assignments: [] });
     expect(await getRequests()).toEqual([
       { method: 'GET', url: 'http://testtrack.dev/api/v1/visitors/failed_visitor_id', body: {} }
     ]);
@@ -161,8 +117,8 @@ describe('parseAssignment', () => {
 
 describe('indexAssignments', () => {
   it('indexes assignments by splitName', () => {
-    const a: Assignment = { splitName: 'a', variant: 'true', context: null, isUnsynced: false };
-    const b: Assignment = { splitName: 'b', variant: 'true', context: null, isUnsynced: false };
+    const a: Assignment = { splitName: 'a', variant: 'true', context: null };
+    const b: Assignment = { splitName: 'b', variant: 'true', context: null };
 
     expect(indexAssignments([a, b])).toEqual({ a, b });
   });

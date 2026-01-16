@@ -1,16 +1,8 @@
 import { http, HttpResponse } from 'msw';
-import { request, toSearchParams } from './request';
+import { request } from './request';
 import { server } from '../setupTests';
 
 const url = 'https://testtrack.dev/api/v1/test';
-
-describe('toSearchParams', () => {
-  it('constructs URLSearchParams without empty values', () => {
-    expect(toSearchParams({ a: '1', b: '2', c: '3' }).toString()).toEqual('a=1&b=2&c=3');
-    expect(toSearchParams({ a: '1', b: null, c: '3' }).toString()).toEqual('a=1&b=&c=3');
-    expect(toSearchParams({ a: '1', b: undefined, c: '3' }).toString()).toEqual('a=1&c=3');
-  });
-});
 
 describe('request', () => {
   it('sends a GET request', async () => {
@@ -23,8 +15,8 @@ describe('request', () => {
   it('sends a POST request', async () => {
     server.use(
       http.post(url, async ({ request }) => {
-        const params = new URLSearchParams(await request.text());
-        expect(params.get('foo')).toEqual('bar');
+        const params = (await request.json()) as { foo: string };
+        expect(params.foo).toEqual('bar');
         return HttpResponse.text('', { status: 204 });
       })
     );
@@ -32,7 +24,7 @@ describe('request', () => {
     const result = await request({
       method: 'POST',
       url: new URL(url),
-      body: new URLSearchParams({ foo: 'bar' })
+      body: JSON.stringify({ foo: 'bar' })
     });
 
     expect(result).toEqual({ data: null });

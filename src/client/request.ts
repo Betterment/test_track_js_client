@@ -2,30 +2,18 @@ type RequestOptions = {
   url: URL;
   method: 'GET' | 'POST';
   timeout?: number;
-  body?: URLSearchParams;
+  body?: string;
   auth?: { username: string; password: string };
 };
-
-export function toSearchParams(values: Record<string, string | null | undefined>): URLSearchParams {
-  const params = new URLSearchParams();
-
-  Object.entries(values).forEach(([key, value]) => {
-    if (typeof value !== 'undefined') {
-      params.append(key, value ?? '');
-    }
-  });
-
-  return params;
-}
 
 export async function request<T>(options: RequestOptions): Promise<{ data: T }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeout ?? 60_000);
+  const headers = new Headers({ Accept: 'application/json' });
 
-  const headers = new Headers({
-    Accept: 'application/json',
-    'Content-Type': 'application/x-www-form-urlencoded'
-  });
+  if (options.body) {
+    headers.append('Content-Type', 'application/json');
+  }
 
   if (options.auth) {
     const { username, password } = options.auth;

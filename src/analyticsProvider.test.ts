@@ -1,4 +1,4 @@
-import { Assignment } from './assignment';
+import type { Assignment } from './visitor';
 import { mixpanelAnalytics } from './analyticsProvider';
 
 const mixpanel = {
@@ -18,12 +18,12 @@ describe('mixpanelAnalytics', () => {
 
   describe('#trackAssignment()', () => {
     it('tracks SplitAssigned event with assignment properties', () => {
-      const assignment = new Assignment({
+      const assignment: Assignment = {
         splitName: 'jabba',
         variant: 'cgi',
         context: 'spec',
         isUnsynced: false
-      });
+      };
 
       const callback = vi.fn();
       mixpanelAnalytics.trackAssignment('visitor_id', assignment, callback);

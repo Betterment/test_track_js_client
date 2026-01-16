@@ -1,10 +1,10 @@
-import { Assignment } from './assignment';
+import type { Assignment } from './visitor';
+import { indexAssignments, parseAssignment, loadVisitor } from './visitor';
 import { v4 as uuid } from 'uuid';
 import { http, HttpResponse } from 'msw';
-import { server, requests } from './setupTests';
+import { server, getRequests } from './setupTests';
 import { createClient } from './client';
 import { createSplitRegistry } from './splitRegistry';
-import { loadVisitor } from './visitor';
 
 vi.mock('uuid');
 
@@ -58,7 +58,7 @@ describe('loadVisitor()', () => {
       id: undefined,
       assignments: null
     });
-    expect(requests.length).toBe(0);
+    expect(await getRequests()).toEqual([]);
     expect(result).toEqual({
       visitor: { id: 'generated_uuid', assignments: [] },
       isOffline: false
@@ -66,17 +66,19 @@ describe('loadVisitor()', () => {
   });
 
   it('does not hit the server when passed a visitorId and there are baked assignments', async () => {
-    const jabbaAssignment = new Assignment({
+    const jabbaAssignment: Assignment = {
       splitName: 'jabba',
       variant: 'puppet',
+      context: null,
       isUnsynced: false
-    });
+    };
 
-    const wineAssignment = new Assignment({
+    const wineAssignment: Assignment = {
       splitName: 'wine',
       variant: 'rose',
+      context: null,
       isUnsynced: false
-    });
+    };
 
     const result = await loadVisitor({
       client,
@@ -90,16 +92,16 @@ describe('loadVisitor()', () => {
       isOffline: false
     });
 
-    expect(requests.length).toBe(0);
+    expect(await getRequests()).toEqual([]);
   });
 
   it('loads a visitor from the server for an existing visitor if there are no baked assignments', async () => {
-    const jabbaAssignment = new Assignment({
+    const jabbaAssignment: Assignment = {
       splitName: 'jabba',
       variant: 'puppet',
       context: 'mos_eisley',
       isUnsynced: false
-    });
+    };
 
     const result = await loadVisitor({
       client,
@@ -113,8 +115,9 @@ describe('loadVisitor()', () => {
       isOffline: false
     });
 
-    expect(requests.length).toBe(1);
-    expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id');
+    expect(await getRequests()).toEqual([
+      { method: 'GET', url: 'http://testtrack.dev/api/v1/visitors/puppeteer_visitor_id', body: {} }
+    ]);
   });
 
   it('builds a visitor in offline mode if the request fails', async () => {
@@ -136,7 +139,31 @@ describe('loadVisitor()', () => {
       isOffline: true
     });
 
-    expect(requests.length).toBe(1);
-    expect(requests[0]!.url).toEqual('http://testtrack.dev/api/v1/visitors/failed_visitor_id');
+    expect(await getRequests()).toEqual([
+      { method: 'GET', url: 'http://testtrack.dev/api/v1/visitors/failed_visitor_id', body: {} }
+    ]);
+  });
+});
+
+describe('parseAssignment', () => {
+  it('parses V1 API data', () => {
+    const assignment = parseAssignment({
+      split_name: 'button_color',
+      variant: 'red',
+      context: 'homepage',
+      unsynced: false
+    });
+
+    expect(assignment.splitName).toBe('button_color');
+    expect(assignment.variant).toBe('red');
+  });
+});
+
+describe('indexAssignments', () => {
+  it('indexes assignments by splitName', () => {
+    const a: Assignment = { splitName: 'a', variant: 'true', context: null, isUnsynced: false };
+    const b: Assignment = { splitName: 'b', variant: 'true', context: null, isUnsynced: false };
+
+    expect(indexAssignments([a, b])).toEqual({ a, b });
   });
 });

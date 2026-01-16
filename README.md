@@ -211,10 +211,7 @@ const testTrack = await load({
 
 ## Vite Plugin
 
-The `@betterment-oss/test-track` package includes a Vite plugin that automatically defines the following environment variables:
-
-- `import.meta.env.TT_APP_VERSION` - Generated as `0.0.[UNIX TIMESTAMP]`
-- `import.meta.env.TT_BUILD_TIMESTAMP` - The build timestamp in ISO 8601 format
+The `@betterment-oss/test-track` package includes a Vite plugin that automatically defines `import.meta.env.TT_BUILD_TIMESTAMP`, which can be used to configure Test Track.
 
 ```ts
 import { defineConfig } from 'vite';

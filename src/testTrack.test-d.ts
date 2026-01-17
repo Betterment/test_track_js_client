@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { expectTypeOf, test } from 'vitest';
-import { TestTrack } from './testTrack';
+import type { TestTrack } from './testTrack';
 
 describe('TestTrack', () => {
-  const testTrack: TestTrack = {} as unknown as TestTrack;
+  const testTrack = {} as unknown as TestTrack;
 
   test('vary', () => {
     expectTypeOf(testTrack.vary).parameter(0).toBeString();
@@ -25,6 +25,27 @@ describe('TestTrack', () => {
 
   test('signUp', () => {
     expectTypeOf(testTrack.signUp).parameter(0).toBeString();
+    expectTypeOf(testTrack.signUp).parameter(1).toBeString();
+    expectTypeOf(testTrack.signUp).returns.resolves.toBeVoid();
+  });
+});
+
+describe('TestTrack (typed)', () => {
+  type ExampleSchema = {
+    serializer_version: 1;
+    identifier_types: [{ name: 'user_id' }, { name: 'agent_id' }];
+  };
+
+  const testTrack = {} as unknown as TestTrack<ExampleSchema>;
+
+  test('logIn', () => {
+    expectTypeOf(testTrack.logIn).parameter(0).toEqualTypeOf<'user_id' | 'agent_id'>();
+    expectTypeOf(testTrack.logIn).parameter(1).toBeString();
+    expectTypeOf(testTrack.logIn).returns.resolves.toBeVoid();
+  });
+
+  test('signUp', () => {
+    expectTypeOf(testTrack.signUp).parameter(0).toEqualTypeOf<'user_id' | 'agent_id'>();
     expectTypeOf(testTrack.signUp).parameter(1).toBeString();
     expectTypeOf(testTrack.signUp).returns.resolves.toBeVoid();
   });

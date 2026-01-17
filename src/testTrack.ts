@@ -8,6 +8,7 @@ import type { Client } from './client';
 import type { SplitRegistry } from './splitRegistry';
 import type { Visitor } from './visitor';
 import type { StorageProvider } from './storageProvider';
+import type { IdentifierType, Schema } from './schema';
 
 export type VaryOptions = {
   context: string;
@@ -28,7 +29,7 @@ type Options = {
   errorLogger?: (errorMessage: string) => void;
 };
 
-export class TestTrack {
+export class TestTrack<S extends Schema = Schema> {
   readonly #client: Client;
   readonly #storage: StorageProvider;
   readonly #analytics: AnalyticsProvider;
@@ -98,12 +99,12 @@ export class TestTrack {
     return variant === trueVariant;
   }
 
-  async logIn(identifierType: string, value: string): Promise<void> {
+  async logIn(identifierType: IdentifierType<S>, value: string): Promise<void> {
     await this.#linkIdentifier(identifierType, value);
     this.#analytics.identify(this.visitorId);
   }
 
-  async signUp(identifierType: string, value: string): Promise<void> {
+  async signUp(identifierType: IdentifierType<S>, value: string): Promise<void> {
     await this.#linkIdentifier(identifierType, value);
     this.#analytics.alias(this.visitorId);
   }

@@ -5,6 +5,7 @@ import { loadVisitorConfig, parseVisitorConfig } from './visitor';
 import { createClient, type ClientConfig, type V4VisitorConfig } from './client';
 import { createCookieStorage, type StorageProvider } from './storageProvider';
 import type { AnalyticsProvider } from './analyticsProvider';
+import type { Schema } from './schema';
 
 type InitializeOptions = {
   client: Omit<ClientConfig, 'url'>;
@@ -26,7 +27,7 @@ type CreateOptions = LoadOptions & {
 /**
  * Fetches visitor config from the server to create a `TestTrack` instance
  */
-export async function load(options: LoadOptions): Promise<TestTrack> {
+export async function load<S extends Schema>(options: LoadOptions): Promise<TestTrack<S>> {
   const { storage, analytics, errorLogger } = options;
 
   const client = createClient(options.client);
@@ -39,7 +40,7 @@ export async function load(options: LoadOptions): Promise<TestTrack> {
 /**
  * Creates a `TestTrack` instance with preloaded data
  */
-export function create(options: CreateOptions): TestTrack {
+export function create<S extends Schema>(options: CreateOptions): TestTrack<S> {
   const { storage, analytics, errorLogger } = options;
 
   const client = createClient(options.client);
@@ -53,7 +54,7 @@ export function create(options: CreateOptions): TestTrack {
  *
  * @deprecated Use `load` or `create`
  */
-export function initialize(options: InitializeOptions): TestTrack {
+export function initialize<S extends Schema>(options: InitializeOptions): TestTrack<S> {
   const { analytics, errorLogger } = options;
 
   const config = loadConfig();

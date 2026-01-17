@@ -241,6 +241,39 @@ testTrack.vary('button_color', { context: 'home', defaultVariant: 'blue' });
 testTrack.ab('new_feature_enabled', { context: 'home' });
 ```
 
+## React
+
+The package provides optional integration with React.
+
+```tsx
+import { load, createCookieStorage } from '@betterment-oss/test-track';
+import { createContext } from '@betterment-oss/test-track/react';
+
+const { TestTrackProvider, useTestTrack } = createContext();
+
+const testTrackPromise = load({ /* ... */ });
+
+function App() {
+  return (
+    <TestTrackProvider value={testTrackPromise}>
+      <ButtonExperiment />
+    </TestTrackProvider>
+  );
+}
+
+function ButtonExperiment() {
+  const testTrack = useTestTrack();
+  if (!testTrack) return null; // Loading...
+
+  const variant = testTrack.vary('button_color', {
+    context: 'MyComponent',
+    defaultVariant: 'blue'
+  });
+
+  return <button className={variant}>Click me</button>;
+}
+```
+
 ## Vite Plugin
 
 The `@betterment-oss/test-track` package includes a Vite plugin that automatically defines `import.meta.env.TT_BUILD_TIMESTAMP`, which can be used to configure Test Track.

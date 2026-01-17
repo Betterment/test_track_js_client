@@ -9,6 +9,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "default": "./dist/react.js"
+    },
     "./vite": {
       "types": "./dist/vite.d.ts",
       "default": "./dist/vite.js"
@@ -28,11 +32,15 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@testing-library/react": "^16.3.1",
     "@types/js-cookie": "^3.0.3",
+    "@types/react": "^18.3.27",
     "eslint": "^9.39.2",
     "jsdom": "^27.4.0",
     "msw": "^2.12.7",
     "prettier": "3.7.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "tsdown": "^0.18.3",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.51.0",
@@ -44,9 +52,13 @@
     "uuid": "^13.0.0"
   },
   "peerDependencies": {
-    "vite": ">=7.0.0"
+    "react": ">=18",
+    "vite": ">=7"
   },
   "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
     "vite": {
       "optional": true
     }

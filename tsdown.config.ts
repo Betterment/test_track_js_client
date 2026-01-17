@@ -20,7 +20,15 @@ export default defineConfig([
   {
     format: 'esm',
     platform: 'neutral',
+    entry: { react: 'src/react/index.tsx' },
+    dts: true,
+    sourcemap: true
+  },
+  {
+    format: 'esm',
+    platform: 'neutral',
     entry: { vite: 'src/vite/index.ts' },
-    dts: true
+    dts: true,
+    sourcemap: true
   }
 ]);

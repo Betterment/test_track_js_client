@@ -23,7 +23,7 @@
     "lint": "eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
+    "test": "vitest run --typecheck",
     "release": "pnpm build && pnpm publish"
   },
   "devDependencies": {

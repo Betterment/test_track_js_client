@@ -8,11 +8,11 @@ import type { Client } from './client';
 import type { SplitRegistry } from './splitRegistry';
 import type { Visitor } from './visitor';
 import type { StorageProvider } from './storageProvider';
-import type { IdentifierType, Schema } from './schema';
+import type { IdentifierType, Schema, SplitName } from './schema';
 
-export type VaryOptions = {
+export type VaryOptions<D extends boolean | string = boolean | string> = {
   context: string;
-  defaultVariant: boolean | string;
+  defaultVariant: D;
 };
 
 export type AbOptions = {
@@ -65,7 +65,7 @@ export class TestTrack<S extends Schema = Schema> {
     return Object.values(this.#assignments);
   }
 
-  vary(splitName: string, options: VaryOptions): string {
+  vary<N extends SplitName<S>>(splitName: N, options: VaryOptions): string {
     const existingAssignment = this.#assignments[splitName];
     if (existingAssignment?.variant) {
       return existingAssignment.variant;
@@ -82,7 +82,7 @@ export class TestTrack<S extends Schema = Schema> {
     return variant;
   }
 
-  ab(splitName: string, options: AbOptions): boolean {
+  ab<N extends SplitName<S>>(splitName: N, options: AbOptions): boolean {
     const trueVariant = options.trueVariant ?? 'true';
     const falseVariant = getFalseVariant({
       splitName,

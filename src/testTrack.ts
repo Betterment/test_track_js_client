@@ -39,8 +39,8 @@ export class TestTrack<S extends Schema = Schema> {
   #assignments: AssignmentRegistry;
   #splitRegistry: SplitRegistry;
 
-  static create(options: Options): TestTrack {
-    const testTrack = new TestTrack(options);
+  static create<S extends Schema>(options: Options): TestTrack<S> {
+    const testTrack = new TestTrack<S>(options);
     testTrack.#saveVisitorId();
     testTrack.#connectWebExtension();
     return testTrack;

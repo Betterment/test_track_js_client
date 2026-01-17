@@ -45,13 +45,29 @@ describe('TestTrack (typed)', () => {
 
   test('vary', () => {
     expectTypeOf(testTrack.vary).parameter(0).toEqualTypeOf<'foo_enabled' | 'color_experiment'>();
-    expectTypeOf(testTrack.vary).parameter(1).toEqualTypeOf<{ context: string; defaultVariant: string | boolean }>();
+
+    expectTypeOf(testTrack.vary<'foo_enabled'>)
+      .parameter(1)
+      .toEqualTypeOf<{ context: string; defaultVariant: 'true' | 'false' | boolean }>();
+
+    expectTypeOf(testTrack.vary<'color_experiment'>)
+      .parameter(1)
+      .toEqualTypeOf<{ context: string; defaultVariant: 'green' | 'blue' }>();
+
     expectTypeOf(testTrack.vary).returns.toBeString();
   });
 
   test('ab', () => {
     expectTypeOf(testTrack.ab).parameter(0).toEqualTypeOf<'foo_enabled' | 'color_experiment'>();
-    expectTypeOf(testTrack.ab).parameter(1).toEqualTypeOf<{ context: string; trueVariant?: string }>();
+
+    expectTypeOf(testTrack.ab<'foo_enabled'>)
+      .parameter(1)
+      .toEqualTypeOf<{ context: string; trueVariant?: 'true' | 'false' }>();
+
+    expectTypeOf(testTrack.ab<'color_experiment'>)
+      .parameter(1)
+      .toEqualTypeOf<{ context: string; trueVariant?: 'green' | 'blue' }>();
+
     expectTypeOf(testTrack.ab).returns.toBeBoolean();
   });
 

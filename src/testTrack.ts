@@ -8,16 +8,16 @@ import type { Client } from './client';
 import type { SplitRegistry } from './splitRegistry';
 import type { Visitor } from './visitor';
 import type { StorageProvider } from './storageProvider';
-import type { IdentifierType, Schema, SplitName } from './schema';
+import type { IdentifierType, Schema, SplitName, VariantName } from './schema';
 
-export type VaryOptions<D extends boolean | string = boolean | string> = {
+export type VaryOptions<V extends string> = {
   context: string;
-  defaultVariant: D;
+  defaultVariant: 'true' | 'false' extends V ? V | boolean : V;
 };
 
-export type AbOptions = {
+export type AbOptions<V extends string> = {
   context: string;
-  trueVariant?: string;
+  trueVariant?: V;
 };
 
 type Options = {
@@ -65,7 +65,7 @@ export class TestTrack<S extends Schema = Schema> {
     return Object.values(this.#assignments);
   }
 
-  vary<N extends SplitName<S>>(splitName: N, options: VaryOptions): string {
+  vary<N extends SplitName<S>>(splitName: N, options: VaryOptions<VariantName<S, N>>): string {
     const existingAssignment = this.#assignments[splitName];
     if (existingAssignment?.variant) {
       return existingAssignment.variant;
@@ -82,7 +82,7 @@ export class TestTrack<S extends Schema = Schema> {
     return variant;
   }
 
-  ab<N extends SplitName<S>>(splitName: N, options: AbOptions): boolean {
+  ab<N extends SplitName<S>>(splitName: N, options: AbOptions<VariantName<S, N>>): boolean {
     const trueVariant = options.trueVariant ?? 'true';
     const falseVariant = getFalseVariant({
       splitName,
@@ -93,7 +93,7 @@ export class TestTrack<S extends Schema = Schema> {
 
     const variant = this.vary(splitName, {
       context: options.context,
-      defaultVariant: falseVariant
+      defaultVariant: falseVariant as VariantName<S, N>
     });
 
     return variant === trueVariant;

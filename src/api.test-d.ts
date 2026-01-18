@@ -54,7 +54,8 @@ describe('TestTrack with a typed schema', () => {
       .parameter(1)
       .toEqualTypeOf<{ context: string; defaultVariant: 'green' | 'blue' }>();
 
-    expectTypeOf(testTrack.vary).returns.toBeString();
+    expectTypeOf(testTrack.vary<'foo_enabled'>).returns.toEqualTypeOf<'true' | 'false'>();
+    expectTypeOf(testTrack.vary<'color_experiment'>).returns.toEqualTypeOf<'green' | 'blue'>();
   });
 
   test('ab', () => {

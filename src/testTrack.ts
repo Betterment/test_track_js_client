@@ -65,10 +65,10 @@ export class TestTrack<S extends Schema> {
     return Object.values(this.#assignments);
   }
 
-  vary<N extends SplitName<S>>(splitName: N, options: VaryOptions<VariantName<S, N>>): string {
+  vary<N extends SplitName<S>>(splitName: N, options: VaryOptions<VariantName<S, N>>): VariantName<S, N> {
     const existingAssignment = this.#assignments[splitName];
     if (existingAssignment?.variant) {
-      return existingAssignment.variant;
+      return existingAssignment.variant as VariantName<S, N>;
     }
 
     const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.visitorId });
@@ -79,7 +79,7 @@ export class TestTrack<S extends Schema> {
     this.#assignments = { ...this.#assignments, ...indexAssignments([assignment]) };
     this.#sendAssignmentNotification(assignment);
 
-    return variant;
+    return variant as VariantName<S, N>;
   }
 
   ab<N extends SplitName<S>>(splitName: N, options: AbOptions<VariantName<S, N>>): boolean {

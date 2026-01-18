@@ -2,9 +2,10 @@
 
 import { expectTypeOf, test } from 'vitest';
 import type { TestTrack } from './testTrack';
+import type { Schema } from './schema';
 
 describe('TestTrack', () => {
-  const testTrack = {} as unknown as TestTrack;
+  const testTrack = {} as unknown as TestTrack<Schema>;
 
   test('vary', () => {
     expectTypeOf(testTrack.vary).parameter(0).toBeString();

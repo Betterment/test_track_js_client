@@ -199,21 +199,21 @@ describe('TestTrack', () => {
     });
 
     describe('Boolean split', () => {
-      it('returns the correct variant when given a true boolean', () => {
+      it('returns the correct variant when given a true variant', () => {
         mockGetAssignmentBucket.mockReturnValue(75); // Selects 'true'
         const testTrack = createTestTrack();
-        const result = testTrack.vary('blue_button', { context: 'spec', defaultVariant: true });
+        const result = testTrack.vary('blue_button', { context: 'spec', defaultVariant: 'true' });
 
         expect(result).toBe('true');
       });
 
-      it('returns the correct variant when given a false boolean', () => {
+      it('returns the correct variant when given a false variant', () => {
         mockGetAssignmentBucket.mockReturnValue(25); // Selects 'false'
         const testTrack = createTestTrack();
 
         const result = testTrack.vary('blue_button', {
           context: 'spec',
-          defaultVariant: false
+          defaultVariant: 'false'
         });
 
         expect(result).toBe('false');
@@ -224,7 +224,7 @@ describe('TestTrack', () => {
       mockGetAssignmentBucket.mockReturnValue(25); // Selects 'false'
       const postAssignmentEventSpy = vi.spyOn(client, 'postAssignmentEvent');
       const testTrack = createTestTrack();
-      const result = testTrack.vary('blue_button', { context: 'spec', defaultVariant: false });
+      const result = testTrack.vary('blue_button', { context: 'spec', defaultVariant: 'false' });
 
       expect(result).toBe('false');
       expect(analytics.trackAssignment).not.toHaveBeenCalled();

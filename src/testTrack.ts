@@ -12,7 +12,7 @@ import type { IdentifierType, Schema, SplitName, VariantName } from './schema';
 
 export type VaryOptions<V extends string> = {
   context: string;
-  defaultVariant: 'true' | 'false' extends V ? V | boolean : V;
+  defaultVariant: V;
 };
 
 export type AbOptions<V extends string> = {
@@ -73,7 +73,7 @@ export class TestTrack<S extends Schema> {
 
     const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.visitorId });
     const calculatedVariant = calculateVariant({ assignmentBucket, splitRegistry: this.#splitRegistry, splitName });
-    const variant = calculatedVariant ?? options.defaultVariant.toString();
+    const variant = calculatedVariant ?? options.defaultVariant;
     const assignment = { splitName, variant, context: options.context };
 
     this.#assignments = { ...this.#assignments, ...indexAssignments([assignment]) };

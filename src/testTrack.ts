@@ -29,7 +29,7 @@ type Options = {
   errorLogger?: (errorMessage: string) => void;
 };
 
-export class TestTrack<S extends Schema = Schema> {
+export class TestTrack<S extends Schema> {
   readonly #client: Client;
   readonly #storage: StorageProvider;
   readonly #analytics: AnalyticsProvider;

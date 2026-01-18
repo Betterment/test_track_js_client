@@ -1,28 +1,10 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { expectTypeOf, test } from 'vitest';
-import { create } from './api';
-
-const settings = {
-  client: {
-    url: 'http://testtrack.dev',
-    appName: 'test_app',
-    appVersion: '1.0.0',
-    buildTimestamp: '2019-04-16T14:35:30Z'
-  },
-  storage: {
-    getVisitorId: () => undefined,
-    setVisitorId: () => undefined
-  },
-  visitorConfig: {
-    visitor: { id: 'id', assignments: [] },
-    splits: [],
-    experience_sampling_weight: 0
-  }
-};
+import { stub } from './api';
 
 describe('TestTrack', () => {
-  const testTrack = create(settings);
+  const testTrack = stub();
 
   test('vary', () => {
     expectTypeOf(testTrack.vary).parameter(0).toBeString();
@@ -59,7 +41,7 @@ describe('TestTrack with a typed schema', () => {
     ];
   };
 
-  const testTrack = create<ExampleSchema>(settings);
+  const testTrack = stub<ExampleSchema>();
 
   test('vary', () => {
     expectTypeOf(testTrack.vary).parameter(0).toEqualTypeOf<'foo_enabled' | 'color_experiment'>();

@@ -1,8 +1,8 @@
-import { create, initialize, load } from './api';
+import { create, initialize, load, stub } from './api';
 import type { StorageProvider } from './storageProvider';
 import type { ClientConfig, V4VisitorConfig } from './client';
 import { v4 as uuid } from 'uuid';
-import { server } from './setupTests';
+import { getRequests, server } from './setupTests';
 import { http, HttpResponse } from 'msw';
 
 vi.mock('uuid');
@@ -102,5 +102,33 @@ describe('initialize', () => {
 
     expect(testTrack.visitorId).toEqual('generated_visitor_id');
     expect(testTrack.assignments).toEqual([{ splitName: 'jabba', variant: 'puppet', context: null }]);
+  });
+});
+
+describe('stub', () => {
+  it('creates a TestTrack with stubbed assignments', () => {
+    const testTrack = stub({
+      foo_enabled: 'true',
+      bar_enabled: 'false',
+      color_experiment: 'green'
+    });
+
+    expect(testTrack.visitorId).toEqual('00000000-0000-0000-0000-000000000000');
+    expect(testTrack.assignments).toEqual([
+      { splitName: 'foo_enabled', variant: 'true', context: null },
+      { splitName: 'bar_enabled', variant: 'false', context: null },
+      { splitName: 'color_experiment', variant: 'green', context: null }
+    ]);
+
+    expect(testTrack.ab('foo_enabled', { context: 'test' })).toBe(true);
+    expect(testTrack.ab('bar_enabled', { context: 'test' })).toBe(false);
+    expect(testTrack.vary('color_experiment', { context: 'test', defaultVariant: 'blue' })).toEqual('green');
+  });
+
+  it('does not send HTTP requests', async () => {
+    const testTrack = stub();
+    await testTrack.logIn('userId', '123');
+    await testTrack.signUp('userId', '123');
+    expect(await getRequests()).toHaveLength(0);
   });
 });

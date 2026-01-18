@@ -2,10 +2,10 @@ import { v4 as uuid } from 'uuid';
 import { TestTrack } from './testTrack';
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
 import { loadVisitorConfig, parseVisitorConfig } from './visitor';
-import { createClient, type ClientConfig, type V4VisitorConfig } from './client';
+import { createClient, type Client, type ClientConfig, type V4VisitorConfig } from './client';
 import { createCookieStorage, type StorageProvider } from './storageProvider';
 import type { AnalyticsProvider } from './analyticsProvider';
-import type { Schema } from './schema';
+import type { Schema, Splits } from './schema';
 
 type InitializeOptions = {
   client: Omit<ClientConfig, 'url'>;
@@ -72,4 +72,40 @@ export function initialize<S extends Schema>(options: InitializeOptions): TestTr
       assignments: parseAssignments(config.assignments)
     }
   });
+}
+
+/**
+ * Creates a client suitable for testing.
+ */
+export function stub<S extends Schema>(assignments: Partial<Splits<S>> = {}): TestTrack<S> {
+  const entries = Object.entries(assignments as Record<string, string>);
+
+  const visitorId = '00000000-0000-0000-0000-000000000000';
+  const visitorConfig: V4VisitorConfig = {
+    experience_sampling_weight: 0,
+    visitor: {
+      id: visitorId,
+      assignments: entries.map(([splitName, variant]) => ({ split_name: splitName, variant }))
+    },
+    splits: entries.map(([splitName, variant]) => ({
+      name: splitName,
+      variants: [{ name: variant, weight: 100 }],
+      feature_gate: splitName.endsWith('_enabled')
+    }))
+  };
+
+  const client: Client = {
+    getVisitorConfig: () => Promise.resolve(visitorConfig),
+    postIdentifier: () => Promise.resolve(visitorConfig),
+    postAssignmentEvent: () => Promise.resolve(),
+    postAssignmentOverride: () => Promise.resolve()
+  };
+
+  const storage: StorageProvider = {
+    getVisitorId: () => visitorId,
+    setVisitorId: () => undefined
+  };
+
+  const { visitor, splitRegistry } = parseVisitorConfig(visitorConfig);
+  return TestTrack.create({ visitor, splitRegistry, client, storage });
 }

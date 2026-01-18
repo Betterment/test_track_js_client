@@ -4,7 +4,7 @@ export type Schema = {
   splits: Array<{ name: string; weights: Record<string, number> }>;
 };
 
-type Splits<S extends Schema> = {
+export type Splits<S extends Schema> = {
   [I in S['splits'][number] as I['name']]: keyof I['weights'];
 };
 

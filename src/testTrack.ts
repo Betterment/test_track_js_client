@@ -8,7 +8,7 @@ import type { Client } from './client';
 import type { SplitRegistry } from './splitRegistry';
 import type { Visitor } from './visitor';
 import type { StorageProvider } from './storageProvider';
-import type { IdentifierType, Schema, SplitName, VariantName } from './schema';
+import type { IdentifierType, AnySchema, SplitName, VariantName } from './schema';
 
 export type VaryOptions<V extends string> = {
   context: string;
@@ -29,7 +29,7 @@ type Options = {
   errorLogger?: (errorMessage: string) => void;
 };
 
-export class TestTrack<S extends Schema> {
+export class TestTrack<S extends AnySchema> {
   readonly #client: Client;
   readonly #storage: StorageProvider;
   readonly #analytics: AnalyticsProvider;
@@ -39,7 +39,7 @@ export class TestTrack<S extends Schema> {
   #assignments: AssignmentRegistry;
   #splitRegistry: SplitRegistry;
 
-  static create<S extends Schema>(options: Options): TestTrack<S> {
+  static create<S extends AnySchema>(options: Options): TestTrack<S> {
     const testTrack = new TestTrack<S>(options);
     testTrack.#saveVisitorId();
     testTrack.#connectWebExtension();

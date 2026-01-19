@@ -5,7 +5,7 @@ import { loadVisitorConfig, parseVisitorConfig } from './visitor';
 import { createClient, type Client, type ClientConfig, type V4VisitorConfig } from './client';
 import { createCookieStorage, type StorageProvider } from './storageProvider';
 import type { AnalyticsProvider } from './analyticsProvider';
-import type { Schema, Splits } from './schema';
+import type { AnySchema, Splits } from './schema';
 
 type InitializeOptions = {
   client: Omit<ClientConfig, 'url'>;
@@ -27,7 +27,7 @@ type CreateOptions = LoadOptions & {
 /**
  * Fetches visitor config from the server to create a `TestTrack` instance
  */
-export async function load<S extends Schema>(options: LoadOptions): Promise<TestTrack<S>> {
+export async function load<S extends AnySchema>(options: LoadOptions): Promise<TestTrack<S>> {
   const { storage, analytics, errorLogger } = options;
 
   const client = createClient(options.client);
@@ -40,7 +40,7 @@ export async function load<S extends Schema>(options: LoadOptions): Promise<Test
 /**
  * Creates a `TestTrack` instance with preloaded data
  */
-export function create<S extends Schema>(options: CreateOptions): TestTrack<S> {
+export function create<S extends AnySchema>(options: CreateOptions): TestTrack<S> {
   const { storage, analytics, errorLogger } = options;
 
   const client = createClient(options.client);
@@ -54,7 +54,7 @@ export function create<S extends Schema>(options: CreateOptions): TestTrack<S> {
  *
  * @deprecated Use `load` or `create`
  */
-export function initialize<S extends Schema>(options: InitializeOptions): TestTrack<S> {
+export function initialize<S extends AnySchema>(options: InitializeOptions): TestTrack<S> {
   const { analytics, errorLogger } = options;
 
   const config = loadConfig();
@@ -77,7 +77,7 @@ export function initialize<S extends Schema>(options: InitializeOptions): TestTr
 /**
  * Creates a client suitable for testing.
  */
-export function stub<S extends Schema>(assignments: Partial<Splits<S>> = {}): TestTrack<S> {
+export function stub<S extends AnySchema>(assignments: Partial<Splits<S>> = {}): TestTrack<S> {
   const entries = Object.entries(assignments as Record<string, string>);
 
   const visitorId = '00000000-0000-0000-0000-000000000000';

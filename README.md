@@ -209,6 +209,38 @@ const testTrack = await load({
 });
 ```
 
+## Testing
+
+Creates a TestTrack instance for testing with pre-configured assignments and no network requests.
+
+```javascript
+import { stub } from '@betterment-oss/test-track';
+
+const testTrack = stub({
+  button_color: 'blue',
+  new_feature_enabled: 'true'
+});
+
+testTrack.vary('button_color', { context: 'test', defaultVariant: 'red' }); // 'blue'
+testTrack.ab('new_feature_enabled', { context: 'test' }); // true
+```
+
+## TypeScript
+
+TestTrack supports strict typechecking based on your project's schema.
+
+```typescript
+import { load } from '@betterment-oss/test-track';
+import type Schema from './schema.json';
+
+// Pass `Schema` as a type parameter
+const testTrack = await load<Schema>({ /* ... */ });
+
+// Split names and variants are now type-checked
+testTrack.vary('button_color', { context: 'home', defaultVariant: 'blue' });
+testTrack.ab('new_feature_enabled', { context: 'home' });
+```
+
 ## Vite Plugin
 
 The `@betterment-oss/test-track` package includes a Vite plugin that automatically defines `import.meta.env.TT_BUILD_TIMESTAMP`, which can be used to configure Test Track.

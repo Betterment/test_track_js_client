@@ -94,9 +94,7 @@ const testTrack = create({
 - Same as `load()`, plus:
 - `visitorConfig` - Preloaded visitor configuration data from the TestTrack API
 
-## Configuration
-
-### API
+## API
 
 #### `.visitorId`
 
@@ -207,6 +205,40 @@ const testTrack = await load({
     RemoteLoggingService.log(message); // logs remotely so that you can be alerted to any misconfigured splits
   }
 });
+```
+
+## Testing
+
+Creates a TestTrack instance for testing with pre-configured assignments and no network requests.
+
+```javascript
+import { stub } from '@betterment-oss/test-track';
+
+const testTrack = stub({
+  button_color: 'blue',
+  new_feature_enabled: 'true'
+});
+
+testTrack.vary('button_color', { context: 'test', defaultVariant: 'red' }); // 'blue'
+testTrack.ab('new_feature_enabled', { context: 'test' }); // true
+```
+
+## TypeScript
+
+TestTrack supports strict typechecking based on your project's schema.
+
+```typescript
+import { load } from '@betterment-oss/test-track';
+import type Schema from './schema.json';
+
+// Pass `Schema` as a type parameter
+const testTrack = await load<Schema>({
+  /* ... */
+});
+
+// Split names and variants are now type-checked
+testTrack.vary('button_color', { context: 'home', defaultVariant: 'blue' });
+testTrack.ab('new_feature_enabled', { context: 'home' });
 ```
 
 ## Vite Plugin

@@ -229,7 +229,7 @@ TestTrack supports strict typechecking based on your project's schema.
 
 ```typescript
 import { load } from '@betterment-oss/test-track';
-import type Schema from './schema.json';
+import type Schema from './path/to/your/schema.json';
 
 // Pass `Schema` as a type parameter
 const testTrack = await load<Schema>({

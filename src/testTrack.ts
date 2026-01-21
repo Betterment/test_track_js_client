@@ -8,15 +8,16 @@ import type { Client } from './client';
 import type { SplitRegistry } from './splitRegistry';
 import type { Visitor } from './visitor';
 import type { StorageProvider } from './storageProvider';
+import type { IdentifierType, AnySchema, SplitName, VariantName } from './schema';
 
-export type VaryOptions = {
+export type VaryOptions<V extends string> = {
   context: string;
-  defaultVariant: boolean | string;
+  defaultVariant: V;
 };
 
-export type AbOptions = {
+export type AbOptions<V extends string> = {
   context: string;
-  trueVariant?: string;
+  trueVariant?: V;
 };
 
 type Options = {
@@ -28,7 +29,7 @@ type Options = {
   errorLogger?: (errorMessage: string) => void;
 };
 
-export class TestTrack {
+export class TestTrack<S extends AnySchema> {
   readonly #client: Client;
   readonly #storage: StorageProvider;
   readonly #analytics: AnalyticsProvider;
@@ -38,8 +39,8 @@ export class TestTrack {
   #assignments: AssignmentRegistry;
   #splitRegistry: SplitRegistry;
 
-  static create(options: Options): TestTrack {
-    const testTrack = new TestTrack(options);
+  static create<S extends AnySchema>(options: Options): TestTrack<S> {
+    const testTrack = new TestTrack<S>(options);
     testTrack.#saveVisitorId();
     testTrack.#connectWebExtension();
     return testTrack;
@@ -64,24 +65,24 @@ export class TestTrack {
     return Object.values(this.#assignments);
   }
 
-  vary(splitName: string, options: VaryOptions): string {
+  vary<N extends SplitName<S>>(splitName: N, options: VaryOptions<VariantName<S, N>>): VariantName<S, N> {
     const existingAssignment = this.#assignments[splitName];
     if (existingAssignment?.variant) {
-      return existingAssignment.variant;
+      return existingAssignment.variant as VariantName<S, N>;
     }
 
     const assignmentBucket = getAssignmentBucket({ splitName, visitorId: this.visitorId });
     const calculatedVariant = calculateVariant({ assignmentBucket, splitRegistry: this.#splitRegistry, splitName });
-    const variant = calculatedVariant ?? options.defaultVariant.toString();
+    const variant = calculatedVariant ?? options.defaultVariant;
     const assignment = { splitName, variant, context: options.context };
 
     this.#assignments = { ...this.#assignments, ...indexAssignments([assignment]) };
     this.#sendAssignmentNotification(assignment);
 
-    return variant;
+    return variant as VariantName<S, N>;
   }
 
-  ab(splitName: string, options: AbOptions): boolean {
+  ab<N extends SplitName<S>>(splitName: N, options: AbOptions<VariantName<S, N>>): boolean {
     const trueVariant = options.trueVariant ?? 'true';
     const falseVariant = getFalseVariant({
       splitName,
@@ -92,18 +93,18 @@ export class TestTrack {
 
     const variant = this.vary(splitName, {
       context: options.context,
-      defaultVariant: falseVariant
+      defaultVariant: falseVariant as VariantName<S, N>
     });
 
     return variant === trueVariant;
   }
 
-  async logIn(identifierType: string, value: string): Promise<void> {
+  async logIn(identifierType: IdentifierType<S>, value: string): Promise<void> {
     await this.#linkIdentifier(identifierType, value);
     this.#analytics.identify(this.visitorId);
   }
 
-  async signUp(identifierType: string, value: string): Promise<void> {
+  async signUp(identifierType: IdentifierType<S>, value: string): Promise<void> {
     await this.#linkIdentifier(identifierType, value);
     this.#analytics.alias(this.visitorId);
   }

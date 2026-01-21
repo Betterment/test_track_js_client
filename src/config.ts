@@ -7,18 +7,18 @@ declare global {
   }
 }
 
+type ConfigSplit = Readonly<{
+  feature_gate: boolean;
+  weights: Readonly<{ [variant: string]: number }>;
+}>;
+
 export type Config = Readonly<{
   url: string;
   cookieDomain: string;
   cookieName?: string;
   experienceSamplingWeight: number;
-  assignments?: Readonly<{ [splitName: string]: string }>;
-  splits?: Readonly<{
-    [splitName: string]: Readonly<{
-      feature_gate: boolean;
-      weights: Readonly<{ [variant: string]: number }>;
-    }>;
-  }>;
+  assignments?: Readonly<{ [splitName: string]: string }> | null;
+  splits?: Readonly<{ [splitName: string]: ConfigSplit }> | null;
 }>;
 
 export function parseSplitRegistry(rawSplits: Config['splits']): SplitRegistry {
@@ -35,14 +35,8 @@ export function parseSplitRegistry(rawSplits: Config['splits']): SplitRegistry {
   return createSplitRegistry(splits);
 }
 
-export function parseAssignments(rawAssignments: Config['assignments']): Assignment[] | null {
-  if (!rawAssignments) {
-    return null;
-  }
-
-  return Object.entries(rawAssignments).map(([splitName, variant]) => {
-    return { splitName, variant, context: null };
-  });
+export function parseAssignments(rawAssignments: Config['assignments']): Assignment[] {
+  return Object.entries(rawAssignments || []).map(([splitName, variant]) => ({ splitName, variant, context: null }));
 }
 
 export function loadConfig(): Config {

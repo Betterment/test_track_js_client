@@ -1,5 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
+  "exclude": ["dist"],
   "compilerOptions": {
     /* Environment */
     "target": "es2022",

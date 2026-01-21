@@ -1,6 +1,6 @@
 import { loadConfig, parseAssignments, parseSplitRegistry, type Config } from './config';
 
-const rawConfig: Config = {
+const config: Config = {
   url: 'http://testtrack.dev',
   cookieDomain: '.example.com',
   cookieName: 'custom_cookie_name',
@@ -14,7 +14,7 @@ const rawConfig: Config = {
 
 describe('parseSplitRegistry', () => {
   it('parses splits into split registry', () => {
-    const splitRegistry = parseSplitRegistry(rawConfig.splits);
+    const splitRegistry = parseSplitRegistry(config.splits);
     expect(splitRegistry.isLoaded).toBe(true);
 
     const jabba = splitRegistry.getSplit('jabba');
@@ -27,28 +27,29 @@ describe('parseSplitRegistry', () => {
   });
 
   it('creates empty split registry when no splits provided', () => {
-    const splitRegistry = parseSplitRegistry(undefined);
-    expect(splitRegistry.isLoaded).toBe(false);
+    expect(parseSplitRegistry(undefined)).toHaveProperty('isLoaded', false);
+    expect(parseSplitRegistry(null)).toHaveProperty('isLoaded', false);
   });
 });
 
 describe('parseAssignments', () => {
   it('parses assignments from object', () => {
-    expect(parseAssignments(rawConfig.assignments)).toEqual([
+    expect(parseAssignments(config.assignments)).toEqual([
       { splitName: 'jabba', variant: 'puppet', context: null },
       { splitName: 'wine', variant: 'rose', context: null }
     ]);
   });
 
-  it('returns null when no assignments provided', () => {
-    expect(parseAssignments(undefined)).toBeNull();
+  it('returns an empty array when assignments are missing', () => {
+    expect(parseAssignments(undefined)).toEqual([]);
+    expect(parseAssignments(null)).toEqual([]);
   });
 });
 
 describe('loadConfig', () => {
   it('loads and parses config from window.TT', () => {
-    window.TT = btoa(JSON.stringify(rawConfig));
-    expect(loadConfig()).toEqual(rawConfig);
+    window.TT = btoa(JSON.stringify(config));
+    expect(loadConfig()).toEqual(config);
   });
 
   it('throws error when window.TT is invalid', () => {

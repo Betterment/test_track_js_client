@@ -39,10 +39,7 @@ export function createWebExtension(options: Options): WebExtension {
       await client
         .postAssignmentOverride({
           visitor_id: visitorId,
-          split_name: splitName,
-          variant,
-          context: 'chrome_extension',
-          mixpanel_result: 'success',
+          assignments: [{ split_name: splitName, variant, context: 'chrome_extension' }],
           auth: { username, password }
         })
         .catch(error => {
@@ -53,6 +50,8 @@ export function createWebExtension(options: Options): WebExtension {
 }
 
 export function connectWebExtension(webExtension: WebExtension): void {
+  if (typeof document === 'undefined') return;
+
   const TestTrack = {
     _crx: webExtension
   };

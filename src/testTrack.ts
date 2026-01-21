@@ -1,5 +1,5 @@
 import { getFalseVariant } from './abConfiguration';
-import { indexAssignments, parseAssignment, type Assignment, type AssignmentRegistry } from './visitor';
+import { indexAssignments, parseVisitorConfig, type Assignment, type AssignmentRegistry } from './visitor';
 import { nullAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
 import { connectWebExtension, createWebExtension } from './webExtension';
@@ -31,15 +31,16 @@ type Options = {
 export class TestTrack {
   readonly #client: Client;
   readonly #storage: StorageProvider;
-  readonly #splitRegistry: SplitRegistry;
   readonly #analytics: AnalyticsProvider;
   readonly #errorLogger: (errorMessage: string) => void;
 
   #visitorId: string;
   #assignments: AssignmentRegistry;
+  #splitRegistry: SplitRegistry;
 
   static create(options: Options): TestTrack {
     const testTrack = new TestTrack(options);
+    testTrack.#saveVisitorId();
     testTrack.#connectWebExtension();
     return testTrack;
   }
@@ -58,6 +59,7 @@ export class TestTrack {
     return this.#visitorId;
   }
 
+  /** @internal */
   get assignments(): ReadonlyArray<Assignment> {
     return Object.values(this.#assignments);
   }
@@ -73,7 +75,7 @@ export class TestTrack {
     const variant = calculatedVariant ?? options.defaultVariant.toString();
     const assignment = { splitName, variant, context: options.context };
 
-    this.#updateAssignments([assignment]);
+    this.#assignments = { ...this.#assignments, ...indexAssignments([assignment]) };
     this.#sendAssignmentNotification(assignment);
 
     return variant;
@@ -96,26 +98,29 @@ export class TestTrack {
     return variant === trueVariant;
   }
 
-  async logIn(identifierType: string, value: number): Promise<void> {
+  async logIn(identifierType: string, value: string): Promise<void> {
     await this.#linkIdentifier(identifierType, value);
     this.#analytics.identify(this.visitorId);
   }
 
-  async signUp(identifierType: string, value: number): Promise<void> {
+  async signUp(identifierType: string, value: string): Promise<void> {
     await this.#linkIdentifier(identifierType, value);
     this.#analytics.alias(this.visitorId);
   }
 
-  async #linkIdentifier(identifierType: string, value: number): Promise<void> {
-    const { visitor } = await this.#client.postIdentifier({
+  async #linkIdentifier(identifierType: string, value: string): Promise<void> {
+    const response = await this.#client.postIdentifier({
       visitor_id: this.visitorId,
       identifier_type: identifierType,
-      value: value.toString()
+      value
     });
 
+    const { visitor, splitRegistry } = parseVisitorConfig(response);
+
     this.#visitorId = visitor.id;
-    this.#storage.setVisitorId(visitor.id);
-    this.#updateAssignments(visitor.assignments.map(parseAssignment));
+    this.#assignments = indexAssignments(visitor.assignments);
+    this.#splitRegistry = splitRegistry;
+    this.#saveVisitorId();
   }
 
   #sendAssignmentNotification(assignment: Assignment): void {
@@ -139,14 +144,14 @@ export class TestTrack {
       });
   }
 
-  #updateAssignments(assignments: Assignment[]): void {
-    this.#assignments = { ...this.#assignments, ...indexAssignments(assignments) };
+  #saveVisitorId(): void {
+    this.#storage.setVisitorId(this.visitorId);
   }
 
   #connectWebExtension() {
     const webExtension = createWebExtension({
       client: this.#client,
-      visitorId: this.#visitorId,
+      visitorId: this.visitorId,
       splitRegistry: this.#splitRegistry,
       assignments: Object.values(this.#assignments),
       errorLogger: this.#errorLogger

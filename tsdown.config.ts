@@ -16,5 +16,11 @@ export default defineConfig([
     entry: 'src/index.ts',
     globalName: 'TestTrack',
     noExternal: Object.keys(pkg.dependencies)
+  },
+  {
+    format: 'esm',
+    platform: 'neutral',
+    entry: { vite: 'src/vite/index.ts' },
+    dts: true
   }
 ]);

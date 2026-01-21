@@ -5,7 +5,12 @@ import { server, getRequests } from './setupTests';
 import { createClient } from './client';
 import { createSplitRegistry } from './splitRegistry';
 
-const client = createClient({ url: 'http://testtrack.dev' });
+const client = createClient({
+  url: 'http://testtrack.dev',
+  appName: 'test_app',
+  appVersion: '1.0.0',
+  buildTimestamp: '2019-04-16T14:35:30Z'
+});
 
 const splitRegistry = createSplitRegistry([
   { name: 'jabba', isFeatureGate: true, weighting: { cgi: 50, puppet: 50 } },
@@ -21,7 +26,7 @@ describe('createWebExtension', () => {
   describe('.persistAssignment()', () => {
     beforeEach(() => {
       server.use(
-        http.post('http://testtrack.dev/api/v1/assignment_override', () => {
+        http.post('http://testtrack.dev/api/v2/visitors/:visitor_id/assignment_overrides', () => {
           return HttpResponse.json(null, { status: 200 });
         })
       );
@@ -41,13 +46,9 @@ describe('createWebExtension', () => {
       expect(await getRequests()).toEqual([
         {
           method: 'POST',
-          url: 'http://testtrack.dev/api/v1/assignment_override',
+          url: 'http://testtrack.dev/api/v2/visitors/existing_visitor_id/assignment_overrides',
           body: {
-            visitor_id: 'existing_visitor_id',
-            split_name: 'split',
-            variant: 'variant',
-            context: 'chrome_extension',
-            mixpanel_result: 'success'
+            assignments: [{ split_name: 'split', variant: 'variant', context: 'chrome_extension' }]
           }
         }
       ]);
@@ -55,7 +56,7 @@ describe('createWebExtension', () => {
 
     it('logs an error on an error response', async () => {
       server.use(
-        http.post('http://testtrack.dev/api/v1/assignment_override', () => {
+        http.post('http://testtrack.dev/api/v2/visitors/:visitor_id/assignment_overrides', () => {
           return HttpResponse.json(null, { status: 500 });
         })
       );

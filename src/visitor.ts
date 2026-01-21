@@ -1,5 +1,5 @@
-import { v4 as uuid } from 'uuid';
-import type { Client, V1Assignment } from './client';
+import type { Client, V4Assignment, V4Split, V4VisitorConfig } from './client';
+import { type Split, type SplitRegistry, createSplitRegistry } from './splitRegistry';
 
 export type Assignment = Readonly<{
   splitName: string;
@@ -16,40 +16,43 @@ export type Visitor = Readonly<{
   assignments: Assignment[];
 }>;
 
-type LoadVisitorOptions = {
-  client: Client;
-  id: string | undefined;
-  assignments: Assignment[] | null;
-};
+export type VisitorConfig = Readonly<{
+  visitor: Visitor;
+  splitRegistry: SplitRegistry;
+}>;
 
-export function parseAssignment(data: V1Assignment): Assignment {
+function parseAssignment(data: V4Assignment): Assignment {
+  return { splitName: data.split_name, variant: data.variant, context: null };
+}
+
+function parseSplit(data: V4Split): Split {
   return {
-    splitName: data.split_name,
-    variant: data.variant,
-    context: data.context
+    name: data.name,
+    isFeatureGate: data.feature_gate,
+    weighting: Object.fromEntries(data.variants.map(variant => [variant.name, variant.weight]))
   };
+}
+
+export function parseVisitorConfig(config: V4VisitorConfig): VisitorConfig {
+  const splits = config.splits.map(parseSplit);
+  const splitRegistry = createSplitRegistry(splits);
+  const assignments = config.visitor.assignments.map(parseAssignment);
+  const visitor = { id: config.visitor.id, assignments };
+  return { visitor, splitRegistry };
 }
 
 export function indexAssignments(assignments: Assignment[]): AssignmentRegistry {
   return Object.fromEntries(assignments.map(assignment => [assignment.splitName, assignment]));
 }
 
-export async function loadVisitor(options: LoadVisitorOptions): Promise<Visitor> {
-  const { id, client } = options;
-
-  if (!id) {
-    return { id: uuid(), assignments: [] };
-  }
-
-  if (options.assignments) {
-    return { id, assignments: options.assignments };
-  }
-
+export async function loadVisitorConfig(client: Client, visitorId: string): Promise<VisitorConfig> {
   try {
-    const data = await client.getVisitor(id);
-    const assignments = data.assignments.map(parseAssignment);
-    return { id: data.id, assignments };
+    const visitorConfig = await client.getVisitorConfig(visitorId);
+    return parseVisitorConfig(visitorConfig);
   } catch {
-    return { id, assignments: [] };
+    return {
+      visitor: { id: visitorId, assignments: [] },
+      splitRegistry: createSplitRegistry(null)
+    };
   }
 }

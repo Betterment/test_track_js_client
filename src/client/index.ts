@@ -15,12 +15,18 @@ export * from './types';
 
 export type Client = ReturnType<typeof createClient>;
 
+export function urlFor(path: `/${string}`, base: URL): URL {
+  return new URL(base.pathname.replace(/\/$/, '') + path, base);
+}
+
 export function createClient(config: ClientConfig) {
+  const base = new URL(config.url);
+
   return {
     async getVisitor(visitorId: string): Promise<V1Visitor> {
       const { data } = await request<V1Visitor>({
         method: 'GET',
-        url: new URL(`/api/v1/visitors/${visitorId}`, config.url),
+        url: urlFor(`/api/v1/visitors/${visitorId}`, base),
         timeout: 5000
       });
 
@@ -30,7 +36,7 @@ export function createClient(config: ClientConfig) {
     async postIdentifier(params: V1IdentifierParams): Promise<V1Identifier> {
       const { data } = await request<V1Identifier>({
         method: 'POST',
-        url: new URL('/api/v1/identifier', config.url),
+        url: urlFor('/api/v1/identifier', base),
         body: toSearchParams(params)
       });
 
@@ -40,7 +46,7 @@ export function createClient(config: ClientConfig) {
     async postAssignmentOverride({ auth, ...params }: V1AssignmentOverrideParams): Promise<void> {
       await request({
         method: 'POST',
-        url: new URL('/api/v1/assignment_override', config.url),
+        url: urlFor('/api/v1/assignment_override', base),
         body: toSearchParams(params),
         auth
       });
@@ -49,7 +55,7 @@ export function createClient(config: ClientConfig) {
     async postAssignmentEvent(params: V1AssignmentEventParams): Promise<void> {
       await request({
         method: 'POST',
-        url: new URL('/api/v1/assignment_event', config.url),
+        url: urlFor('/api/v1/assignment_event', base),
         body: toSearchParams(params)
       });
     }

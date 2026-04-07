@@ -13,8 +13,10 @@ type Options = {
 type Info = {
   visitorId: string;
   splitRegistry: V1Hash;
-  assignmentRegistry: Record<string, string | null>;
+  assignmentRegistry: AssignmentRegistry;
 };
+
+export type AssignmentRegistry = Record<string, string | null>;
 
 export type WebExtension = {
   loadInfo(): Promise<Info>;
@@ -44,6 +46,7 @@ export function createWebExtension(options: Options): WebExtension {
         })
         .catch(error => {
           errorLogger(`test_track persistAssignment error: ${error}`);
+          throw error;
         });
     }
   };

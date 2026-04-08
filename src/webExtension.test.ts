@@ -70,9 +70,9 @@ describe('createWebExtension', () => {
         errorLogger
       });
 
-      await expect(
-        webExtension.persistAssignment('split', 'variant', 'the_username', 'the_password')
-      ).rejects.toThrow('HTTP request failed with 500 status');
+      await expect(webExtension.persistAssignment('split', 'variant', 'the_username', 'the_password')).rejects.toThrow(
+        'HTTP request failed with 500 status'
+      );
       expect(errorLogger).toHaveBeenCalledWith(
         'test_track persistAssignment error: Error: HTTP request failed with 500 status'
       );

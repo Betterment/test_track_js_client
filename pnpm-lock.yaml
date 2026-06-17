@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       js-cookie:
-        specifier: ^2.2.1
-        version: 2.2.1
+        specifier: ^3.0.7
+        version: 3.0.8
       js-md5:
         specifier: ^0.8.3
         version: 0.8.3
@@ -1074,8 +1074,8 @@ packages:
     resolution: {integrity: sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A==}
     hasBin: true
 
-  js-cookie@2.2.1:
-    resolution: {integrity: sha512-HvdH2LzI/EAZcUwA8+0nKNtWHqS+ZmijLA30RwZA0bo7ToCckjK5MkGhjED9KoRcXO6BaGI3I9UIzSA1FKFPOQ==}
+  js-cookie@3.0.8:
+    resolution: {integrity: sha512-yeJd4aNAdYZQjaon2bpD/Gb0B/omw7HQOsynXXcOiWVCacbBcPlgn8S/d1X6blFSaHao7ozqtW7NZW19xpCtIw==}
 
   js-md5@0.8.3:
     resolution: {integrity: sha512-qR0HB5uP6wCuRMrWPTrkMaev7MJZwJuuw4fnwAzRgP4J4/F8RwtodOKpGp4XpqsLBFzzgqIO42efFAyz2Et6KQ==}
@@ -2506,7 +2506,7 @@ snapshots:
   jiti@2.4.2:
     optional: true
 
-  js-cookie@2.2.1: {}
+  js-cookie@3.0.8: {}
 
   js-md5@0.8.3: {}
 

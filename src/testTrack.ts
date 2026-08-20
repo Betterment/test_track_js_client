@@ -1,5 +1,12 @@
 import { getFalseVariant } from './abConfiguration';
-import { indexAssignments, parseVisitorConfig, type Assignment, type AssignmentRegistry } from './visitor';
+import {
+  indexAssignments,
+  parseVisitorConfig,
+  serializeVisitor,
+  type Assignment,
+  type AssignmentRegistry,
+  type VisitorConfig
+} from './visitor';
 import { nullAnalytics } from './analyticsProvider';
 import { calculateVariant, getAssignmentBucket } from './calculateVariant';
 import { connectWebExtension, createWebExtension } from './webExtension';
@@ -18,6 +25,12 @@ export type VaryOptions<V extends string> = {
 export type AbOptions<V extends string> = {
   context: string;
   trueVariant?: V;
+};
+
+export type AssignmentOverride<S extends AnySchema> = {
+  splitName: SplitName<S>;
+  variant: string;
+  context?: string;
 };
 
 type Options = {
@@ -78,6 +91,9 @@ export class TestTrack<S extends AnySchema> {
 
     this.#assignments = { ...this.#assignments, ...indexAssignments([assignment]) };
     this.#sendAssignmentNotification(assignment);
+    if (calculatedVariant !== null) {
+      this.#persistVisitor();
+    }
 
     return variant as VariantName<S, N>;
   }
@@ -109,6 +125,30 @@ export class TestTrack<S extends AnySchema> {
     this.#analytics.alias(this.visitorId);
   }
 
+  async createAssignmentOverrides(
+    assignmentOverrides: Array<AssignmentOverride<S>>,
+    auth: { username: string; password: string }
+  ): Promise<void> {
+    await this.#client.postAssignmentOverride({
+      visitor_id: this.visitorId,
+      assignments: assignmentOverrides.map(override => ({
+        split_name: override.splitName,
+        variant: override.variant,
+        context: override.context ?? null
+      })),
+      auth
+    });
+
+    const response = await this.#client.getVisitorConfig(this.visitorId);
+    this.#adoptVisitorConfig(parseVisitorConfig(response));
+  }
+
+  /** @internal */
+  persistState(): void {
+    this.#persistVisitor();
+    this.#persistSplitRegistry();
+  }
+
   async #linkIdentifier(identifierType: string, value: string): Promise<void> {
     const response = await this.#client.postIdentifier({
       visitor_id: this.visitorId,
@@ -116,12 +156,26 @@ export class TestTrack<S extends AnySchema> {
       value
     });
 
-    const { visitor, splitRegistry } = parseVisitorConfig(response);
+    this.#adoptVisitorConfig(parseVisitorConfig(response));
+  }
 
+  #adoptVisitorConfig({ visitor, splitRegistry }: VisitorConfig): void {
     this.#visitorId = visitor.id;
     this.#assignments = indexAssignments(visitor.assignments);
     this.#splitRegistry = splitRegistry;
     this.#saveVisitorId();
+    this.persistState();
+  }
+
+  #persistVisitor(): void {
+    this.#storage.storeVisitor?.(
+      serializeVisitor({ id: this.#visitorId, assignments: Object.values(this.#assignments) })
+    );
+  }
+
+  #persistSplitRegistry(): void {
+    if (!this.#splitRegistry.isLoaded) return;
+    this.#storage.storeSplitRegistry?.(this.#splitRegistry.asV4Splits());
   }
 
   #sendAssignmentNotification(assignment: Assignment): void {

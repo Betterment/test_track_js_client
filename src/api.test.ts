@@ -70,9 +70,52 @@ describe('load', () => {
     expect(storage.getVisitorId).toHaveBeenCalledTimes(1);
     expect(storage.setVisitorId).toHaveBeenCalledWith('generated_visitor_id');
   });
+
+  it('persists the fetched config through the storage hooks', async () => {
+    const hookedStorage: StorageProvider = {
+      getVisitorId: vi.fn(() => 'existing_visitor_id'),
+      setVisitorId: vi.fn(),
+      storeVisitor: vi.fn(),
+      storeSplitRegistry: vi.fn()
+    };
+
+    await load({ client: clientConfig, storage: hookedStorage });
+
+    expect(hookedStorage.storeVisitor).toHaveBeenCalledWith(buildVisitorConfig('existing_visitor_id').visitor);
+    expect(hookedStorage.storeSplitRegistry).toHaveBeenCalledWith(buildVisitorConfig('existing_visitor_id').splits);
+  });
+
+  it('does not persist through the storage hooks when the fetch fails', async () => {
+    server.use(http.get(`${buildURL}/visitors/:visitorId/config`, () => HttpResponse.error()));
+    const hookedStorage: StorageProvider = {
+      getVisitorId: vi.fn(() => 'existing_visitor_id'),
+      setVisitorId: vi.fn(),
+      storeVisitor: vi.fn(),
+      storeSplitRegistry: vi.fn()
+    };
+
+    await load({ client: clientConfig, storage: hookedStorage });
+
+    expect(hookedStorage.storeVisitor).not.toHaveBeenCalled();
+    expect(hookedStorage.storeSplitRegistry).not.toHaveBeenCalled();
+  });
 });
 
 describe('create', () => {
+  it('does not persist hydrated state through the storage hooks', () => {
+    const hookedStorage: StorageProvider = {
+      getVisitorId: vi.fn(),
+      setVisitorId: vi.fn(),
+      storeVisitor: vi.fn(),
+      storeSplitRegistry: vi.fn()
+    };
+
+    create({ client: clientConfig, storage: hookedStorage, visitorConfig: buildVisitorConfig('hydrated_visitor_id') });
+
+    expect(hookedStorage.storeVisitor).not.toHaveBeenCalled();
+    expect(hookedStorage.storeSplitRegistry).not.toHaveBeenCalled();
+  });
+
   it('allows visitorConfig to be provided', () => {
     const visitorConfig = buildVisitorConfig('existing_visitor_id');
     const testTrack = create({ client: clientConfig, storage, visitorConfig });

@@ -34,7 +34,11 @@ export async function load<S extends AnySchema>(options: LoadOptions): Promise<T
   const visitorId = storage.getVisitorId() ?? uuid();
   const { visitor, splitRegistry } = await loadVisitorConfig(client, visitorId);
 
-  return TestTrack.create({ client, storage, splitRegistry, visitor, analytics, errorLogger });
+  const testTrack = TestTrack.create<S>({ client, storage, splitRegistry, visitor, analytics, errorLogger });
+  if (splitRegistry.isLoaded) {
+    testTrack.persistState();
+  }
+  return testTrack;
 }
 
 /**

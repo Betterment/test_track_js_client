@@ -1,4 +1,4 @@
-import type { Client, V4Assignment, V4Split, V4VisitorConfig } from './client';
+import type { Client, V4Assignment, V4Split, V4Visitor, V4VisitorConfig } from './client';
 import { type Split, type SplitRegistry, createSplitRegistry } from './splitRegistry';
 
 export type Assignment = Readonly<{
@@ -43,6 +43,15 @@ export function parseVisitorConfig(config: V4VisitorConfig): VisitorConfig {
 
 export function indexAssignments(assignments: Assignment[]): AssignmentRegistry {
   return Object.fromEntries(assignments.map(assignment => [assignment.splitName, assignment]));
+}
+
+export function serializeVisitor(visitor: Visitor): V4Visitor {
+  return {
+    id: visitor.id,
+    assignments: visitor.assignments.flatMap(({ splitName, variant }) =>
+      variant === null ? [] : [{ split_name: splitName, variant }]
+    )
+  };
 }
 
 export async function loadVisitorConfig(client: Client, visitorId: string): Promise<VisitorConfig> {

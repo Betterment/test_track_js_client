@@ -382,3 +382,168 @@ describe('TestTrack', () => {
     });
   });
 });
+
+describe('storage hooks', () => {
+  function createHookedStorage(): StorageProvider {
+    return {
+      getVisitorId: vi.fn(),
+      setVisitorId: vi.fn(),
+      storeVisitor: vi.fn(),
+      storeSplitRegistry: vi.fn()
+    };
+  }
+
+  function createHookedTestTrack(hookedStorage: StorageProvider, options?: { emptyRegistry?: boolean }) {
+    return new TestTrack({
+      analytics,
+      client,
+      storage: hookedStorage,
+      splitRegistry: options?.emptyRegistry ? emptySplitRegistry : splitRegistry,
+      errorLogger,
+      visitor: { id: 'EXISTING_VISITOR_ID', assignments: [{ splitName: 'jabba', variant: 'puppet', context: null }] }
+    });
+  }
+
+  it('persists a locally generated assignment through storeVisitor', () => {
+    mockGetAssignmentBucket.mockReturnValue(30);
+    const hookedStorage = createHookedStorage();
+    const testTrack = createHookedTestTrack(hookedStorage);
+
+    testTrack.vary('wine', { context: 'spec', defaultVariant: 'white' });
+
+    expect(hookedStorage.storeVisitor).toHaveBeenCalledWith({
+      id: 'EXISTING_VISITOR_ID',
+      assignments: [
+        { split_name: 'jabba', variant: 'puppet' },
+        { split_name: 'wine', variant: 'red' }
+      ]
+    });
+    expect(hookedStorage.storeSplitRegistry).not.toHaveBeenCalled();
+  });
+
+  it('does not persist a defaulted assignment when the registry is not loaded', () => {
+    const hookedStorage = createHookedStorage();
+    const testTrack = createHookedTestTrack(hookedStorage, { emptyRegistry: true });
+
+    testTrack.vary('wine', { context: 'spec', defaultVariant: 'white' });
+
+    expect(hookedStorage.storeVisitor).not.toHaveBeenCalled();
+  });
+
+  it('persists the merged visitor and registry after logIn', async () => {
+    server.use(
+      http.post(
+        'http://testtrack.dev/api/v4/apps/test_app/versions/1.0.0/builds/2019-04-16T14:35:30Z/identifier',
+        () => {
+          return HttpResponse.json<V4VisitorConfig>({
+            splits: [
+              {
+                name: 'wine',
+                variants: [
+                  { name: 'red', weight: 50 },
+                  { name: 'white', weight: 50 }
+                ],
+                feature_gate: false
+              }
+            ],
+            visitor: { id: 'actual_visitor_id', assignments: [{ split_name: 'wine', variant: 'red' }] },
+            experience_sampling_weight: 10
+          });
+        }
+      )
+    );
+    const hookedStorage = createHookedStorage();
+    const testTrack = createHookedTestTrack(hookedStorage);
+
+    await testTrack.logIn('myappdb_user_id', '444');
+
+    expect(hookedStorage.storeVisitor).toHaveBeenCalledWith({
+      id: 'actual_visitor_id',
+      assignments: [{ split_name: 'wine', variant: 'red' }]
+    });
+    expect(hookedStorage.storeSplitRegistry).toHaveBeenCalledWith([
+      {
+        name: 'wine',
+        variants: [
+          { name: 'red', weight: 50 },
+          { name: 'white', weight: 50 }
+        ],
+        feature_gate: false
+      }
+    ]);
+  });
+});
+
+describe('.createAssignmentOverrides()', () => {
+  let authorizationHeader: string | null = null;
+
+  beforeEach(() => {
+    authorizationHeader = null;
+    server.use(
+      http.post('http://testtrack.dev/api/v2/visitors/EXISTING_VISITOR_ID/assignment_overrides', ({ request }) => {
+        authorizationHeader = request.headers.get('Authorization');
+        return new HttpResponse(null, { status: 204 });
+      }),
+      http.get(
+        'http://testtrack.dev/api/v4/apps/test_app/versions/1.0.0/builds/2019-04-16T14:35:30Z/visitors/EXISTING_VISITOR_ID/config',
+        () => {
+          return HttpResponse.json<V4VisitorConfig>({
+            splits: [
+              {
+                name: 'blue_button',
+                variants: [
+                  { name: 'true', weight: 50 },
+                  { name: 'false', weight: 50 }
+                ],
+                feature_gate: true
+              }
+            ],
+            visitor: { id: 'EXISTING_VISITOR_ID', assignments: [{ split_name: 'blue_button', variant: 'true' }] },
+            experience_sampling_weight: 10
+          });
+        }
+      )
+    );
+  });
+
+  it('posts the overrides with basic auth and adopts the refetched config', async () => {
+    const testTrack = createTestTrack();
+
+    await testTrack.createAssignmentOverrides(
+      [{ splitName: 'blue_button', variant: 'true', context: 'split_editor' }],
+      {
+        username: 'user',
+        password: 'secret'
+      }
+    );
+
+    expect(await getRequests()).toEqual([
+      {
+        method: 'POST',
+        url: 'http://testtrack.dev/api/v2/visitors/EXISTING_VISITOR_ID/assignment_overrides',
+        body: { assignments: [{ split_name: 'blue_button', variant: 'true', context: 'split_editor' }] }
+      },
+      {
+        method: 'GET',
+        url: 'http://testtrack.dev/api/v4/apps/test_app/versions/1.0.0/builds/2019-04-16T14:35:30Z/visitors/EXISTING_VISITOR_ID/config',
+        body: null
+      }
+    ]);
+    expect(authorizationHeader).toBe(`Basic ${btoa('user:secret')}`);
+    expect(testTrack.assignments).toEqual([{ splitName: 'blue_button', variant: 'true', context: null }]);
+    expect(testTrack.ab('blue_button', { context: 'spec' })).toBe(true);
+  });
+
+  it('defaults the override context to null', async () => {
+    const testTrack = createTestTrack();
+
+    await testTrack.createAssignmentOverrides([{ splitName: 'blue_button', variant: 'true' }], {
+      username: 'user',
+      password: 'secret'
+    });
+
+    expect((await getRequests())[0]?.body).toEqual({
+      assignments: [{ split_name: 'blue_button', variant: 'true', context: null }]
+    });
+  });
+});

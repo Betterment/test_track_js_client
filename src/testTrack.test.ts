@@ -416,4 +416,85 @@ describe('TestTrack', () => {
       ]);
     });
   });
+
+  describe('.createAssignmentOverrides()', () => {
+    const auth = { username: 'admin', password: 'secret' };
+    const overrideURL = 'http://testtrack.dev/api/v2/visitors/EXISTING_VISITOR_ID/assignment_overrides';
+    const configURL =
+      'http://testtrack.dev/api/v4/apps/test_app/versions/1.0.0/builds/2019-04-16T14:35:30Z/visitors/EXISTING_VISITOR_ID/config';
+
+    beforeEach(() => {
+      server.use(
+        http.post(overrideURL, () => {
+          return HttpResponse.json(null, { status: 200 });
+        }),
+        http.get(configURL, () => {
+          return HttpResponse.json<V4VisitorConfig>({
+            splits: [
+              {
+                name: 'wine',
+                variants: [
+                  { name: 'red', weight: 100 },
+                  { name: 'white', weight: 0 }
+                ],
+                feature_gate: false
+              }
+            ],
+            visitor: {
+              id: 'EXISTING_VISITOR_ID',
+              assignments: [{ split_name: 'wine', variant: 'white' }]
+            },
+            experience_sampling_weight: 10
+          });
+        })
+      );
+    });
+
+    it('posts the overrides, defaulting a missing context to null', async () => {
+      const testTrack = createTestTrack();
+
+      await testTrack.createAssignmentOverrides(
+        [
+          { splitName: 'wine', variant: 'white', context: 'admin_ui' },
+          { splitName: 'element', variant: 'earth' }
+        ],
+        auth
+      );
+
+      expect(await getRequests()).toEqual([
+        {
+          method: 'POST',
+          url: overrideURL,
+          body: {
+            assignments: [
+              { split_name: 'wine', variant: 'white', context: 'admin_ui' },
+              { split_name: 'element', variant: 'earth', context: null }
+            ]
+          }
+        },
+        { method: 'GET', url: configURL, body: null }
+      ]);
+    });
+
+    it('reloads the visitor config so the overrides take effect', async () => {
+      const testTrack = createTestTrack([{ splitName: 'wine', variant: 'red', context: null }]);
+      expect(testTrack.vary('wine', { context: 'test', defaultVariant: 'red' })).toEqual('red');
+
+      await testTrack.createAssignmentOverrides([{ splitName: 'wine', variant: 'white' }], auth);
+
+      expect(testTrack.assignments).toEqual([{ splitName: 'wine', variant: 'white', context: null }]);
+      expect(testTrack.vary('wine', { context: 'test', defaultVariant: 'red' })).toEqual('white');
+    });
+
+    it('persists the refreshed visitor id and split registry', async () => {
+      const testTrack = createTestTrack();
+
+      await testTrack.createAssignmentOverrides([{ splitName: 'wine', variant: 'white' }], auth);
+
+      expect(storage.setVisitorId).toHaveBeenCalledWith('EXISTING_VISITOR_ID');
+      expect(storage.setSplitRegistry).toHaveBeenCalledWith([
+        { name: 'wine', isFeatureGate: false, weighting: { red: 100, white: 0 } }
+      ]);
+    });
+  });
 });

@@ -20,6 +20,12 @@ export type AbOptions<V extends string> = {
   trueVariant?: V;
 };
 
+export type AssignmentOverride<S extends AnySchema> = {
+  splitName: SplitName<S>;
+  variant: string;
+  context?: string;
+};
+
 type Options = {
   client: Client;
   storage: StorageProvider;
@@ -110,6 +116,25 @@ export class TestTrack<S extends AnySchema> {
     this.#analytics.alias(this.visitorId);
   }
 
+  async createAssignmentOverrides(
+    assignmentOverrides: Array<AssignmentOverride<S>>,
+    auth: { username: string; password: string }
+  ): Promise<void> {
+    await this.#client.postAssignmentOverride({
+      visitor_id: this.visitorId,
+      assignments: assignmentOverrides.map(override => ({
+        split_name: override.splitName,
+        variant: override.variant,
+        context: override.context ?? null
+      })),
+      auth
+    });
+
+    const response = await this.#client.getVisitorConfig(this.visitorId);
+    const { visitor, splitRegistry } = parseVisitorConfig(response);
+    this.#processVisitorConfig(visitor, splitRegistry);
+  }
+
   async #linkIdentifier(identifierType: string, value: string): Promise<void> {
     const response = await this.#client.postIdentifier({
       visitor_id: this.visitorId,
@@ -119,6 +144,10 @@ export class TestTrack<S extends AnySchema> {
 
     const { visitor, splitRegistry } = parseVisitorConfig(response);
 
+    this.#processVisitorConfig(visitor, splitRegistry);
+  }
+
+  #processVisitorConfig(visitor: Visitor, splitRegistry: SplitRegistry) {
     this.#visitorId = visitor.id;
     this.#assignments = indexAssignments(visitor.assignments);
     this.#splitRegistry = splitRegistry;

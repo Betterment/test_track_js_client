@@ -35,7 +35,9 @@ const errorLogger = vi.fn();
 
 const storage: StorageProvider = {
   getVisitorId: vi.fn(),
-  setVisitorId: vi.fn()
+  setVisitorId: vi.fn(),
+  getSplitRegistry: vi.fn(),
+  setSplitRegistry: vi.fn()
 };
 
 const analytics: AnalyticsProvider = {

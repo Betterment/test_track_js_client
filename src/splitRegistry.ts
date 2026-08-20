@@ -14,18 +14,21 @@ export type V1Hash = Readonly<{
 
 export type SplitRegistry = Readonly<{
   isLoaded: boolean;
+  splits: ReadonlyArray<Split>;
   getSplit: (splitName: string) => Split | undefined;
   asV1Hash: () => V1Hash;
 }>;
 
 export function createSplitRegistry(input: Split[] | null): SplitRegistry {
   const isLoaded = input !== null;
-  const splits = Object.fromEntries((input || []).map(split => [split.name, split]));
+  const splits = input ?? [];
+  const splitLookup = Object.fromEntries(splits.map(split => [split.name, split]));
 
   return {
     isLoaded,
-    getSplit: splitName => splits[splitName],
-    asV1Hash: () => Object.fromEntries(Object.entries(splits).map(([splitName, split]) => [splitName, split.weighting]))
+    splits,
+    getSplit: splitName => splitLookup[splitName],
+    asV1Hash: () => Object.fromEntries(splits.map(split => [split.name, split.weighting]))
   };
 }
 

@@ -17,7 +17,9 @@ const clientConfig: ClientConfig = {
 
 const storage: StorageProvider = {
   getVisitorId: vi.fn(),
-  setVisitorId: vi.fn()
+  setVisitorId: vi.fn(),
+  getSplitRegistry: vi.fn(),
+  setSplitRegistry: vi.fn()
 };
 
 const buildVisitorConfig = (visitorId: string): V4VisitorConfig => ({

@@ -1,6 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import { TestTrack } from './testTrack';
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
+import { createSplitRegistry } from './splitRegistry';
 import { loadVisitorConfig, parseVisitorConfig } from './visitor';
 import { createClient, type Client, type ClientConfig, type V4VisitorConfig } from './client';
 import { createCookieStorage, type StorageProvider } from './storageProvider';
@@ -32,9 +33,19 @@ export async function load<S extends AnySchema>(options: LoadOptions): Promise<T
 
   const client = createClient(options.client);
   const visitorId = storage.getVisitorId() ?? uuid();
+  const cachedSplits = storage.getSplitRegistry();
   const { visitor, splitRegistry } = await loadVisitorConfig(client, visitorId);
+  const resolvedSplitRegistry =
+    splitRegistry.isLoaded || !cachedSplits ? splitRegistry : createSplitRegistry([...cachedSplits]);
 
-  return TestTrack.create({ client, storage, splitRegistry, visitor, analytics, errorLogger });
+  return TestTrack.create({
+    client,
+    storage,
+    splitRegistry: resolvedSplitRegistry,
+    visitor,
+    analytics,
+    errorLogger
+  });
 }
 
 /**
@@ -81,17 +92,20 @@ export function stub<S extends AnySchema>(assignments: Partial<Splits<S>> = {}):
   const entries = Object.entries(assignments as Record<string, string>);
 
   const visitorId = '00000000-0000-0000-0000-000000000000';
+
+  const stubRegistry = entries.map(([splitName, variant]) => ({
+    name: splitName,
+    variants: [{ name: variant, weight: 100 }],
+    feature_gate: splitName.endsWith('_enabled')
+  }));
+
   const visitorConfig: V4VisitorConfig = {
     experience_sampling_weight: 0,
     visitor: {
       id: visitorId,
       assignments: entries.map(([splitName, variant]) => ({ split_name: splitName, variant }))
     },
-    splits: entries.map(([splitName, variant]) => ({
-      name: splitName,
-      variants: [{ name: variant, weight: 100 }],
-      feature_gate: splitName.endsWith('_enabled')
-    }))
+    splits: stubRegistry
   };
 
   const client: Client = {
@@ -101,11 +115,14 @@ export function stub<S extends AnySchema>(assignments: Partial<Splits<S>> = {}):
     postAssignmentOverride: () => Promise.resolve()
   };
 
+  const { visitor, splitRegistry } = parseVisitorConfig(visitorConfig);
+
   const storage: StorageProvider = {
     getVisitorId: () => visitorId,
-    setVisitorId: () => undefined
+    setVisitorId: () => undefined,
+    getSplitRegistry: () => splitRegistry.splits,
+    setSplitRegistry: () => undefined
   };
 
-  const { visitor, splitRegistry } = parseVisitorConfig(visitorConfig);
   return TestTrack.create({ visitor, splitRegistry, client, storage });
 }

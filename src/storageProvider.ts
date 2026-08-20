@@ -1,8 +1,11 @@
 import Cookies from 'js-cookie';
+import type { Split } from './splitRegistry';
 
 export type StorageProvider = {
   getVisitorId(): string | undefined;
   setVisitorId(visitorId: string): void;
+  getSplitRegistry(): ReadonlyArray<Split> | undefined;
+  setSplitRegistry(splits: ReadonlyArray<Split>): void;
 };
 
 type CookieStorageConfig = {
@@ -23,6 +26,10 @@ export function createCookieStorage(config: CookieStorageConfig): StorageProvide
         path: '/',
         domain: config.domain
       });
-    }
+    },
+    getSplitRegistry() {
+      return undefined;
+    },
+    setSplitRegistry() {}
   };
 }

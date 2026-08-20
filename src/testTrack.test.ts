@@ -80,6 +80,21 @@ describe('TestTrack', () => {
     );
   });
 
+  describe('.create()', () => {
+    it('persists the split registry', () => {
+      TestTrack.create({
+        analytics,
+        client,
+        storage,
+        splitRegistry,
+        errorLogger,
+        visitor: { id: 'EXISTING_VISITOR_ID', assignments: [] }
+      });
+
+      expect(storage.setSplitRegistry).toHaveBeenCalledWith(splitRegistry.splits);
+    });
+  });
+
   describe('.vary()', () => {
     beforeEach(() => {
       // Assignment bucket 25 will select: red (wine), puppet (jabba), false (blue_button)
@@ -342,7 +357,16 @@ describe('TestTrack', () => {
           'http://testtrack.dev/api/v4/apps/test_app/versions/1.0.0/builds/2019-04-16T14:35:30Z/identifier',
           () => {
             return HttpResponse.json<V4VisitorConfig>({
-              splits: [],
+              splits: [
+                {
+                  name: 'wine',
+                  variants: [
+                    { name: 'red', weight: 50 },
+                    { name: 'white', weight: 50 }
+                  ],
+                  feature_gate: false
+                }
+              ],
               visitor: {
                 id: 'actual_visitor_id',
                 assignments: [
@@ -380,6 +404,15 @@ describe('TestTrack', () => {
       expect(testTrack.assignments).toEqual([
         { splitName: 'jabba', variant: 'cgi', context: null },
         { splitName: 'wine', variant: 'red', context: null }
+      ]);
+    });
+
+    it('persists the refreshed split registry', async () => {
+      const testTrack = createTestTrack();
+      await testTrack[method]('myappdb_user_id', '444');
+
+      expect(storage.setSplitRegistry).toHaveBeenCalledWith([
+        { name: 'wine', isFeatureGate: false, weighting: { red: 50, white: 50 } }
       ]);
     });
   });

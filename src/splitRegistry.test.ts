@@ -30,6 +30,19 @@ describe('createSplitRegistry', () => {
     });
   });
 
+  describe('.splits', () => {
+    it('returns the splits it was created with', () => {
+      expect(setupSplitRegistry().splits).toEqual([
+        { name: 'split1', isFeatureGate: true, weighting: { foo: 50, bar: 50, baz: 0 } },
+        { name: 'split2', isFeatureGate: true, weighting: { up: 50, down: 50 } }
+      ]);
+    });
+
+    it('is empty when null is passed in', () => {
+      expect(createSplitRegistry(null).splits).toEqual([]);
+    });
+  });
+
   describe('.asV1Hash()', () => {
     it('returns a v1 style split registry', () => {
       const splitRegistry = setupSplitRegistry();

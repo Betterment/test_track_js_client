@@ -1,4 +1,5 @@
 import { create, initialize, load, stub } from './api';
+import type { Split } from './splitRegistry';
 import type { StorageProvider } from './storageProvider';
 import type { ClientConfig, V4VisitorConfig } from './client';
 import { v4 as uuid } from 'uuid';
@@ -29,6 +30,14 @@ const buildVisitorConfig = (visitorId: string): V4VisitorConfig => ({
       variants: [
         { name: 'cgi', weight: 50 },
         { name: 'puppet', weight: 50 }
+      ],
+      feature_gate: true
+    },
+    {
+      name: 'blue_button_enabled',
+      variants: [
+        { name: 'true', weight: 0 },
+        { name: 'false', weight: 100 }
       ],
       feature_gate: true
     }
@@ -71,6 +80,29 @@ describe('load', () => {
 
     expect(storage.getVisitorId).toHaveBeenCalledTimes(1);
     expect(storage.setVisitorId).toHaveBeenCalledWith('generated_visitor_id');
+  });
+
+  describe('cached split registry', () => {
+    const cachedSplits: Split[] = [
+      { name: 'blue_button_enabled', isFeatureGate: true, weighting: { true: 100, false: 0 } }
+    ];
+
+    beforeEach(() => {
+      vi.mocked(storage.getVisitorId).mockReturnValue('existing_visitor_id');
+      vi.mocked(storage.getSplitRegistry).mockReturnValue(cachedSplits);
+    });
+
+    it('falls back to the cached split registry when the server is unreachable', async () => {
+      server.use(http.get(`${buildURL}/visitors/:visitorId/config`, () => HttpResponse.error()));
+
+      const testTrack = await load({ client: clientConfig, storage });
+      expect(testTrack.ab('blue_button_enabled', { context: 'test' })).toBe(true);
+    });
+
+    it('prefers the split registry from the server over the cache', async () => {
+      const testTrack = await load({ client: clientConfig, storage });
+      expect(testTrack.ab('blue_button_enabled', { context: 'test' })).toBe(false);
+    });
   });
 });
 

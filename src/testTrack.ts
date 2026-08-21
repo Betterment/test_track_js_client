@@ -22,7 +22,7 @@ export type AbOptions<V extends string> = {
 
 export type AssignmentOverride<S extends AnySchema> = {
   splitName: SplitName<S>;
-  variant: string;
+  variant: VariantName<S, SplitName<S>>;
   context?: string;
 };
 
@@ -48,7 +48,7 @@ export class TestTrack<S extends AnySchema> {
   static create<S extends AnySchema>(options: Options): TestTrack<S> {
     const testTrack = new TestTrack<S>(options);
     testTrack.#saveVisitor();
-    testTrack.#saveSplitRegistry();
+    testTrack.#saveSplitRegistryIfLoaded();
     testTrack.#connectWebExtension();
     return testTrack;
   }
@@ -152,7 +152,7 @@ export class TestTrack<S extends AnySchema> {
     this.#assignments = indexAssignments(visitor.assignments);
     this.#splitRegistry = splitRegistry;
     this.#saveVisitor();
-    this.#saveSplitRegistry();
+    this.#saveSplitRegistryIfLoaded();
   }
 
   #sendAssignmentNotification(assignment: Assignment): void {
@@ -181,8 +181,10 @@ export class TestTrack<S extends AnySchema> {
     this.#storage.setAssignments(Object.values(this.#assignments));
   }
 
-  #saveSplitRegistry(): void {
-    this.#storage.setSplitRegistry(this.#splitRegistry.splits);
+  #saveSplitRegistryIfLoaded(): void {
+    if (this.#splitRegistry.isLoaded) {
+      this.#storage.setSplitRegistry(this.#splitRegistry.splits);
+    }
   }
 
   #connectWebExtension() {

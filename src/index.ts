@@ -5,5 +5,6 @@ export type { TestTrack } from './testTrack';
 export type { AnalyticsProvider } from './analyticsProvider';
 export type { StorageProvider } from './storageProvider';
 export type { AnySchema, Splits, SplitName, VariantName, IdentifierType } from './schema';
-export type { V1Hash } from './splitRegistry';
+export type { Split, V1Hash } from './splitRegistry';
+export type { Assignment, Visitor } from './visitor';
 export type { WebExtension, AssignmentRegistry } from './webExtension';

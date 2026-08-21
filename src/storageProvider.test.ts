@@ -33,4 +33,27 @@ describe('createCookieStorage', () => {
       domain: '.example.com'
     });
   });
+
+  it('reports no visitor ID when the cookie is unset', () => {
+    // @ts-expect-error Cookies.get returns different types depending on arguments
+    vi.mocked(Cookies.get).mockReturnValue(undefined);
+
+    const storage = createCookieStorage({ domain: '.example.com' });
+    expect(storage.getVisitorId()).toBeUndefined();
+  });
+
+  it('reports no assignments, which a cookie cannot hold', () => {
+    // @ts-expect-error Cookies.get returns different types depending on arguments
+    vi.mocked(Cookies.get).mockReturnValue('visitor-123');
+
+    const storage = createCookieStorage({ domain: '.example.com' });
+    expect(storage.getAssignments()).toBeUndefined();
+  });
+
+  it('does not write a cookie when setting assignments', () => {
+    const storage = createCookieStorage({ domain: '.example.com' });
+    storage.setAssignments([{ splitName: 'wine', variant: 'red', context: null }]);
+
+    expect(Cookies.set).not.toHaveBeenCalled();
+  });
 });

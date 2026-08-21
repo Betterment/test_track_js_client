@@ -1,4 +1,5 @@
 import { create, initialize, load, stub } from './api';
+import type { Split } from './splitRegistry';
 import type { StorageProvider } from './storageProvider';
 import type { ClientConfig, V4VisitorConfig } from './client';
 import { v4 as uuid } from 'uuid';
@@ -17,7 +18,11 @@ const clientConfig: ClientConfig = {
 
 const storage: StorageProvider = {
   getVisitorId: vi.fn(),
-  setVisitorId: vi.fn()
+  setVisitorId: vi.fn(),
+  getAssignments: vi.fn(),
+  setAssignments: vi.fn(),
+  getSplitRegistry: vi.fn(),
+  setSplitRegistry: vi.fn()
 };
 
 const buildVisitorConfig = (visitorId: string): V4VisitorConfig => ({
@@ -27,6 +32,14 @@ const buildVisitorConfig = (visitorId: string): V4VisitorConfig => ({
       variants: [
         { name: 'cgi', weight: 50 },
         { name: 'puppet', weight: 50 }
+      ],
+      feature_gate: true
+    },
+    {
+      name: 'blue_button_enabled',
+      variants: [
+        { name: 'true', weight: 0 },
+        { name: 'false', weight: 100 }
       ],
       feature_gate: true
     }
@@ -47,8 +60,9 @@ describe('load', () => {
     );
   });
 
-  it('reads the visitor id from storage and sets it back', async () => {
+  it('reads the visitor from storage and saves it back', async () => {
     vi.mocked(storage.getVisitorId).mockReturnValue('existing_visitor_id');
+    vi.mocked(storage.getAssignments).mockReturnValue([]);
 
     const testTrack = await load({ client: clientConfig, storage });
     expect(testTrack.visitorId).toEqual('existing_visitor_id');
@@ -56,6 +70,7 @@ describe('load', () => {
 
     expect(storage.getVisitorId).toHaveBeenCalledTimes(1);
     expect(storage.setVisitorId).toHaveBeenCalledWith('existing_visitor_id');
+    expect(storage.setAssignments).toHaveBeenCalledWith([{ splitName: 'jabba', variant: 'puppet', context: null }]);
   });
 
   it('generates and saves a visitor id when none exists', async () => {
@@ -69,6 +84,52 @@ describe('load', () => {
 
     expect(storage.getVisitorId).toHaveBeenCalledTimes(1);
     expect(storage.setVisitorId).toHaveBeenCalledWith('generated_visitor_id');
+    expect(storage.setAssignments).toHaveBeenCalledWith([{ splitName: 'jabba', variant: 'puppet', context: null }]);
+  });
+
+  describe('cached assignments', () => {
+    const cachedAssignments = [{ splitName: 'jabba', variant: 'cgi', context: 'cached_context' }];
+
+    beforeEach(() => {
+      vi.mocked(storage.getVisitorId).mockReturnValue('existing_visitor_id');
+      vi.mocked(storage.getAssignments).mockReturnValue(cachedAssignments);
+    });
+
+    it('keeps the cached assignments when the server is unreachable', async () => {
+      server.use(http.get(`${buildURL}/visitors/:visitorId/config`, () => HttpResponse.error()));
+
+      const testTrack = await load({ client: clientConfig, storage });
+      expect(testTrack.visitorId).toEqual('existing_visitor_id');
+      expect(testTrack.assignments).toEqual(cachedAssignments);
+    });
+
+    it('prefers the visitor from the server over the cache', async () => {
+      const testTrack = await load({ client: clientConfig, storage });
+      expect(testTrack.assignments).toEqual([{ splitName: 'jabba', variant: 'puppet', context: null }]);
+    });
+  });
+
+  describe('cached split registry', () => {
+    const cachedSplits: Split[] = [
+      { name: 'blue_button_enabled', isFeatureGate: true, weighting: { true: 100, false: 0 } }
+    ];
+
+    beforeEach(() => {
+      vi.mocked(storage.getVisitorId).mockReturnValue('existing_visitor_id');
+      vi.mocked(storage.getSplitRegistry).mockReturnValue(cachedSplits);
+    });
+
+    it('falls back to the cached split registry when the server is unreachable', async () => {
+      server.use(http.get(`${buildURL}/visitors/:visitorId/config`, () => HttpResponse.error()));
+
+      const testTrack = await load({ client: clientConfig, storage });
+      expect(testTrack.ab('blue_button_enabled', { context: 'test' })).toBe(true);
+    });
+
+    it('prefers the split registry from the server over the cache', async () => {
+      const testTrack = await load({ client: clientConfig, storage });
+      expect(testTrack.ab('blue_button_enabled', { context: 'test' })).toBe(false);
+    });
   });
 });
 

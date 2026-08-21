@@ -20,6 +20,19 @@ export type AbOptions<V extends string> = {
   trueVariant?: V;
 };
 
+export type AssignmentOverride<S extends AnySchema> = {
+  [N in SplitName<S>]: {
+    splitName: N;
+    variant: VariantName<S, N>;
+    context?: string;
+  };
+}[SplitName<S>];
+
+export type AssignmentOverrideOptions<S extends AnySchema> = {
+  overrides: Array<AssignmentOverride<S>>;
+  auth: { username: string; password: string };
+};
+
 type Options = {
   client: Client;
   storage: StorageProvider;
@@ -41,7 +54,8 @@ export class TestTrack<S extends AnySchema> {
 
   static create<S extends AnySchema>(options: Options): TestTrack<S> {
     const testTrack = new TestTrack<S>(options);
-    testTrack.#saveVisitorId();
+    testTrack.#saveVisitor();
+    testTrack.#saveSplitRegistryIfLoaded();
     testTrack.#connectWebExtension();
     return testTrack;
   }
@@ -109,6 +123,22 @@ export class TestTrack<S extends AnySchema> {
     this.#analytics.alias(this.visitorId);
   }
 
+  async createAssignmentOverrides({ overrides, auth }: AssignmentOverrideOptions<S>): Promise<void> {
+    await this.#client.postAssignmentOverride({
+      visitor_id: this.visitorId,
+      assignments: overrides.map(override => ({
+        split_name: override.splitName,
+        variant: override.variant,
+        context: override.context ?? null
+      })),
+      auth
+    });
+
+    const response = await this.#client.getVisitorConfig(this.visitorId);
+    const { visitor, splitRegistry } = parseVisitorConfig(response);
+    this.#processVisitorConfig(visitor, splitRegistry);
+  }
+
   async #linkIdentifier(identifierType: string, value: string): Promise<void> {
     const response = await this.#client.postIdentifier({
       visitor_id: this.visitorId,
@@ -118,10 +148,15 @@ export class TestTrack<S extends AnySchema> {
 
     const { visitor, splitRegistry } = parseVisitorConfig(response);
 
+    this.#processVisitorConfig(visitor, splitRegistry);
+  }
+
+  #processVisitorConfig(visitor: Visitor, splitRegistry: SplitRegistry) {
     this.#visitorId = visitor.id;
     this.#assignments = indexAssignments(visitor.assignments);
     this.#splitRegistry = splitRegistry;
-    this.#saveVisitorId();
+    this.#saveVisitor();
+    this.#saveSplitRegistryIfLoaded();
   }
 
   #sendAssignmentNotification(assignment: Assignment): void {
@@ -145,8 +180,15 @@ export class TestTrack<S extends AnySchema> {
       });
   }
 
-  #saveVisitorId(): void {
+  #saveVisitor(): void {
     this.#storage.setVisitorId(this.visitorId);
+    this.#storage.setAssignments(Object.values(this.#assignments));
+  }
+
+  #saveSplitRegistryIfLoaded(): void {
+    if (this.#splitRegistry.isLoaded) {
+      this.#storage.setSplitRegistry(this.#splitRegistry.splits);
+    }
   }
 
   #connectWebExtension() {

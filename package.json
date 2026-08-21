@@ -1,7 +1,7 @@
 {
   "name": "@betterment-oss/test-track",
   "type": "module",
-  "version": "4.0.3",
+  "version": "5.0.0",
   "description": "Javascript Client for Test Track",
   "license": "MIT",
   "exports": {

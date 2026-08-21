@@ -20,9 +20,9 @@ export type AbOptions<V extends string> = {
   trueVariant?: V;
 };
 
-export type AssignmentOverride<S extends AnySchema> = {
-  splitName: SplitName<S>;
-  variant: VariantName<S, SplitName<S>>;
+export type AssignmentOverride<S extends AnySchema, N extends SplitName<S>> = {
+  splitName: N;
+  variant: VariantName<S, N>;
   context?: string;
 };
 

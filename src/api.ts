@@ -33,8 +33,10 @@ export async function load<S extends AnySchema>(options: LoadOptions): Promise<T
 
   const client = createClient(options.client);
   const visitorId = storage.getVisitorId() ?? uuid();
+  const cachedVisitor = storage.getVisitor();
   const cachedSplits = storage.getSplitRegistry();
   const { visitor, splitRegistry } = await loadVisitorConfig(client, visitorId);
+  const resolvedVisitor = splitRegistry.isLoaded ? visitor : (cachedVisitor ?? visitor);
   const resolvedSplitRegistry =
     splitRegistry.isLoaded || !cachedSplits ? splitRegistry : createSplitRegistry([...cachedSplits]);
 
@@ -42,7 +44,7 @@ export async function load<S extends AnySchema>(options: LoadOptions): Promise<T
     client,
     storage,
     splitRegistry: resolvedSplitRegistry,
-    visitor,
+    visitor: resolvedVisitor,
     analytics,
     errorLogger
   });
@@ -120,6 +122,8 @@ export function stub<S extends AnySchema>(assignments: Partial<Splits<S>> = {}):
   const storage: StorageProvider = {
     getVisitorId: () => visitorId,
     setVisitorId: () => undefined,
+    getVisitor: () => visitor,
+    setVisitor: () => undefined,
     getSplitRegistry: () => splitRegistry.splits,
     setSplitRegistry: () => undefined
   };

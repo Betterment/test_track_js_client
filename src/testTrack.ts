@@ -47,7 +47,7 @@ export class TestTrack<S extends AnySchema> {
 
   static create<S extends AnySchema>(options: Options): TestTrack<S> {
     const testTrack = new TestTrack<S>(options);
-    testTrack.#saveVisitorId();
+    testTrack.#saveVisitor();
     testTrack.#saveSplitRegistry();
     testTrack.#connectWebExtension();
     return testTrack;
@@ -151,7 +151,7 @@ export class TestTrack<S extends AnySchema> {
     this.#visitorId = visitor.id;
     this.#assignments = indexAssignments(visitor.assignments);
     this.#splitRegistry = splitRegistry;
-    this.#saveVisitorId();
+    this.#saveVisitor();
     this.#saveSplitRegistry();
   }
 
@@ -176,8 +176,8 @@ export class TestTrack<S extends AnySchema> {
       });
   }
 
-  #saveVisitorId(): void {
-    this.#storage.setVisitorId(this.visitorId);
+  #saveVisitor(): void {
+    this.#storage.setVisitor({ id: this.visitorId, assignments: Object.values(this.#assignments) });
   }
 
   #saveSplitRegistry(): void {

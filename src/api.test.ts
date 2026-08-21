@@ -19,6 +19,8 @@ const clientConfig: ClientConfig = {
 const storage: StorageProvider = {
   getVisitorId: vi.fn(),
   setVisitorId: vi.fn(),
+  getVisitor: vi.fn(),
+  setVisitor: vi.fn(),
   getSplitRegistry: vi.fn(),
   setSplitRegistry: vi.fn()
 };
@@ -58,28 +60,58 @@ describe('load', () => {
     );
   });
 
-  it('reads the visitor id from storage and sets it back', async () => {
-    vi.mocked(storage.getVisitorId).mockReturnValue('existing_visitor_id');
+  it('reads the visitor from storage and saves it back', async () => {
+    vi.mocked(storage.getVisitor).mockReturnValue({ id: 'existing_visitor_id', assignments: [] });
 
     const testTrack = await load({ client: clientConfig, storage });
     expect(testTrack.visitorId).toEqual('existing_visitor_id');
     expect(testTrack.assignments).toEqual([{ splitName: 'jabba', variant: 'puppet', context: null }]);
 
-    expect(storage.getVisitorId).toHaveBeenCalledTimes(1);
-    expect(storage.setVisitorId).toHaveBeenCalledWith('existing_visitor_id');
+    expect(storage.getVisitor).toHaveBeenCalledTimes(1);
+    expect(storage.setVisitor).toHaveBeenCalledWith({
+      id: 'existing_visitor_id',
+      assignments: [{ splitName: 'jabba', variant: 'puppet', context: null }]
+    });
   });
 
   it('generates and saves a visitor id when none exists', async () => {
     // @ts-expect-error uuid mock return type
     vi.mocked(uuid).mockReturnValue('generated_visitor_id');
-    vi.mocked(storage.getVisitorId).mockReturnValue(undefined);
+    vi.mocked(storage.getVisitor).mockReturnValue(undefined);
 
     const testTrack = await load({ client: clientConfig, storage });
     expect(testTrack.visitorId).toEqual('generated_visitor_id');
     expect(testTrack.assignments).toEqual([{ splitName: 'jabba', variant: 'puppet', context: null }]);
 
-    expect(storage.getVisitorId).toHaveBeenCalledTimes(1);
-    expect(storage.setVisitorId).toHaveBeenCalledWith('generated_visitor_id');
+    expect(storage.getVisitor).toHaveBeenCalledTimes(1);
+    expect(storage.setVisitor).toHaveBeenCalledWith({
+      id: 'generated_visitor_id',
+      assignments: [{ splitName: 'jabba', variant: 'puppet', context: null }]
+    });
+  });
+
+  describe('cached visitor', () => {
+    const cachedVisitor = {
+      id: 'existing_visitor_id',
+      assignments: [{ splitName: 'jabba', variant: 'cgi', context: 'cached_context' }]
+    };
+
+    beforeEach(() => {
+      vi.mocked(storage.getVisitor).mockReturnValue(cachedVisitor);
+    });
+
+    it('keeps the cached assignments when the server is unreachable', async () => {
+      server.use(http.get(`${buildURL}/visitors/:visitorId/config`, () => HttpResponse.error()));
+
+      const testTrack = await load({ client: clientConfig, storage });
+      expect(testTrack.visitorId).toEqual('existing_visitor_id');
+      expect(testTrack.assignments).toEqual(cachedVisitor.assignments);
+    });
+
+    it('prefers the visitor from the server over the cache', async () => {
+      const testTrack = await load({ client: clientConfig, storage });
+      expect(testTrack.assignments).toEqual([{ splitName: 'jabba', variant: 'puppet', context: null }]);
+    });
   });
 
   describe('cached split registry', () => {
@@ -88,7 +120,7 @@ describe('load', () => {
     ];
 
     beforeEach(() => {
-      vi.mocked(storage.getVisitorId).mockReturnValue('existing_visitor_id');
+      vi.mocked(storage.getVisitor).mockReturnValue({ id: 'existing_visitor_id', assignments: [] });
       vi.mocked(storage.getSplitRegistry).mockReturnValue(cachedSplits);
     });
 

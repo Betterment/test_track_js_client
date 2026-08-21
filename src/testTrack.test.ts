@@ -36,6 +36,8 @@ const errorLogger = vi.fn();
 const storage: StorageProvider = {
   getVisitorId: vi.fn(),
   setVisitorId: vi.fn(),
+  getVisitor: vi.fn(),
+  setVisitor: vi.fn(),
   getSplitRegistry: vi.fn(),
   setSplitRegistry: vi.fn()
 };
@@ -81,16 +83,20 @@ describe('TestTrack', () => {
   });
 
   describe('.create()', () => {
-    it('persists the split registry', () => {
+    it('persists the visitor and the split registry', () => {
       TestTrack.create({
         analytics,
         client,
         storage,
         splitRegistry,
         errorLogger,
-        visitor: { id: 'EXISTING_VISITOR_ID', assignments: [] }
+        visitor: { id: 'EXISTING_VISITOR_ID', assignments: [{ splitName: 'jabba', variant: 'puppet', context: null }] }
       });
 
+      expect(storage.setVisitor).toHaveBeenCalledWith({
+        id: 'EXISTING_VISITOR_ID',
+        assignments: [{ splitName: 'jabba', variant: 'puppet', context: null }]
+      });
       expect(storage.setSplitRegistry).toHaveBeenCalledWith(splitRegistry.splits);
     });
   });
@@ -398,7 +404,6 @@ describe('TestTrack', () => {
       ]);
 
       expect(testTrack.visitorId).toBe('actual_visitor_id');
-      expect(storage.setVisitorId).toHaveBeenCalledWith('actual_visitor_id');
       expect(analytics[analyticsMethod]).toHaveBeenCalledWith('actual_visitor_id');
 
       expect(testTrack.assignments).toEqual([
@@ -407,10 +412,17 @@ describe('TestTrack', () => {
       ]);
     });
 
-    it('persists the refreshed split registry', async () => {
+    it('persists the refreshed visitor and split registry', async () => {
       const testTrack = createTestTrack();
       await testTrack[method]('myappdb_user_id', '444');
 
+      expect(storage.setVisitor).toHaveBeenCalledWith({
+        id: 'actual_visitor_id',
+        assignments: [
+          { splitName: 'jabba', variant: 'cgi', context: null },
+          { splitName: 'wine', variant: 'red', context: null }
+        ]
+      });
       expect(storage.setSplitRegistry).toHaveBeenCalledWith([
         { name: 'wine', isFeatureGate: false, weighting: { red: 50, white: 50 } }
       ]);
@@ -486,12 +498,15 @@ describe('TestTrack', () => {
       expect(testTrack.vary('wine', { context: 'test', defaultVariant: 'red' })).toEqual('white');
     });
 
-    it('persists the refreshed visitor id and split registry', async () => {
+    it('persists the refreshed visitor and split registry', async () => {
       const testTrack = createTestTrack();
 
       await testTrack.createAssignmentOverrides([{ splitName: 'wine', variant: 'white' }], auth);
 
-      expect(storage.setVisitorId).toHaveBeenCalledWith('EXISTING_VISITOR_ID');
+      expect(storage.setVisitor).toHaveBeenCalledWith({
+        id: 'EXISTING_VISITOR_ID',
+        assignments: [{ splitName: 'wine', variant: 'white', context: null }]
+      });
       expect(storage.setSplitRegistry).toHaveBeenCalledWith([
         { name: 'wine', isFeatureGate: false, weighting: { red: 100, white: 0 } }
       ]);

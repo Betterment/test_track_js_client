@@ -28,6 +28,11 @@ export type AssignmentOverride<S extends AnySchema> = {
   };
 }[SplitName<S>];
 
+export type AssignmentOverrideOptions<S extends AnySchema> = {
+  overrides: Array<AssignmentOverride<S>>;
+  auth: { username: string; password: string };
+};
+
 type Options = {
   client: Client;
   storage: StorageProvider;
@@ -118,13 +123,10 @@ export class TestTrack<S extends AnySchema> {
     this.#analytics.alias(this.visitorId);
   }
 
-  async createAssignmentOverrides(
-    assignmentOverrides: Array<AssignmentOverride<S>>,
-    auth: { username: string; password: string }
-  ): Promise<void> {
+  async createAssignmentOverrides({ overrides, auth }: AssignmentOverrideOptions<S>): Promise<void> {
     await this.#client.postAssignmentOverride({
       visitor_id: this.visitorId,
-      assignments: assignmentOverrides.map(override => ({
+      assignments: overrides.map(override => ({
         split_name: override.splitName,
         variant: override.variant,
         context: override.context ?? null

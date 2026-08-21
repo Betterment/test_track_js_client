@@ -461,13 +461,13 @@ describe('TestTrack', () => {
     it('posts the overrides, defaulting a missing context to null', async () => {
       const testTrack = createTestTrack();
 
-      await testTrack.createAssignmentOverrides(
-        [
+      await testTrack.createAssignmentOverrides({
+        overrides: [
           { splitName: 'wine', variant: 'white', context: 'admin_ui' },
           { splitName: 'element', variant: 'earth' }
         ],
         auth
-      );
+      });
 
       expect(await getRequests()).toEqual([
         {
@@ -488,7 +488,7 @@ describe('TestTrack', () => {
       const testTrack = createTestTrack([{ splitName: 'wine', variant: 'red', context: null }]);
       expect(testTrack.vary('wine', { context: 'test', defaultVariant: 'red' })).toEqual('red');
 
-      await testTrack.createAssignmentOverrides([{ splitName: 'wine', variant: 'white' }], auth);
+      await testTrack.createAssignmentOverrides({ overrides: [{ splitName: 'wine', variant: 'white' }], auth });
 
       expect(testTrack.assignments).toEqual([{ splitName: 'wine', variant: 'white', context: null }]);
       expect(testTrack.vary('wine', { context: 'test', defaultVariant: 'red' })).toEqual('white');
@@ -497,7 +497,7 @@ describe('TestTrack', () => {
     it('persists the refreshed visitor and split registry', async () => {
       const testTrack = createTestTrack();
 
-      await testTrack.createAssignmentOverrides([{ splitName: 'wine', variant: 'white' }], auth);
+      await testTrack.createAssignmentOverrides({ overrides: [{ splitName: 'wine', variant: 'white' }], auth });
 
       expect(storage.setVisitorId).toHaveBeenCalledWith('EXISTING_VISITOR_ID');
       expect(storage.setAssignments).toHaveBeenCalledWith([{ splitName: 'wine', variant: 'white', context: null }]);

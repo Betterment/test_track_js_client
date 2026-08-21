@@ -72,6 +72,24 @@ describe('TestTrack with a typed schema', () => {
     expectTypeOf(testTrack.ab).returns.toBeBoolean();
   });
 
+  test('createAssignmentOverrides', () => {
+    const auth = { username: 'clown', password: 'town' };
+
+    expectTypeOf(testTrack.createAssignmentOverrides)
+      .parameter(0)
+      .toEqualTypeOf<
+        Array<
+          | { splitName: 'foo_enabled'; variant: 'true' | 'false'; context?: string }
+          | { splitName: 'color_experiment'; variant: 'green' | 'blue'; context?: string }
+        >
+      >();
+
+    void testTrack.createAssignmentOverrides([{ splitName: 'color_experiment', variant: 'green' }], auth);
+
+    // @ts-expect-error variant must belong to the given split
+    void testTrack.createAssignmentOverrides([{ splitName: 'color_experiment', variant: 'true' }], auth);
+  });
+
   test('logIn', () => {
     expectTypeOf(testTrack.logIn).parameter(0).toEqualTypeOf<'user_id' | 'agent_id'>();
     expectTypeOf(testTrack.logIn).parameter(1).toBeString();

@@ -20,11 +20,13 @@ export type AbOptions<V extends string> = {
   trueVariant?: V;
 };
 
-export type AssignmentOverride<S extends AnySchema, N extends SplitName<S>> = {
-  splitName: N;
-  variant: VariantName<S, N>;
-  context?: string;
-};
+export type AssignmentOverride<S extends AnySchema> = {
+  [N in SplitName<S>]: {
+    splitName: N;
+    variant: VariantName<S, N>;
+    context?: string;
+  };
+}[SplitName<S>];
 
 type Options = {
   client: Client;

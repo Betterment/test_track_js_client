@@ -43,7 +43,7 @@ describe('loadVisitorConfig()', () => {
   });
 
   it('loads visitor config from the V4 API', async () => {
-    const result = await loadVisitorConfig(client, 'test_visitor_id');
+    const result = await loadVisitorConfig(client, 'test_visitor_id', undefined, undefined);
 
     expect(result.visitor).toEqual({
       id: 'test_visitor_id',
@@ -69,7 +69,7 @@ describe('loadVisitorConfig()', () => {
       })
     );
 
-    const result = await loadVisitorConfig(client, 'failed_visitor_id');
+    const result = await loadVisitorConfig(client, 'failed_visitor_id', undefined, undefined);
     expect(result.visitor).toEqual({ id: 'failed_visitor_id', assignments: [] });
     expect(result.splitRegistry.isLoaded).toBe(false);
 

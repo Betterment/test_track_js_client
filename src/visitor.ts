@@ -45,14 +45,19 @@ export function indexAssignments(assignments: Assignment[]): AssignmentRegistry 
   return Object.fromEntries(assignments.map(assignment => [assignment.splitName, assignment]));
 }
 
-export async function loadVisitorConfig(client: Client, visitorId: string): Promise<VisitorConfig> {
+export async function loadVisitorConfig(
+  client: Client,
+  visitorId: string,
+  cachedSplits: ReadonlyArray<Split> | undefined,
+  cachedAssignments: Assignment[] | undefined
+): Promise<VisitorConfig> {
   try {
     const visitorConfig = await client.getVisitorConfig(visitorId);
     return parseVisitorConfig(visitorConfig);
   } catch {
     return {
-      visitor: { id: visitorId, assignments: [] },
-      splitRegistry: createSplitRegistry(null)
+      visitor: { id: visitorId, assignments: cachedAssignments ?? [] },
+      splitRegistry: createSplitRegistry(cachedSplits ? [...cachedSplits] : null)
     };
   }
 }

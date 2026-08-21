@@ -36,8 +36,8 @@ const errorLogger = vi.fn();
 const storage: StorageProvider = {
   getVisitorId: vi.fn(),
   setVisitorId: vi.fn(),
-  getVisitor: vi.fn(),
-  setVisitor: vi.fn(),
+  getAssignments: vi.fn(),
+  setAssignments: vi.fn(),
   getSplitRegistry: vi.fn(),
   setSplitRegistry: vi.fn()
 };
@@ -93,10 +93,8 @@ describe('TestTrack', () => {
         visitor: { id: 'EXISTING_VISITOR_ID', assignments: [{ splitName: 'jabba', variant: 'puppet', context: null }] }
       });
 
-      expect(storage.setVisitor).toHaveBeenCalledWith({
-        id: 'EXISTING_VISITOR_ID',
-        assignments: [{ splitName: 'jabba', variant: 'puppet', context: null }]
-      });
+      expect(storage.setVisitorId).toHaveBeenCalledWith('EXISTING_VISITOR_ID');
+      expect(storage.setAssignments).toHaveBeenCalledWith([{ splitName: 'jabba', variant: 'puppet', context: null }]);
       expect(storage.setSplitRegistry).toHaveBeenCalledWith(splitRegistry.splits);
     });
   });
@@ -416,13 +414,11 @@ describe('TestTrack', () => {
       const testTrack = createTestTrack();
       await testTrack[method]('myappdb_user_id', '444');
 
-      expect(storage.setVisitor).toHaveBeenCalledWith({
-        id: 'actual_visitor_id',
-        assignments: [
-          { splitName: 'jabba', variant: 'cgi', context: null },
-          { splitName: 'wine', variant: 'red', context: null }
-        ]
-      });
+      expect(storage.setVisitorId).toHaveBeenCalledWith('actual_visitor_id');
+      expect(storage.setAssignments).toHaveBeenCalledWith([
+        { splitName: 'jabba', variant: 'cgi', context: null },
+        { splitName: 'wine', variant: 'red', context: null }
+      ]);
       expect(storage.setSplitRegistry).toHaveBeenCalledWith([
         { name: 'wine', isFeatureGate: false, weighting: { red: 50, white: 50 } }
       ]);
@@ -503,10 +499,8 @@ describe('TestTrack', () => {
 
       await testTrack.createAssignmentOverrides([{ splitName: 'wine', variant: 'white' }], auth);
 
-      expect(storage.setVisitor).toHaveBeenCalledWith({
-        id: 'EXISTING_VISITOR_ID',
-        assignments: [{ splitName: 'wine', variant: 'white', context: null }]
-      });
+      expect(storage.setVisitorId).toHaveBeenCalledWith('EXISTING_VISITOR_ID');
+      expect(storage.setAssignments).toHaveBeenCalledWith([{ splitName: 'wine', variant: 'white', context: null }]);
       expect(storage.setSplitRegistry).toHaveBeenCalledWith([
         { name: 'wine', isFeatureGate: false, weighting: { red: 100, white: 0 } }
       ]);

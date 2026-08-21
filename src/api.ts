@@ -1,7 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { TestTrack } from './testTrack';
 import { loadConfig, parseAssignments, parseSplitRegistry } from './config';
-import { createSplitRegistry } from './splitRegistry';
 import { loadVisitorConfig, parseVisitorConfig } from './visitor';
 import { createClient, type Client, type ClientConfig, type V4VisitorConfig } from './client';
 import { createCookieStorage, type StorageProvider } from './storageProvider';
@@ -33,18 +32,15 @@ export async function load<S extends AnySchema>(options: LoadOptions): Promise<T
 
   const client = createClient(options.client);
   const visitorId = storage.getVisitorId() ?? uuid();
-  const cachedVisitor = storage.getVisitor();
+  const cachedAssignments = storage.getAssignments();
   const cachedSplits = storage.getSplitRegistry();
-  const { visitor, splitRegistry } = await loadVisitorConfig(client, visitorId);
-  const resolvedVisitor = splitRegistry.isLoaded ? visitor : (cachedVisitor ?? visitor);
-  const resolvedSplitRegistry =
-    splitRegistry.isLoaded || !cachedSplits ? splitRegistry : createSplitRegistry([...cachedSplits]);
+  const { visitor, splitRegistry } = await loadVisitorConfig(client, visitorId, cachedSplits, cachedAssignments);
 
   return TestTrack.create({
     client,
     storage,
-    splitRegistry: resolvedSplitRegistry,
-    visitor: resolvedVisitor,
+    splitRegistry,
+    visitor,
     analytics,
     errorLogger
   });
@@ -122,8 +118,8 @@ export function stub<S extends AnySchema>(assignments: Partial<Splits<S>> = {}):
   const storage: StorageProvider = {
     getVisitorId: () => visitorId,
     setVisitorId: () => undefined,
-    getVisitor: () => visitor,
-    setVisitor: () => undefined,
+    getAssignments: () => [],
+    setAssignments: () => undefined,
     getSplitRegistry: () => splitRegistry.splits,
     setSplitRegistry: () => undefined
   };

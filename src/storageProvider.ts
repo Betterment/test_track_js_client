@@ -1,12 +1,12 @@
 import Cookies from 'js-cookie';
 import type { Split } from './splitRegistry';
-import type { Visitor } from './visitor';
+import type { Assignment } from './visitor';
 
 export type StorageProvider = {
   getVisitorId(): string | undefined;
   setVisitorId(visitorId: string): void;
-  getVisitor(): Visitor | undefined;
-  setVisitor(visitor: Visitor): void;
+  getAssignments(): Assignment[] | undefined;
+  setAssignments(assignments: Assignment[]): void;
   getSplitRegistry(): ReadonlyArray<Split> | undefined;
   setSplitRegistry(splits: ReadonlyArray<Split>): void;
 };
@@ -31,13 +31,10 @@ export function createCookieStorage(config: CookieStorageConfig): StorageProvide
   return {
     getVisitorId,
     setVisitorId,
-    getVisitor() {
-      const visitorId = getVisitorId();
-      return visitorId === undefined ? undefined : { id: visitorId, assignments: [] };
+    getAssignments() {
+      return undefined;
     },
-    setVisitor(visitor) {
-      setVisitorId(visitor.id);
-    },
+    setAssignments() {},
     getSplitRegistry() {
       return undefined;
     },

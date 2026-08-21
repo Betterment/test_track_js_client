@@ -177,7 +177,8 @@ export class TestTrack<S extends AnySchema> {
   }
 
   #saveVisitor(): void {
-    this.#storage.setVisitor({ id: this.visitorId, assignments: Object.values(this.#assignments) });
+    this.#storage.setVisitorId(this.visitorId);
+    this.#storage.setAssignments(Object.values(this.#assignments));
   }
 
   #saveSplitRegistry(): void {

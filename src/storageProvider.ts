@@ -5,8 +5,8 @@ import type { Assignment } from './visitor';
 export type StorageProvider = {
   getVisitorId(): string | undefined;
   setVisitorId(visitorId: string): void;
-  getAssignments(): Assignment[] | undefined;
-  setAssignments(assignments: Assignment[]): void;
+  getAssignments(): ReadonlyArray<Assignment> | undefined;
+  setAssignments(assignments: ReadonlyArray<Assignment>): void;
   getSplitRegistry(): ReadonlyArray<Split> | undefined;
   setSplitRegistry(splits: ReadonlyArray<Split>): void;
 };
@@ -19,18 +19,17 @@ type CookieStorageConfig = {
 export function createCookieStorage(config: CookieStorageConfig): StorageProvider {
   const name = config.name ?? 'tt_visitor_id';
 
-  const getVisitorId = () => Cookies.get(name);
-  const setVisitorId = (visitorId: string) => {
-    Cookies.set(name, visitorId, {
-      expires: 365,
-      path: '/',
-      domain: config.domain
-    });
-  };
-
   return {
-    getVisitorId,
-    setVisitorId,
+    getVisitorId() {
+      return Cookies.get(name);
+    },
+    setVisitorId(visitorId) {
+      Cookies.set(name, visitorId, {
+        expires: 365,
+        path: '/',
+        domain: config.domain
+      });
+    },
     getAssignments() {
       return undefined;
     },

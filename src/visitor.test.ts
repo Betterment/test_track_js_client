@@ -1,6 +1,7 @@
 import type { Assignment } from './visitor';
 import { indexAssignments, parseVisitorConfig, loadVisitorConfig } from './visitor';
 import type { V4VisitorConfig } from './client';
+import type { StorageProvider } from './storageProvider';
 import { http, HttpResponse } from 'msw';
 import { server, getRequests } from './setupTests';
 import { createClient } from './client';
@@ -13,6 +14,15 @@ const client = createClient({
   appVersion: '1.0.0',
   buildTimestamp: '2019-04-16T14:35:30Z'
 });
+
+const storage: StorageProvider = {
+  getVisitorId: vi.fn(),
+  setVisitorId: vi.fn(),
+  getAssignments: vi.fn(),
+  setAssignments: vi.fn(),
+  getSplitRegistry: vi.fn(),
+  setSplitRegistry: vi.fn()
+};
 
 describe('loadVisitorConfig()', () => {
   const buildURL = 'http://testtrack.dev/api/v4/apps/test_app/versions/1.0.0/builds/2019-04-16T14:35:30Z';
@@ -43,7 +53,7 @@ describe('loadVisitorConfig()', () => {
   });
 
   it('loads visitor config from the V4 API', async () => {
-    const result = await loadVisitorConfig(client, 'test_visitor_id', undefined, undefined);
+    const result = await loadVisitorConfig(client, storage, 'test_visitor_id');
 
     expect(result.visitor).toEqual({
       id: 'test_visitor_id',
@@ -62,20 +72,45 @@ describe('loadVisitorConfig()', () => {
     ]);
   });
 
-  it('returns empty visitor config if the request fails', async () => {
-    server.use(
-      http.get(`${buildURL}/visitors/failed_visitor_id/config`, () => {
-        return HttpResponse.error();
-      })
-    );
+  describe('when the request fails', () => {
+    beforeEach(() => {
+      server.use(
+        http.get(`${buildURL}/visitors/failed_visitor_id/config`, () => {
+          return HttpResponse.error();
+        })
+      );
+    });
 
-    const result = await loadVisitorConfig(client, 'failed_visitor_id', undefined, undefined);
-    expect(result.visitor).toEqual({ id: 'failed_visitor_id', assignments: [] });
-    expect(result.splitRegistry.isLoaded).toBe(false);
+    it('returns an empty visitor config when nothing is cached', async () => {
+      const result = await loadVisitorConfig(client, storage, 'failed_visitor_id');
+      expect(result.visitor).toEqual({ id: 'failed_visitor_id', assignments: [] });
+      expect(result.splitRegistry.isLoaded).toBe(false);
 
-    expect(await getRequests()).toEqual([
-      { method: 'GET', url: `${buildURL}/visitors/failed_visitor_id/config`, body: null }
-    ]);
+      expect(await getRequests()).toEqual([
+        { method: 'GET', url: `${buildURL}/visitors/failed_visitor_id/config`, body: null }
+      ]);
+    });
+
+    it('falls back to the cached assignments and split registry', async () => {
+      vi.mocked(storage.getAssignments).mockReturnValue([{ splitName: 'jabba', variant: 'cgi', context: null }]);
+      vi.mocked(storage.getSplitRegistry).mockReturnValue([
+        { name: 'jabba', isFeatureGate: true, weighting: { cgi: 100, puppet: 0 } }
+      ]);
+
+      const result = await loadVisitorConfig(client, storage, 'failed_visitor_id');
+
+      expect(result.visitor).toEqual({
+        id: 'failed_visitor_id',
+        assignments: [{ splitName: 'jabba', variant: 'cgi', context: null }]
+      });
+
+      expect(result.splitRegistry.isLoaded).toBe(true);
+      expect(result.splitRegistry.getSplit('jabba')).toEqual({
+        name: 'jabba',
+        isFeatureGate: true,
+        weighting: { cgi: 100, puppet: 0 }
+      });
+    });
   });
 });
 

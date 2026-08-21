@@ -32,9 +32,8 @@ export async function load<S extends AnySchema>(options: LoadOptions): Promise<T
 
   const client = createClient(options.client);
   const visitorId = storage.getVisitorId() ?? uuid();
-  const cachedAssignments = storage.getAssignments();
-  const cachedSplits = storage.getSplitRegistry();
-  const { visitor, splitRegistry } = await loadVisitorConfig(client, visitorId, cachedSplits, cachedAssignments);
+
+  const { visitor, splitRegistry } = await loadVisitorConfig(client, storage, visitorId);
 
   return TestTrack.create({
     client,

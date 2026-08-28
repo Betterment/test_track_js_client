@@ -48,7 +48,7 @@ const testTrack = await load({
 - `client.appName` - Your application name
 - `client.appVersion` - Your application version
 - `client.buildTimestamp` - The build timestamp (ISO 8601 format)
-- `storage` - A storage provider for persisting visitor IDs (e.g. `createCookieStorage()`)
+- `storage` - A storage provider for persisting visitor state (see [Storage](#storage))
 - `analytics` (optional) - An analytics provider for tracking assignments (see [Advanced Configuration](#advanced-configuration))
 - `errorLogger` (optional) - A function for logging errors
 
@@ -93,6 +93,82 @@ const testTrack = create({
 
 - Same as `load()`, plus:
 - `visitorConfig` - Preloaded visitor configuration data from the TestTrack API
+
+## Storage
+
+`load()` and `create()` both require a `storage` provider. It is the seam between TestTrack and
+wherever your platform keeps data, and it determines which parts of the API actually do anything.
+
+```ts
+type StorageProvider = {
+  getVisitorId(): string | undefined;
+  setVisitorId(visitorId: string): void;
+  getAssignments(): ReadonlyArray<Assignment> | undefined;
+  setAssignments(assignments: ReadonlyArray<Assignment>): void;
+  getSplitRegistry(): ReadonlyArray<Split> | undefined;
+  setSplitRegistry(splits: ReadonlyArray<Split>): void;
+  getLoginState?(): boolean | undefined;
+  setLoginState?(isLoggedIn: boolean): void;
+};
+```
+
+`getLoginState` and `setLoginState` are optional. When a provider omits them, TestTrack treats the
+visitor as logged out: `logout()` becomes a no-op and `overrideVisitorId()` is always permitted.
+
+### `createCookieStorage(config)`
+
+The provider bundled with this library, intended for the browser.
+
+- `domain` - the cookie domain, e.g. `.example.com`
+- `name` (optional) - the cookie name, defaults to `tt_visitor_id`
+
+| Data           | Where it goes                                |
+| -------------- | -------------------------------------------- |
+| Visitor ID     | A cookie, 365 days, scoped to `domain`       |
+| Login state    | `sessionStorage`, under `<name>_login_state` |
+| Assignments    | Not persisted                                |
+| Split registry | Not persisted                                |
+
+Assignments and the split registry are not persisted because they do not fit in a 4KB cookie. This
+only costs you the offline fallback described below — on the web the server supplies them on each
+page load.
+
+Login state lives in `sessionStorage` rather than a cookie so that it expires with the browsing
+session instead of outliving the real session by a year. Note that this makes it per-tab and
+per-origin, unlike the visitor ID cookie, which spans subdomains.
+
+### Writing your own provider
+
+Implement the port for platforms where cookies do not exist, such as React Native. All getters are
+synchronous, so use a synchronous store — `react-native-mmkv` below. With an async store you must
+hydrate every value before calling `load()`.
+
+```ts
+import { MMKV } from 'react-native-mmkv';
+import type { Assignment, Split, StorageProvider } from '@betterment-oss/test-track';
+
+const store = new MMKV();
+
+function read<T>(key: string): T | undefined {
+  const value = store.getString(key);
+  return value === undefined ? undefined : (JSON.parse(value) as T);
+}
+
+export const storage: StorageProvider = {
+  getVisitorId: () => store.getString('visitor_id'),
+  setVisitorId: id => store.set('visitor_id', id),
+  getAssignments: () => read<Assignment[]>('assignments'),
+  setAssignments: assignments => store.set('assignments', JSON.stringify(assignments)),
+  getSplitRegistry: () => read<Split[]>('split_registry'),
+  setSplitRegistry: splits => store.set('split_registry', JSON.stringify(splits)),
+  getLoginState: () => store.getBoolean('login_state'),
+  setLoginState: isLoggedIn => store.set('login_state', isLoggedIn)
+};
+```
+
+Implementing `setAssignments` and `setSplitRegistry` is what enables the offline fallback: when
+`load()` cannot reach the TestTrack server, it starts up from the cached assignments and split
+registry instead of an empty registry.
 
 ## API
 
@@ -169,6 +245,60 @@ The `logIn` method is used to ensure a consistent experience across devices. For
 ```js
 await testTrack.logIn('myapp_user_id', '12345');
 // From this point on you have existing split assignments from a previous device.
+```
+
+#### `.signUp(identifier, value)`
+
+Identical to `logIn`, but for a visitor who is brand new to your application rather than one
+returning on a different device. It takes the same 2 arguments and differs only in the analytics
+call it makes: `signUp` calls `alias`, where `logIn` calls `identify`.
+
+```js
+await testTrack.signUp('myapp_user_id', '12345');
+```
+
+#### `.logout()`
+
+Records that the visitor is no longer logged in.
+
+This **preserves** the visitor ID and its assignments — it does not start a new visitor. The next
+`logIn` will still reconcile with the server, but until then the device keeps the assignments it
+already had.
+
+```js
+testTrack.logout();
+```
+
+Requires a storage provider that implements `setLoginState`. With one that does not — including
+`createCookieStorage` in a browser blocking site data — this is a no-op.
+
+#### `.overrideVisitorId(visitorId)`
+
+Adopts an existing visitor ID and loads its configuration from the TestTrack server. Use this when
+a visitor ID was assigned on another platform before this client started, and you want that
+visitor's assignments to follow the user.
+
+```js
+await testTrack.overrideVisitorId('visitor-uuid-from-elsewhere');
+```
+
+**The call is ignored while a visitor is logged in**, so that an override cannot clobber a visitor
+already reconciled with the server. That guard depends on `getLoginState`; a storage provider
+without it reports "logged out" and every override is permitted.
+
+#### `.createAssignmentOverrides(options)`
+
+Forces specific variants for the current visitor on the TestTrack server, then reloads the visitor
+config so they take effect immediately. This is how internal testers pin themselves to a variant.
+
+- `overrides` -- an array of `{ splitName, variant, context? }`. `context` defaults to `null`.
+- `auth` -- `{ username, password }` TestTrack admin credentials.
+
+```js
+await testTrack.createAssignmentOverrides({
+  overrides: [{ splitName: 'button_color', variant: 'blue', context: 'admin_ui' }],
+  auth: { username: 'admin', password: 'secret' }
+});
 ```
 
 ## Advanced Configuration

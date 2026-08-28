@@ -123,6 +123,18 @@ export class TestTrack<S extends AnySchema> {
     this.#analytics.alias(this.visitorId);
   }
 
+  logout(): void {
+    this.#storage.setLoginState?.(false);
+  }
+
+  async overrideVisitorId(visitorId: string): Promise<void> {
+    if (this.#storage.getLoginState?.()) return;
+
+    const response = await this.#client.getVisitorConfig(visitorId);
+    const { visitor, splitRegistry } = parseVisitorConfig(response);
+    this.#processVisitorConfig(visitor, splitRegistry);
+  }
+
   async createAssignmentOverrides({ overrides, auth }: AssignmentOverrideOptions<S>): Promise<void> {
     await this.#client.postAssignmentOverride({
       visitor_id: this.visitorId,
@@ -149,6 +161,7 @@ export class TestTrack<S extends AnySchema> {
     const { visitor, splitRegistry } = parseVisitorConfig(response);
 
     this.#processVisitorConfig(visitor, splitRegistry);
+    this.#storage.setLoginState?.(true);
   }
 
   #processVisitorConfig(visitor: Visitor, splitRegistry: SplitRegistry) {

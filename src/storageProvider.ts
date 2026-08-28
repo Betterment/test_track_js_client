@@ -9,6 +9,8 @@ export type StorageProvider = {
   setAssignments(assignments: ReadonlyArray<Assignment>): void;
   getSplitRegistry(): ReadonlyArray<Split> | undefined;
   setSplitRegistry(splits: ReadonlyArray<Split>): void;
+  getLoginState?(): boolean | undefined;
+  setLoginState?(isLoggedIn: boolean): void;
 };
 
 type CookieStorageConfig = {

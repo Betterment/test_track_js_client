@@ -29,6 +29,16 @@ describe('TestTrack', () => {
     expectTypeOf(testTrack.signUp).parameter(1).toBeString();
     expectTypeOf(testTrack.signUp).returns.resolves.toBeVoid();
   });
+
+  test('logout', () => {
+    expectTypeOf(testTrack.logout).parameters.toEqualTypeOf<[]>();
+    expectTypeOf(testTrack.logout).returns.toBeVoid();
+  });
+
+  test('overrideVisitorId', () => {
+    expectTypeOf(testTrack.overrideVisitorId).parameter(0).toBeString();
+    expectTypeOf(testTrack.overrideVisitorId).returns.resolves.toBeVoid();
+  });
 });
 
 describe('TestTrack with a typed schema', () => {

@@ -33,14 +33,16 @@ const splitRegistry = createSplitRegistry([
 
 const errorLogger = vi.fn();
 
-const storage: StorageProvider = {
+const storage = {
   getVisitorId: vi.fn(),
   setVisitorId: vi.fn(),
   getAssignments: vi.fn(),
   setAssignments: vi.fn(),
   getSplitRegistry: vi.fn(),
-  setSplitRegistry: vi.fn()
-};
+  setSplitRegistry: vi.fn(),
+  getLoginState: vi.fn(),
+  setLoginState: vi.fn()
+} satisfies StorageProvider;
 
 const analytics: AnalyticsProvider = {
   alias: vi.fn(),
@@ -423,6 +425,14 @@ describe('TestTrack', () => {
         { name: 'wine', isFeatureGate: false, weighting: { red: 50, white: 50 } }
       ]);
     });
+
+    it('records that the visitor is logged in', async () => {
+      const testTrack = createTestTrack();
+
+      await testTrack[method]('myappdb_user_id', '444');
+
+      expect(storage.setLoginState).toHaveBeenCalledWith(true);
+    });
   });
 
   describe('.createAssignmentOverrides()', () => {
@@ -504,6 +514,86 @@ describe('TestTrack', () => {
       expect(storage.setSplitRegistry).toHaveBeenCalledWith([
         { name: 'wine', isFeatureGate: false, weighting: { red: 100, white: 0 } }
       ]);
+    });
+  });
+
+  describe('.logout()', () => {
+    it('records that the visitor is logged out', () => {
+      const testTrack = createTestTrack();
+
+      testTrack.logout();
+
+      expect(storage.setLoginState).toHaveBeenCalledWith(false);
+    });
+
+    it('preserves the visitor id and assignments', () => {
+      const testTrack = createTestTrack([{ splitName: 'wine', variant: 'red', context: null }]);
+
+      testTrack.logout();
+
+      expect(testTrack.visitorId).toBe('EXISTING_VISITOR_ID');
+      expect(testTrack.assignments).toEqual([{ splitName: 'wine', variant: 'red', context: null }]);
+    });
+  });
+
+  describe('.overrideVisitorId()', () => {
+    const configURL =
+      'http://testtrack.dev/api/v4/apps/test_app/versions/1.0.0/builds/2019-04-16T14:35:30Z/visitors/OTHER_VISITOR_ID/config';
+
+    beforeEach(() => {
+      server.use(
+        http.get(configURL, () => {
+          return HttpResponse.json<V4VisitorConfig>({
+            splits: [
+              {
+                name: 'wine',
+                variants: [
+                  { name: 'red', weight: 0 },
+                  { name: 'white', weight: 100 }
+                ],
+                feature_gate: false
+              }
+            ],
+            visitor: {
+              id: 'OTHER_VISITOR_ID',
+              assignments: [{ split_name: 'wine', variant: 'white' }]
+            },
+            experience_sampling_weight: 10
+          });
+        })
+      );
+    });
+
+    it('adopts the visitor id and its config', async () => {
+      const testTrack = createTestTrack([{ splitName: 'wine', variant: 'red', context: null }]);
+
+      await testTrack.overrideVisitorId('OTHER_VISITOR_ID');
+
+      expect(await getRequests()).toEqual([{ method: 'GET', url: configURL, body: null }]);
+      expect(testTrack.visitorId).toBe('OTHER_VISITOR_ID');
+      expect(testTrack.assignments).toEqual([{ splitName: 'wine', variant: 'white', context: null }]);
+    });
+
+    it('persists the adopted visitor and split registry', async () => {
+      const testTrack = createTestTrack();
+
+      await testTrack.overrideVisitorId('OTHER_VISITOR_ID');
+
+      expect(storage.setVisitorId).toHaveBeenCalledWith('OTHER_VISITOR_ID');
+      expect(storage.setAssignments).toHaveBeenCalledWith([{ splitName: 'wine', variant: 'white', context: null }]);
+      expect(storage.setSplitRegistry).toHaveBeenCalledWith([
+        { name: 'wine', isFeatureGate: false, weighting: { red: 0, white: 100 } }
+      ]);
+    });
+
+    it('ignores the override when a visitor is logged in', async () => {
+      storage.getLoginState.mockReturnValue(true);
+      const testTrack = createTestTrack();
+
+      await testTrack.overrideVisitorId('OTHER_VISITOR_ID');
+
+      expect(await getRequests()).toEqual([]);
+      expect(testTrack.visitorId).toBe('EXISTING_VISITOR_ID');
     });
   });
 });

@@ -18,8 +18,9 @@ type CookieStorageConfig = {
   name?: string;
 };
 
-export function createCookieStorage(config: CookieStorageConfig): StorageProvider {
+export function createCookieStorage(config: CookieStorageConfig): Required<StorageProvider> {
   const name = config.name ?? 'tt_visitor_id';
+  const loginStateKey = `${name}_login_state`;
 
   return {
     getVisitorId() {
@@ -39,6 +40,21 @@ export function createCookieStorage(config: CookieStorageConfig): StorageProvide
     getSplitRegistry() {
       return undefined;
     },
-    setSplitRegistry() {}
+    setSplitRegistry() {},
+    getLoginState() {
+      try {
+        return sessionStorage.getItem(loginStateKey) === 'true';
+      } catch {
+        // The browser blocks site data, so the login state is unknowable.
+        return undefined;
+      }
+    },
+    setLoginState(isLoggedIn) {
+      try {
+        sessionStorage.setItem(loginStateKey, String(isLoggedIn));
+      } catch {
+        // The browser blocks site data, so there is nowhere to record this.
+      }
+    }
   };
 }

@@ -6,6 +6,8 @@ export type ClientConfig = {
   appName: string;
   appVersion: string;
   buildTimestamp: string;
+  /** Used for every request. Defaults to the global `fetch`. */
+  fetch?: typeof fetch;
 };
 
 export * from './types';
@@ -24,6 +26,7 @@ export function createClient(config: ClientConfig) {
   return {
     async getVisitorConfig(visitorId: string): Promise<V4VisitorConfig> {
       const { data } = await request<V4VisitorConfig>({
+        fetch: config.fetch,
         method: 'GET',
         url: urlFor(`${buildURL}/visitors/${visitorId}/config`, base),
         timeout: 5000
@@ -34,6 +37,7 @@ export function createClient(config: ClientConfig) {
 
     async postIdentifier(params: V4IdentifierParams): Promise<V4VisitorConfig> {
       const { data } = await request<V4VisitorConfig>({
+        fetch: config.fetch,
         method: 'POST',
         url: urlFor(`${buildURL}/identifier`, base),
         body: JSON.stringify(params)
@@ -44,6 +48,7 @@ export function createClient(config: ClientConfig) {
 
     async postAssignmentOverride({ auth, visitor_id, assignments }: V2AssignmentOverrideParams): Promise<void> {
       await request({
+        fetch: config.fetch,
         method: 'POST',
         url: urlFor(`/api/v2/visitors/${visitor_id}/assignment_overrides`, base),
         body: JSON.stringify({ assignments }),
@@ -53,6 +58,7 @@ export function createClient(config: ClientConfig) {
 
     async postAssignmentEvent(params: V1AssignmentEventParams): Promise<void> {
       await request({
+        fetch: config.fetch,
         method: 'POST',
         url: urlFor('/api/v1/assignment_event', base),
         body: JSON.stringify(params)

@@ -48,6 +48,7 @@ const testTrack = await load({
 - `client.appName` - Your application name
 - `client.appVersion` - Your application version
 - `client.buildTimestamp` - The build timestamp (ISO 8601 format)
+- `client.fetch` (optional) - A custom `fetch` to make requests with, e.g. to add headers. Defaults to the global `fetch`
 - `storage` - A storage provider for persisting visitor IDs (e.g. `createCookieStorage()`)
 - `analytics` (optional) - An analytics provider for tracking assignments (see [Advanced Configuration](#advanced-configuration))
 - `errorLogger` (optional) - A function for logging errors

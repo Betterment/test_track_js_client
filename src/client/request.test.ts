@@ -48,6 +48,25 @@ describe('request', () => {
     expect(result).toEqual({ data: { ok: true } });
   });
 
+  it('sends the request with a custom fetch', async () => {
+    server.use(
+      http.get(url, ({ request }) => {
+        expect(request.headers.get('user-agent')).toEqual('custom-agent');
+        expect(request.headers.get('accept')).toEqual('application/json');
+        return HttpResponse.json({ ok: true });
+      })
+    );
+
+    const customFetch: typeof fetch = (input, init) => {
+      const headers = new Headers(init?.headers);
+      headers.set('User-Agent', 'custom-agent');
+      return fetch(input, { ...init, headers });
+    };
+
+    const result = await request({ method: 'GET', url: new URL(url), fetch: customFetch });
+    expect(result).toEqual({ data: { ok: true } });
+  });
+
   it('throws when response is not ok', async () => {
     server.use(http.get(url, () => new HttpResponse(null, { status: 500 })));
 

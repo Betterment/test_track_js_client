@@ -4,6 +4,7 @@ type RequestOptions = {
   timeout?: number;
   body?: string;
   auth?: { username: string; password: string };
+  fetch?: typeof fetch;
 };
 
 export async function request<T>(options: RequestOptions): Promise<{ data: T }> {
@@ -21,7 +22,7 @@ export async function request<T>(options: RequestOptions): Promise<{ data: T }> 
     headers.append('Authorization', `Basic ${credential}`);
   }
 
-  const response = await fetch(options.url, {
+  const response = await (options.fetch ?? fetch)(options.url, {
     method: options.method,
     body: options.body,
     headers,
